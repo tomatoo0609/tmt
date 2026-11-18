@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-#define EXL_MODULE_NAME "inkdraw"
+#define EXL_MODULE_NAME "tmt"
 
 #define EXL_DEBUG
 #define EXL_USE_FAKEHEAP

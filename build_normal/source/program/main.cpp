@@ -159,10 +159,10 @@ namespace {
     /* ---- 画像ファイル (SD カード) -------------------------------------------- */
     /* SD カードの  sd:/inkdraw/image.png  (または image.bmp) を読む。
        白黒を反転したいときは image_inv.png / image_inv.bmp。 */
-    constexpr const char* kMountName = "inkd";
+    constexpr const char* kMountName = "tmt";
     constexpr const char* kImagePaths[] = {
-        "inkd:/inkdraw/image.png",     "inkd:/inkdraw/image.bmp",
-        "inkd:/inkdraw/image_inv.png", "inkd:/inkdraw/image_inv.bmp",
+        "tmt:/tmt/image.png",     "tmt:/tmt/image.bmp",
+        "tmt:/tmt/image_inv.png", "tmt:/tmt/image_inv.bmp",
     };
     constexpr bool kImageInvert[] = { false, false, true, true };
     constexpr int kMaxDim = sdimage::kMaxDim;
@@ -327,7 +327,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 706;
+    constexpr int kInkVer = 100; /* tmt 1.0.0 (Inkdraw の番号とは別に 100 から) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -664,13 +664,13 @@ namespace {
             if (rc != 0) return false;
             g_DumpMounted = true;
         }
-        const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw");
+        const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt");
         return true;
     }
     bool AtExists(uintptr_t sdk) {
         using OpenFn = u32 (*)(FileHandle*, const char*, int); using CloseFn = void (*)(FileHandle);
         FileHandle fh { nullptr };
-        if (reinterpret_cast<OpenFn>(sdk + kSdkOpenFile)(&fh, "inkd:/inkdraw/autotitle.flag", 1) != 0) return false;
+        if (reinterpret_cast<OpenFn>(sdk + kSdkOpenFile)(&fh, "tmt:/tmt/autotitle.flag", 1) != 0) return false;
         reinterpret_cast<CloseFn>(sdk + kSdkCloseFile)(fh);
         return true;
     }
@@ -679,8 +679,8 @@ namespace {
         if (!sdk || !AtMount(sdk)) return;
         using CreateFn = u32 (*)(const char*, s64); using DelFn = u32 (*)(const char*);
         if (save) {
-            if (g_AutoTitle) { if (!AtExists(sdk)) reinterpret_cast<CreateFn>(sdk + 0xA9E70)("inkd:/inkdraw/autotitle.flag", 1); }
-            else reinterpret_cast<DelFn>(sdk + 0xA9E80)("inkd:/inkdraw/autotitle.flag");
+            if (g_AutoTitle) { if (!AtExists(sdk)) reinterpret_cast<CreateFn>(sdk + 0xA9E70)("tmt:/tmt/autotitle.flag", 1); }
+            else reinterpret_cast<DelFn>(sdk + 0xA9E80)("tmt:/tmt/autotitle.flag");
         } else {
             g_AutoTitle = AtExists(sdk);
             g_AutoRun = g_AutoTitle; /* 起動したときに ON なら、今回のタイトルを自動で進める */
@@ -722,7 +722,7 @@ namespace {
             g_Mounted = true;
         }
 
-        g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+        g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         const size_t nPaths = only ? 1 : sizeof(kImagePaths) / sizeof(kImagePaths[0]);
         bool onlyInv = false;
         if (only) for (const char* q = only; *q; q++) if (q[0] == '_' && q[1] == 'i' && q[2] == 'n' && q[3] == 'v') onlyInv = true;
@@ -766,7 +766,7 @@ namespace {
         using ReadDirFn = u32 (*)(s64*, void*, void*, s64);
         using CloseDirFn = void (*)(void*);
         void* h = nullptr;
-        if (reinterpret_cast<OpenDirFn>(sdk + 0xAB3B0)(&h, "inkd:/inkdraw", 2 /* ファイルだけ */) != 0 || !h) return;
+        if (reinterpret_cast<OpenDirFn>(sdk + 0xAB3B0)(&h, "tmt:/tmt", 2 /* ファイルだけ */) != 0 || !h) return;
         static u8 ent[8 * 0x310];
         int n = 0;
         for (int guard = 0; guard < 16 && n < 32; guard++) {
@@ -918,10 +918,10 @@ namespace {
         if (LoadImageFile() == LoadResult::MountFailed) return; /* SD のマウント (と関数の用意) をここで済ませる */
         static char buf[0x10000];
         const char* names[] = {
-            "inkd:/inkdraw/patches.pchtxt",  "inkd:/inkdraw/patch1.pchtxt", "inkd:/inkdraw/patch2.pchtxt",
-            "inkd:/inkdraw/patch3.pchtxt", "inkd:/inkdraw/patch4.pchtxt", "inkd:/inkdraw/patch5.pchtxt",
-            "inkd:/inkdraw/patch6.pchtxt", "inkd:/inkdraw/patch7.pchtxt", "inkd:/inkdraw/patch8.pchtxt",
-            "inkd:/inkdraw/patch9.pchtxt",
+            "tmt:/tmt/patches.pchtxt",  "tmt:/tmt/patch1.pchtxt", "tmt:/tmt/patch2.pchtxt",
+            "tmt:/tmt/patch3.pchtxt", "tmt:/tmt/patch4.pchtxt", "tmt:/tmt/patch5.pchtxt",
+            "tmt:/tmt/patch6.pchtxt", "tmt:/tmt/patch7.pchtxt", "tmt:/tmt/patch8.pchtxt",
+            "tmt:/tmt/patch9.pchtxt",
         };
         int fileIdx = -1;
         for (const char* nm : names) {
@@ -1056,7 +1056,7 @@ namespace {
         using CloseDirFn = void (*)(void*);
         g_ScareN = 0;
         void* h = nullptr;
-        if (reinterpret_cast<OpenDirFn>(sdk + 0xAB3B0)(&h, "inkd:/inkdraw/scare", 2) != 0 || !h) return;
+        if (reinterpret_cast<OpenDirFn>(sdk + 0xAB3B0)(&h, "tmt:/tmt/scare", 2) != 0 || !h) return;
         static u8 ent[8 * 0x310];
         int n = 0;
         for (int guard = 0; guard < 8 && n < 16; guard++) {
@@ -1077,7 +1077,7 @@ namespace {
         g_ScareN = n;
     }
     bool ScareLoad(int idx) {
-        char path[128]; const char* pre = "inkd:/inkdraw/scare/"; int k = 0;
+        char path[128]; const char* pre = "tmt:/tmt/scare/"; int k = 0;
         while (pre[k]) { path[k] = pre[k]; k++; }
         for (int i = 0; g_ScareNames[idx][i] && k < 126; i++) path[k++] = g_ScareNames[idx][i];
         path[k] = 0;
@@ -2364,7 +2364,7 @@ namespace {
             /* ログ全消去: SD の inkdraw/bin の中身 (診断のログ) を全部消す */
             const uintptr_t sdk = AtSdk();
             if (!sdk || !AtMount(sdk)) g_LogClrState = 2;
-            else { using CleanFn = u32 (*)(const char*); g_LogClrState = reinterpret_cast<CleanFn>(sdk + 0xAA4C0)("inkd:/inkdraw/bin") == 0 ? 1 : 2; }
+            else { using CleanFn = u32 (*)(const char*); g_LogClrState = reinterpret_cast<CleanFn>(sdk + 0xAA4C0)("tmt:/tmt/bin") == 0 ? 1 : 2; }
         }
         if (g_NameRnd) {
             static const char* const kRn[28] = { T("ファントム","Phantom"), T("シャドウ","Shadow"), T("ナイトメア","Nightmare"), T("ヴォイド","Void"), T("クロノス","Chronos"), T("レイジ","Rage"), T("ネメシス","Nemesis"), T("エクリプス","Eclipse"), T("ヴァルキリー","Valkyrie"), T("アビス","Abyss"), T("ストライカー","Striker"), T("ゴースト","Ghost"), T("オメガ","Omega"), T("ジョーカー","Joker"), T("カオス","Chaos"), T("ルシファー","Lucifer"), T("サイレント","Silent"), T("ディアブロ","Diablo"), T("ハイドラ","Hydra"), T("バンシー","Banshee"), T("ノヴァ","Nova"), T("ラグナロク","Ragnarok"), T("スペクター","Specter"), T("ヴェノム","Venom"), T("ゼノン","Xenon"), "Phantom", "Eclipse", "NEMESIS" };
@@ -3018,7 +3018,7 @@ namespace {
     /* 版 644: 調べもの用のファイル (inkdraw/bin の中など) はもう作らない */
     static uintptr_t g_CreSdk = 0;
     static bool NoWriteName(const char* n) {
-        static const char* const kNg[3] = { "/inkdraw/bin/", "wp_diag", "wp_hook" };
+        static const char* const kNg[3] = { "/tmt/bin/", "wp_diag", "wp_hook" };
         for (const char* k : kNg) for (const char* q = n; *q; q++) { const char* a = q; const char* b = k; while (*a && *b && *a == *b) { a++; b++; } if (!*b) return true; }
         return false;
     }
@@ -3036,7 +3036,7 @@ namespace {
     u32 g_DumpResult = 0xFFFFFFFF;
 
     void HexName(char* out, u32 v) {
-        const char* p = "inkd:/inkdraw/bin/inkdump_";
+        const char* p = "tmt:/tmt/bin/inkdump_";
         while (*p) *out++ = *p++;
         for (int i = 7; i >= 0; i--) *out++ = "0123456789abcdef"[(v >> (i * 4)) & 15];
         const char* e = ".bin";
@@ -3059,7 +3059,7 @@ namespace {
             if (rc != 0)
                 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
 
         std::memset(g_DumpBuf, 0, sizeof(g_DumpBuf));
@@ -3137,7 +3137,7 @@ namespace {
             if (rc != 0)
                 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
         std::memset(g_StkBuf, 0, sizeof(g_StkBuf));
         u64 t; asm volatile("mrs %0, cntpct_el0" : "=r"(t));
@@ -3187,7 +3187,7 @@ namespace {
         hd[10] = g_ScanRuns; hd[11] = g_ScanFound; hd[12] = g_PosObj; hd[13] = g_FireHeld ? 1 : 0;
 
         char name[48];
-        const char* p = "inkd:/inkdraw/bin/inkstk_"; char* q = name;
+        const char* p = "tmt:/tmt/bin/inkstk_"; char* q = name;
         while (*p) *q++ = *p++;
         for (int i = 7; i >= 0; i--) *q++ = "0123456789abcdef"[(static_cast<u32>(t >> 4) >> (i * 4)) & 15];
         *q++ = '.'; *q++ = 'b'; *q++ = 'i'; *q++ = 'n'; *q = 0;
@@ -3285,7 +3285,7 @@ namespace {
             if (rc != 0)
                 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
         std::memset(g_ScanOut, 0, sizeof(g_ScanOut));
         u64 t; asm volatile("mrs %0, cntpct_el0" : "=r"(t));
@@ -3312,7 +3312,7 @@ namespace {
         hd[7] = static_cast<u64>(n);
 
         char name[48];
-        const char* p = "inkd:/inkdraw/bin/inkscn_"; char* q = name;
+        const char* p = "tmt:/tmt/bin/inkscn_"; char* q = name;
         while (*p) *q++ = *p++;
         for (int i = 7; i >= 0; i--) *q++ = "0123456789abcdef"[(static_cast<u32>(t >> 4) >> (i * 4)) & 15];
         *q++ = '.'; *q++ = 'b'; *q++ = 'i'; *q++ = 'n'; *q = 0;
@@ -3406,7 +3406,7 @@ namespace {
             if (rc != 0)
                 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
         std::memset(g_StatBuf, 0, sizeof(g_StatBuf));
         u64 t; asm volatile("mrs %0, cntpct_el0" : "=r"(t));
@@ -3449,7 +3449,7 @@ namespace {
         if (g_LivePos && Readable(g_LivePos, 12))
             std::memcpy(g_StatBuf + 0xC0, reinterpret_cast<const void*>(g_LivePos), 12);
         char name[48];
-        const char* p = "inkd:/inkdraw/bin/inkstat_"; char* q = name;
+        const char* p = "tmt:/tmt/bin/inkstat_"; char* q = name;
         while (*p) *q++ = *p++;
         for (int i = 7; i >= 0; i--) *q++ = "0123456789abcdef"[(static_cast<u32>(t >> 4) >> (i * 4)) & 15];
         *q++ = '.'; *q++ = 'b'; *q++ = 'i'; *q++ = 'n'; *q = 0;
@@ -3565,7 +3565,7 @@ namespace {
             if (rc != 0)
                 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
         std::memset(g_PlrBuf, 0, sizeof(g_PlrBuf));
         u64 t; asm volatile("mrs %0, cntpct_el0" : "=r"(t));
@@ -3588,7 +3588,7 @@ namespace {
                 std::memcpy(e + 16, reinterpret_cast<const void*>(g_PlrBase + idx * kPlayerStride), 0x30); /* 表の1件の先頭 */
         }
         char name[48];
-        const char* pn = "inkd:/inkdraw/bin/inkplr_"; char* q = name;
+        const char* pn = "tmt:/tmt/bin/inkplr_"; char* q = name;
         while (*pn) *q++ = *pn++;
         for (int i = 7; i >= 0; i--) *q++ = "0123456789abcdef"[(static_cast<u32>(t >> 4) >> (i * 4)) & 15];
         *q++ = '.'; *q++ = 'b'; *q++ = 'i'; *q++ = 'n'; *q = 0;
@@ -3799,7 +3799,7 @@ namespace {
             if (rc != 0)
                 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
         std::memset(g_TrkBuf, 0, sizeof(g_TrkBuf));
         u64 t; asm volatile("mrs %0, cntpct_el0" : "=r"(t));
@@ -3952,7 +3952,7 @@ namespace {
             sz = 0x100 + static_cast<size_t>(n) * 40;
         }
         char name[48];
-        const char* pn = "inkd:/inkdraw/bin/inktrk_"; char* q = name;
+        const char* pn = "tmt:/tmt/bin/inktrk_"; char* q = name;
         while (*pn) *q++ = *pn++;
         for (int i = 7; i >= 0; i--) *q++ = "0123456789abcdef"[(static_cast<u32>(t >> 4) >> (i * 4)) & 15];
         *q++ = '.'; *q++ = 'b'; *q++ = 'i'; *q++ = 'n'; *q = 0;
@@ -4257,7 +4257,7 @@ namespace {
     static char g_LkLog[320 * 1024]; static int g_LkLen = 0, g_LkRows = 0; static bool g_LkSaved = false; static float g_LkDz = 0.0f; /* 記録は古い行から捨てて、最近の約 9 秒を残す。エイムボットを OFF にしたときに書く */
     static void LkSave() {
         if (!g_LkOn || g_LkLen <= 0 || g_LkSaved) return; g_LkSaved = true;
-        SdWriteAsync("inkd:/inkdraw/bin/lookdbg.txt", g_LkLog, static_cast<u32>(g_LkLen));
+        SdWriteAsync("tmt:/tmt/bin/lookdbg.txt", g_LkLog, static_cast<u32>(g_LkLen));
     }
     template <class... A> static void LkPut(const char* f, A... a) {
         if (!g_LkOn || g_LkSaved) return;
@@ -4402,7 +4402,7 @@ namespace {
             if (g_LoadT && tmOpen && !wroteOpen) { /* 時間の記録: ロードからの ms */
                 wroteOpen = true; char b[480]; auto ms = [&](u64 t) { return t ? static_cast<long>((t - g_LoadT) / 19200ull) : -1L; };
                 const int n = std::snprintf(b, sizeof(b), T("ロードから (ms)\nカメラが見つかった %ld\n自分の座標が見つかった %ld\n物探し 始め %ld 終わり %ld\n敵の体が見つかった %ld\n最初の敵が使えるようになった %ld\n最初の敵のボックスを描いた %ld\nカウントダウンのあと動き出した %ld\n","From load (ms)\ncamera found %ld\nown position found %ld\nobject search start %ld end %ld\nenemy body found %ld\nfirst enemy usable %ld\nfirst enemy box drawn %ld\nmoved after countdown %ld\n"), ms(tmCam), ms(tmSelf), ms(g_TmObjS), ms(g_TmObjE), ms(tmEn), ms(g_TmEnOk), ms(g_TmBoxEn), ms(tmOpen));
-                const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/timing.txt", b, static_cast<u32>(n));
+                const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/timing.txt", b, static_cast<u32>(n));
             }
             return true;
         }
@@ -4540,10 +4540,10 @@ namespace {
     static void AimStartLog() { /* SD の inkdraw/bin/aimstart.txt: ロードから 90 秒の間、0.5 秒ごとに「エイムボットが動く条件」を 1 行ずつ。90 秒で書く */
         static char b[24 * 1024]; static int n = 0; static u32 gen = 0xFFFFFFFFu; static u64 lt = 0; static bool done = false;
         const u64 now = NowTick(); if (!g_LoadT) return;
-        if (gen != g_LoadGen) { gen = g_LoadGen; n = std::snprintf(b, sizeof(b), T("inkdraw 試合の始まり 記録 (版 %d)\n秒 | カメラ 足元 座標 | 自分-追従先 | 敵の数 使える敵 | 狙っている 理由 | エイムON\n","inkdraw match-start log (build %d)\nsec | camera foot position | self-target | enemy count usable | targeting reason | aim ON\n"), kInkVer); lt = 0; done = false; }
+        if (gen != g_LoadGen) { gen = g_LoadGen; n = std::snprintf(b, sizeof(b), T("tmt 試合の始まり 記録 (版 %d)\n秒 | カメラ 足元 座標 | 自分-追従先 | 敵の数 使える敵 | 狙っている 理由 | エイムON\n","tmt match-start log (build %d)\nsec | camera foot position | self-target | enemy count usable | targeting reason | aim ON\n"), kInkVer); lt = 0; done = false; }
         if (done || now - lt < 9600000ull) return; lt = now;
         const float t = static_cast<float>(now - g_LoadT) / 19200000.0f;
-        if (t > 90.0f) { done = true; if (g_LookOn) SdWriteAsync("inkd:/inkdraw/bin/aimstart.txt", b, static_cast<u32>(n)); return; }
+        if (t > 90.0f) { done = true; if (g_LookOn) SdWriteAsync("tmt:/tmt/bin/aimstart.txt", b, static_cast<u32>(n)); return; }
         float sd = -1.0f; { const uintptr_t lp = __atomic_load_n(&g_LivePos, __ATOMIC_ACQUIRE); if (lp && LiveValid() && CamValid()) { const float* A = reinterpret_cast<const float*>(lp); const float* B = reinterpret_cast<const float*>(g_CamPos); sd = __builtin_sqrtf((A[0] - B[0]) * (A[0] - B[0]) + (A[2] - B[2]) * (A[2] - B[2])); } }
         int use = 0; { float q[3]; for (int k = 0; k < g_EnN; k++) if (EnPos(k, q)) use++; }
         if (n < static_cast<int>(sizeof(b)) - 200) n += std::snprintf(b + n, sizeof(b) - n, "%.1f | %d %d %d | %.1f | %d %d | %d %d | %d\n", static_cast<double>(t), CamValid() ? 1 : 0, FootValid() ? 1 : 0, LiveValid() ? 1 : 0, static_cast<double>(sd), static_cast<int>(g_EnN), use, g_LookActive ? 1 : 0, static_cast<int>(g_LookWhy), g_LookOn ? 1 : 0);
@@ -4564,7 +4564,7 @@ namespace {
         return;
         if (g_GaLogHold || g_GaLog.n < 20 || WrBusyNow()) return; /* 版 686: 20 行 (約 0.3 秒) から保存する */
         std::memcpy(g_GaLog.magic, "INKGA001", 8); g_GaLog.ver = static_cast<u32>(kInkVer); g_GaLog.G1[0] = g_GaG[1][0]; g_GaLog.G1[1] = g_GaG[1][1]; g_GaLog.G1[2] = g_GaG[1][2]; g_GaLog.pad = 0;
-        g_GaLogHold = true; SdWriteAsync("inkd:/inkdraw/bin/gyroaim.bin", &g_GaLog, static_cast<u32>(32u + g_GaLog.n * sizeof(GaRec)));
+        g_GaLogHold = true; SdWriteAsync("tmt:/tmt/bin/gyroaim.bin", &g_GaLog, static_cast<u32>(32u + g_GaLog.n * sizeof(GaRec)));
     }
     static void GaLogPush(u64 now, float ep, float pit, float th, float w, float f2, float epp, float Tv, float hd, float dyy) {
         (void)now; (void)ep; (void)pit; (void)th; (void)w; (void)f2; (void)epp; (void)Tv; (void)hd; (void)dyy; return;
@@ -4679,10 +4679,10 @@ namespace {
         AngTick();
         struct AimSave { char m[8]; float kx, ky; s32 nX, nY, vgi, vgk, pgi, pgk; };
         static bool aimLoaded = false; static u64 aimSavedT = 0;
-        auto aimSave = [&] { const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return; AimSave a; std::memcpy(a.m, "INKAIM01", 8); a.kx = kx; a.ky = ky; a.nX = nX; a.nY = nY; a.vgi = g_VGoodI; a.vgk = g_VGoodK; a.pgi = -1; a.pgk = 0; /* 上下を直接書く場所は使わない (328 と同じ: 上下はスティックで合わせる) */ UpdWrite(sdk, "inkd:/inkdraw/aim.dat", &a, sizeof(a)); };
+        auto aimSave = [&] { const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return; AimSave a; std::memcpy(a.m, "INKAIM01", 8); a.kx = kx; a.ky = ky; a.nX = nX; a.nY = nY; a.vgi = g_VGoodI; a.vgk = g_VGoodK; a.pgi = -1; a.pgk = 0; /* 上下を直接書く場所は使わない (328 と同じ: 上下はスティックで合わせる) */ UpdWrite(sdk, "tmt:/tmt/aim.dat", &a, sizeof(a)); };
         if (g_LookOn && !aimLoaded) { /* 前に覚えた回る速さと、向きを直接書ける場所を読む (使い始めの数秒、視点がおかしくならないように) */
             aimLoaded = true; const uintptr_t sdk = UpdSdk();
-            if (sdk && UpdMount(sdk)) { AimSave a; if ((UpdReadSmall(sdk, "inkd:/inkdraw/aim.dat", reinterpret_cast<char*>(&a), sizeof(a)) == static_cast<int>(sizeof(a))) && std::memcmp(a.m, "INKAIM01", 8) == 0) {
+            if (sdk && UpdMount(sdk)) { AimSave a; if ((UpdReadSmall(sdk, "tmt:/tmt/aim.dat", reinterpret_cast<char*>(&a), sizeof(a)) == static_cast<int>(sizeof(a))) && std::memcmp(a.m, "INKAIM01", 8) == 0) {
                 if (a.kx == a.kx && a.kx > -1e-3f && a.kx < 1e-3f && (a.kx > 2e-6f || a.kx < -2e-6f)) { kx = a.kx; nX = a.nX > 3 ? 3 : a.nX; }
                 if (a.ky == a.ky && a.ky > -1e-3f && a.ky < 1e-3f && (a.ky > 2e-6f || a.ky < -2e-6f)) { ky = a.ky; nY = a.nY > 3 ? 3 : a.nY; }
                 if (g_VGoodI < 0 && a.vgi >= 0 && a.vgi + 2 < kAngN && (a.vgk == 2 || a.vgk == 3)) { g_VGoodI = a.vgi; g_VGoodK = a.vgk; } } }
@@ -4692,7 +4692,7 @@ namespace {
         if (!g_LookOn) { g_LookActive = false; { g_GyroVirt = false; g_GyroW = 0.0f; } haveP2Init = false; g_VF.banN = 0; if (was) LkSave(); was = false; haveP = false; g_LookRx = 0; g_LookRy = 0; g_LookPause = false; return; }
         const u64 now = NowTick(); if (now - lastT < 200000ull) return; const u64 dtT = now - lastT; lastT = now;
         if (g_LookAHold && !(g_BtnNow & 1ull)) { g_LookActive = false; g_LookWhy = 7; g_LookRx = 0; g_LookRy = 0; { g_GyroVirt = false; g_GyroW = 0.0f; } haveP = false; return; } /* A押しの間だけ: A を離している間は向かない (A はゲームにもそのまま伝わる) */ /* 1 フレームに 1 回 (読み取りの揺れで飛ばさないよう 10ms で区切る) */
-        if (!was) { was = true; haveP = false; g_LkLen = 0; g_LkRows = 0; g_LkSaved = false; LkPut(T("inkdraw 地点を見る 記録 (版 %d)\n行: 番号 | 目 xyz | 追従先 xyz | 向き xyz | 今→地点 (ラジアン) | ずれ(度) | 見つけた向き (数 ok数 ng数 最初の位置:種類) | スティック x y\n","inkdraw look-at-point log (build %d)\nrow: # | eye xyz | target xyz | dir xyz | now->point (radians) | diff(deg) | found dir (count ok ng first pos:type) | stick x y\n"), kInkVer); }
+        if (!was) { was = true; haveP = false; g_LkLen = 0; g_LkRows = 0; g_LkSaved = false; LkPut(T("tmt 地点を見る 記録 (版 %d)\n行: 番号 | 目 xyz | 追従先 xyz | 向き xyz | 今→地点 (ラジアン) | ずれ(度) | 見つけた向き (数 ok数 ng数 最初の位置:種類) | スティック x y\n","tmt look-at-point log (build %d)\nrow: # | eye xyz | target xyz | dir xyz | now->point (radians) | diff(deg) | found dir (count ok ng first pos:type) | stick x y\n"), kInkVer); }
         g_LookPause = false; /* 自分で右スティックを動かしても、地点を向き続ける (右スティックは置き換える) */
         float c[3], Tt[3];
         if (!LookTarget(Tt)) {
@@ -4930,7 +4930,7 @@ namespace {
         sortD(best, nb); sortD(ang, na); sortD(pos, np);
         const intptr_t off0 = static_cast<intptr_t>(g_ScBase) - static_cast<intptr_t>(g_CamPos);
         int L = 0; auto put = [&](const char* f, auto... a) { if (L < static_cast<int>(sizeof(g_ScTxt)) - 160) L += std::snprintf(g_ScTxt + L, sizeof(g_ScTxt) - L, f, a...); };
-        put(T("inkdraw 視点探し (追従先 = 55.0 の 0x20 前。オフセットは追従先から)\n追従先 %.2f %.2f %.2f\n\n[向き: float 3 つ]\n","inkdraw camera search (target = 0x20 before 55.0; offsets are from target)\ntarget %.2f %.2f %.2f\n\n[direction: 3 floats]\n"), tx, ty, tz);
+        put(T("tmt 視点探し (追従先 = 55.0 の 0x20 前。オフセットは追従先から)\n追従先 %.2f %.2f %.2f\n\n[向き: float 3 つ]\n","tmt camera search (target = 0x20 before 55.0; offsets are from target)\ntarget %.2f %.2f %.2f\n\n[direction: 3 floats]\n"), tx, ty, tz);
         for (int k = 0; k < nb; k++) { const intptr_t o = off0 + best[k].i * 4; const float* v = g_ScS[4] + best[k].i; put(T("%c0x%X  左右%.1f度 上下%.3f  今 (%.3f %.3f %.3f)\n","%c0x%X  yaw%.1fdeg pitch%.3f  now (%.3f %.3f %.3f)\n"), o < 0 ? '-' : '+', static_cast<unsigned>(o < 0 ? -o : o), best[k].dyaw, best[k].dp, v[0], v[1], v[2]); }
         put(T("\n[角度: float 1 つ]\n","\n[Angle: 1 float]\n"));
         for (int k = 0; k < na; k++) { const intptr_t o = off0 + ang[k].i * 4; put(T("%c0x%X  変化 %.3f  今 %.3f\n","%c0x%X  change %.3f  now %.3f\n"), o < 0 ? '-' : '+', static_cast<unsigned>(o < 0 ? -o : o), ang[k].dyaw, g_ScS[4][ang[k].i]); }
@@ -4953,9 +4953,9 @@ namespace {
             u32 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCard)(kMountName);
             if (rc != 0) rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
-        const char* name = "inkd:/inkdraw/bin/camscan.txt";
+        const char* name = "tmt:/tmt/bin/camscan.txt";
         reinterpret_cast<DelFn>(sdk + 0xA9E80)(name);
         if ((g_CreSdk = sdk, &GuardCreate)(name, L) != 0) return;
         FileHandle fh { nullptr };
@@ -5136,7 +5136,7 @@ namespace {
             else if (u.conHand(con) != 0) rc = 20;
             else {
                 char req[512];
-                const int rl = std::snprintf(req, sizeof(req), "GET /%s/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: inkdraw\r\nAccept-Encoding: identity\r\nConnection: close\r\n\r\n", g_UpdPath, rel, g_UpdHost);
+                const int rl = std::snprintf(req, sizeof(req), "GET /%s/%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: tmt\r\nAccept-Encoding: identity\r\nConnection: close\r\n\r\n", g_UpdPath, rel, g_UpdHost);
                 int wr = 0;
                 if (u.conWrite(con, req, &wr, static_cast<u32>(rl)) != 0 || wr <= 0) rc = 21;
                 else {
@@ -5201,7 +5201,7 @@ namespace {
             if (rc != 0) return false;
             g_DumpMounted = true;
         }
-        const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw");
+        const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt");
         return true;
     }
     static int UpdReadSmall(uintptr_t sdk, const char* name, char* out, int cap) {
@@ -5283,7 +5283,7 @@ namespace {
         UpdApi& u = g_Ua;
         const uintptr_t sdk = UpdSdk();
         using DelFn = u32 (*)(const char*);
-        static const char* const kBusy = "inkd:/inkdraw/upd_busy.flag";
+        static const char* const kBusy = "tmt:/tmt/upd_busy.flag";
         for (;;) {
             if (g_UpdAutoPhase == 1 && !g_UpdReq) g_UpdAutoPhase = 2; /* 自動の確認が終わった (起動の表示を引っこめる) */
             while (!g_UpdReq) u.sleepNs(100000000ll);
@@ -5292,7 +5292,7 @@ namespace {
             g_UpdErr = 0;
             if (!sdk || !UpdMount(sdk)) { if (manual) UpdFinish(5, 1); else g_UpdState = 0; continue; }
             { /* 場所の設定 */
-                char t[300]; int n = UpdReadSmall(sdk, "inkd:/inkdraw/update_url.txt", t, sizeof(t));
+                char t[300]; int n = UpdReadSmall(sdk, "tmt:/tmt/update_url.txt", t, sizeof(t));
                 if (n <= 8) { const char* d = "raw.githubusercontent.com/tomatoo0609/modmenu/main/update"; n = 0; while (d[n] && n < static_cast<int>(sizeof(t)) - 1) { t[n] = d[n]; n++; } } /* ファイルが無いときは、いつもの場所 */
                 int i = 0; while (i < n && (t[i] == ' ' || t[i] == '\r' || t[i] == '\n' || static_cast<u8>(t[i]) == 0xEF || static_cast<u8>(t[i]) == 0xBB || static_cast<u8>(t[i]) == 0xBF)) i++;
                 if (n > 8 && t[i] == 'h') { while (i < n && t[i] != '/') i++; while (i < n && t[i] == '/') i++; } /* https:// を飛ばす */
@@ -5546,7 +5546,7 @@ namespace {
         static char t[24 * 1024]; int L = 0;
         auto put = [&](const char* fm, auto... a) { if (L < static_cast<int>(sizeof(t)) - 200) L += std::snprintf(t + L, sizeof(t) - L, fm, a...); };
         const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start, me = mb + exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Size;
-        put(T("inkdraw アドレスサーチ (版 %d)  残り %d 件%s\n基準 (カメラの追従先) %.2f %.2f %.2f\n今の足元の座標の場所 (g_LivePos) 0x%lx / 追従先の場所 0x%lx\n\n","inkdraw address search (build %d)  remaining %d%s\nbase (camera target) %.2f %.2f %.2f\ncurrent foot position address (g_LivePos) 0x%lx / target address 0x%lx\n\n"), kInkVer, static_cast<int>(g_AsN), g_AsOver ? T(" (集めすぎて途中まで)"," (collected too many, partial)") : "", g_AsRef[0], g_AsRef[1], g_AsRef[2], static_cast<unsigned long>(__atomic_load_n(&g_LivePos, __ATOMIC_ACQUIRE)), static_cast<unsigned long>(g_CamPos));
+        put(T("tmt アドレスサーチ (版 %d)  残り %d 件%s\n基準 (カメラの追従先) %.2f %.2f %.2f\n今の足元の座標の場所 (g_LivePos) 0x%lx / 追従先の場所 0x%lx\n\n","tmt address search (build %d)  remaining %d%s\nbase (camera target) %.2f %.2f %.2f\ncurrent foot position address (g_LivePos) 0x%lx / target address 0x%lx\n\n"), kInkVer, static_cast<int>(g_AsN), g_AsOver ? T(" (集めすぎて途中まで)"," (collected too many, partial)") : "", g_AsRef[0], g_AsRef[1], g_AsRef[2], static_cast<unsigned long>(__atomic_load_n(&g_LivePos, __ATOMIC_ACQUIRE)), static_cast<unsigned long>(g_CamPos));
         { /* まとめ: いちばん近い「main の値」と距離の組ごとに数える (ロードやステージを変えても同じ組が出てくれば、それで探せる) */
             static uintptr_t kv[256]; static u32 kd[256]; static int kc[256]; int kn = 0;
             for (int k = 0; k < g_AsN; k++) {
@@ -5576,8 +5576,8 @@ namespace {
             if (a == __atomic_load_n(&g_LivePos, __ATOMIC_ACQUIRE)) put(T("  <- 今の足元の座標","  <- current foot position"));
             put("\n");
         }
-        static int nth = 0; nth++; char nm[64]; std::snprintf(nm, sizeof(nm), "inkd:/inkdraw/bin/addrsearch_%d.txt", nth); /* 何回目かの番号付きでも残す (くらべるため) */
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) { UpdWrite(sdk, "inkd:/inkdraw/bin/addrsearch.txt", t, static_cast<u32>(L)); UpdWrite(sdk, nm, t, static_cast<u32>(L)); }
+        static int nth = 0; nth++; char nm[64]; std::snprintf(nm, sizeof(nm), "tmt:/tmt/bin/addrsearch_%d.txt", nth); /* 何回目かの番号付きでも残す (くらべるため) */
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) { UpdWrite(sdk, "tmt:/tmt/bin/addrsearch.txt", t, static_cast<u32>(L)); UpdWrite(sdk, nm, t, static_cast<u32>(L)); }
     }
     /* 版 615: 見つかった場所を「持ち主の物」ごとにまとめる (前にある main の値 = vtable らしい物 と、そこからの距離で見分ける) */
     constexpr int kAsGMax = 256;
@@ -5607,12 +5607,12 @@ namespace {
         const int best = g_AsBest;
         static char t[8 * 1024]; int L = 0;
         auto put = [&](const char* fm, auto... a) { if (L < static_cast<int>(sizeof(t)) - 200) L += std::snprintf(t + L, sizeof(t) - L, fm, a...); };
-        put(T("inkdraw 書き込みテスト (版 %d)  組 %d / 候補 %d\n高さ +3 を 0.5 秒 (ゲームのプレイヤー処理の中で毎フレーム) 書いて、キャラ (カメラが追う位置) が何上がったか。1 以上なら効いている\n","inkdraw write test (build %d)  groups %d / candidates %d\nWrite height +3 for 0.5 s (every frame inside the game's player update) and see how far the character (camera-follow position) rose. 1 or more = works\n"), kInkVer, g_AsGn, g_AsN);
+        put(T("tmt 書き込みテスト (版 %d)  組 %d / 候補 %d\n高さ +3 を 0.5 秒 (ゲームのプレイヤー処理の中で毎フレーム) 書いて、キャラ (カメラが追う位置) が何上がったか。1 以上なら効いている\n","tmt write test (build %d)  groups %d / candidates %d\nWrite height +3 for 0.5 s (every frame inside the game's player update) and see how far the character (camera-follow position) rose. 1 or more = works\n"), kInkVer, g_AsGn, g_AsN);
         put(T("全部いっしょに書いたとき: %.2f 上がった\n試した順 (組の番号の範囲 → 上がった高さ):\n","All at once: rose %.2f\nTests (group range -> rise):\n"), g_AsAllRise);
         for (int x = 0; x < g_AsLogN; x++) put("  [%d, %d) -> %.2f\n", g_AsLog[x][0], g_AsLog[x][1], g_AsLogR[x]);
         if (best >= 0) put(T("効いた組: %d 番\n\n","Working group: #%d\n\n"), best); else put("\n");
         for (int j = 0; j < g_AsGn; j++) put("%d: main+0x%lx @-0x%x | %d%s\n", j, static_cast<unsigned long>(g_AsGvt[j]), static_cast<unsigned>(g_AsGd[j]), g_AsGc[j], j == best ? T("  <- 効いた","  <- works") : "");
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/writetest.txt", t, static_cast<u32>(L));
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/writetest.txt", t, static_cast<u32>(L));
     }
     /* 版 618: フリーフライが ON で、キャラの位置を持つ物がまだ分からないとき、メモリから探す (1 秒に 1 回まで)。
        vtable main+0x5C52458 が入っている 8 バイトで、その +0x338 の xyz がキャラ (カメラが追う位置) の近くにある物 */
@@ -6067,10 +6067,10 @@ namespace {
             addr = end;
         }
         g_FgFound = true;
-        g_FgLogL = std::snprintf(g_FgLog, sizeof(g_FgLog), T("inkdraw バグフライの座標テスト (版 %d)\n足元 %.2f %.2f %.2f\n","inkdraw bug-fly position test (build %d)\nfeet %.2f %.2f %.2f\n"), kInkVer, R[0], R[1], R[2]);
+        g_FgLogL = std::snprintf(g_FgLog, sizeof(g_FgLog), T("tmt バグフライの座標テスト (版 %d)\n足元 %.2f %.2f %.2f\n","tmt bug-fly position test (build %d)\nfeet %.2f %.2f %.2f\n"), kInkVer, R[0], R[1], R[2]);
         for (int g = 0; g < kFlyGrpN; g++) if (g_FgLogL < 3800) g_FgLogL += std::snprintf(g_FgLog + g_FgLogL, sizeof(g_FgLog) - g_FgLogL, T("組%d main+0x%lx +0x%x : %d 個\n","Group %d main+0x%lx +0x%x : %d\n"), g, static_cast<unsigned long>(kFlyGrp[g].vt), static_cast<unsigned>(kFlyGrp[g].off), g_FgN[g]);
     }
-    static void FgSave() { const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/flytest.txt", g_FgLog, static_cast<u32>(g_FgLogL)); }
+    static void FgSave() { const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/flytest.txt", g_FgLog, static_cast<u32>(g_FgLogL)); }
     /* 組 g の全部に、動き (dx, dy, dz) を足す */
     static void FgMove(int g, float dx, float dy, float dz) {
         const uintptr_t vt = MainBase() + kFlyGrp[g].vt;
@@ -6124,9 +6124,9 @@ namespace {
         }
         { /* 記録: 浮いている間の 180 フレーム (書く前の高さ / 目標 / 足元の座標 / カメラの追従先) */
             static char lg[12 * 1024]; static int ll = 0, rows = 0; static bool saved = false;
-            if (rows == 0) { ll = std::snprintf(lg, sizeof(lg), T("inkdraw バグフライ記録 (版 %d) 効いた組 0x%x\n番号 | 書く前の高さ | 目標 | 足元の座標 y | 追従先 y\n","inkdraw bug-fly log (build %d) working group 0x%x\n# | height before | target | foot y | target y\n"), kInkVer, static_cast<unsigned>(g_FgMask)); saved = false; }
+            if (rows == 0) { ll = std::snprintf(lg, sizeof(lg), T("tmt バグフライ記録 (版 %d) 効いた組 0x%x\n番号 | 書く前の高さ | 目標 | 足元の座標 y | 追従先 y\n","tmt bug-fly log (build %d) working group 0x%x\n# | height before | target | foot y | target y\n"), kInkVer, static_cast<unsigned>(g_FgMask)); saved = false; }
             if (rows < 180 && ll < static_cast<int>(sizeof(lg)) - 100) { float sp[3] = {}; SelfPos(sp); const float cy = CamValid() ? reinterpret_cast<const float*>(g_CamPos)[1] : 0.0f; ll += std::snprintf(lg + ll, sizeof(lg) - ll, "%d | %.3f | %.3f | %.3f | %.3f\n", rows, y0, g_FgHY, sp[1] - kLiveHeight, cy); rows++; }
-            if (rows >= 180 && !saved) { saved = true; const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/flylog.txt", lg, static_cast<u32>(ll)); }
+            if (rows >= 180 && !saved) { saved = true; const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/flylog.txt", lg, static_cast<u32>(ll)); }
         }
         return true;
     }
@@ -6149,7 +6149,7 @@ namespace {
     static uintptr_t g_Ft2Obj[kFt2N][kFt2Obj]; static int g_Ft2ObjN[kFt2N];
     volatile int g_Ft2Step = 0, g_Ft2Grp = 0; volatile bool g_Ft2Wait = false; static int g_Ft2F = 0; static float g_Ft2Y0 = 0.0f, g_Ft2Max = 0.0f; static char g_Ft2Log[4096]; static int g_Ft2L = 0;
     static void Ft2Put(const char* s) { while (*s && g_Ft2L < static_cast<int>(sizeof(g_Ft2Log)) - 1) g_Ft2Log[g_Ft2L++] = *s++; g_Ft2Log[g_Ft2L] = 0; }
-    static void Ft2Save() { const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/flytest2.txt", g_Ft2Log, static_cast<u32>(g_Ft2L)); }
+    static void Ft2Save() { const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/flytest2.txt", g_Ft2Log, static_cast<u32>(g_Ft2L)); }
     static void Ft2Find() {
         std::memset(g_Ft2ObjN, 0, sizeof(g_Ft2ObjN));
         const float* C = reinterpret_cast<const float*>(g_CamPos); const float cx = C[0], cy = C[1], cz = C[2];
@@ -6196,7 +6196,7 @@ namespace {
         const float cy = reinterpret_cast<const float*>(g_CamPos)[1];
         if (g_Ft2Step == 1) { /* 探す */
             Ft2Find(); g_Ft2L = 0; char b[160];
-            std::snprintf(b, sizeof(b), T("inkdraw 飛び方テスト (版 %d)\n組ごとに、物の中の座標を全部 30 フレーム持ち上げ (1 フレーム 0.3)、カメラの追従先がいちばん何上がったか\n","inkdraw flight test (build %d)\nFor each group, lift every position in the object 30 frames (0.3/frame); how much did the camera target rise\n"), kInkVer); Ft2Put(b);
+            std::snprintf(b, sizeof(b), T("tmt 飛び方テスト (版 %d)\n組ごとに、物の中の座標を全部 30 フレーム持ち上げ (1 フレーム 0.3)、カメラの追従先がいちばん何上がったか\n","tmt flight test (build %d)\nFor each group, lift every position in the object 30 frames (0.3/frame); how much did the camera target rise\n"), kInkVer); Ft2Put(b);
             for (int g = 0; g < kFt2N; g++) { std::snprintf(b, sizeof(b), T("組%d main+0x%lx 座標 %d か所 : 物 %d 個\n","Group %d main+0x%lx position %d spots : %d objects\n"), g, static_cast<unsigned long>(kFt2[g].vt), kFt2[g].n, g_Ft2ObjN[g]); Ft2Put(b); }
             Ft2Save(); g_Ft2Grp = 0; g_Ft2F = 0; g_Ft2Step = 2; return;
         }
@@ -6504,7 +6504,7 @@ namespace {
         for (int k = 0; k < 8; k++) { const u32 v = k < g_DtNMark ? g_DtMark[k] : 0; std::memcpy(out + ol, &v, 4); ol += 4; }
         const int start = g_DtNLog < kDtLogMax ? 0 : g_DtHead; /* 古い順に */
         for (int k = 0; k < g_DtNLog; k++) { std::memcpy(out + ol, &g_DtLog[(start + k) % kDtLogMax], 16); ol += 16; }
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/enemydeath2.bin", out, static_cast<u32>(ol));
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/enemydeath2.bin", out, static_cast<u32>(ol));
         g_DtStep = 9;
     }
     static u8 g_EbBuf[512 + 32 * (32 + 0x1000) + 64]; /* チームサーチ / 敵の体の記録 / アサリサーチ で使う入れ物 */
@@ -6639,7 +6639,7 @@ namespace {
         }
         if (gen != g_LoadGen) { g_AsrMsg = 4; return; }
         const u32 nn = static_cast<u32>(n); std::memcpy(out + 8, &nn, 4);
-        static const char* const kAf[3] = { "inkd:/inkdraw/bin/asarisearch_1.bin", "inkd:/inkdraw/bin/asarisearch_2.bin", "inkd:/inkdraw/bin/asarisearch_3.bin" };
+        static const char* const kAf[3] = { "tmt:/tmt/bin/asarisearch_1.bin", "tmt:/tmt/bin/asarisearch_2.bin", "tmt:/tmt/bin/asarisearch_3.bin" };
         const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, kAf[g_AsrNo % 3], out, static_cast<u32>(head + n * 28)); /* ここは裏の流れなので、そのまま書く */
         g_AsrN = n; g_AsrMsg = 2;
     }
@@ -6689,7 +6689,7 @@ namespace {
             std::memcpy(out + ol, ps[t], 12 * h[4]); ol += 12 * static_cast<int>(h[4]);
             for (int k = 0; k < nn[t]; k++) { const u64 a64 = at[t][k]; std::memcpy(out + ol, &a64, 8); ol += 8; const uintptr_t from = at[t][k] - kPre;
                 if (Readable(from, kLen)) std::memcpy(out + ol, reinterpret_cast<const void*>(from), kLen); else std::memset(out + ol, 0, kLen); ol += kLen; tot++; } }
-        static const char* const kDf[3] = { "inkd:/inkdraw/bin/asaridetail_1.bin", "inkd:/inkdraw/bin/asaridetail_2.bin", "inkd:/inkdraw/bin/asaridetail_3.bin" };
+        static const char* const kDf[3] = { "tmt:/tmt/bin/asaridetail_1.bin", "tmt:/tmt/bin/asaridetail_2.bin", "tmt:/tmt/bin/asaridetail_3.bin" };
         const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, kDf[(g_AdNo - 1) % 3], out, static_cast<u32>(ol)); /* 裏の流れなので、そのまま書く */
         g_AdAll = all[0]; g_AdN = tot; g_AdMsg = 2;
     }
@@ -6748,7 +6748,7 @@ namespace {
         ol = head + m * kEnt; std::memcpy(out + ol, "DUMP", 4); ol += 4; const u32 ndu = static_cast<u32>(nd); std::memcpy(out + ol, &ndu, 4); ol += 4;
         for (int q = 0; q < nd; q++) { const u64 c64 = dumpAt[q]; std::memcpy(out + ol, &c64, 8); ol += 8; const uintptr_t from = (dumpAt[q] & ~static_cast<uintptr_t>(7)) - kDump / 2; u64 f64 = from; std::memcpy(out + ol, &f64, 8); ol += 8;
             if (Readable(from, kDump)) std::memcpy(out + ol, reinterpret_cast<const void*>(from), kDump); else std::memset(out + ol, 0, kDump); ol += kDump; }
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/asaridiff.bin", out, static_cast<u32>(ol)); /* 裏の流れなので、そのまま書く */
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/bin/asaridiff.bin", out, static_cast<u32>(ol)); /* 裏の流れなので、そのまま書く */
         g_DfCand = cand; g_DfMoved = moved; g_DfMsg = 4;
     }
     void DfPress() { /* 1 回目: アサリの横 (持たずに) で押す。2 回目: そのアサリを拾ってから押す */
@@ -6766,12 +6766,12 @@ namespace {
     volatile int g_TsMsg = 0, g_TsN = 0; /* チームサーチ: 0 まだ / 1 体を探し中 / 2 保存した */
     void TsPress() { /* チームサーチ: 試合が始まった直後 (スタート地点にいる間) に押すと、味方は自分の近く・敵は遠くにいるので、見比べて敵と味方を分ける値を探せる */
         if (g_EnN <= 0) { g_EnWantUntil = NowTick() + 60ull * 19200000ull; g_EnScanNow = true; g_TsMsg = 1; return; }
-        EbDump("inkd:/inkdraw/bin/teamsearch.bin", 0x2000, 16); g_TsN = g_EnN; g_TsMsg = 2;
+        EbDump("tmt:/tmt/bin/teamsearch.bin", 0x2000, 16); g_TsN = g_EnN; g_TsMsg = 2;
     }
     void DthPress() {
         const int st = g_DtStep;
         if (st == 0 || st >= 9) {
-            EbDump("inkd:/inkdraw/bin/enemybodies.bin");
+            EbDump("tmt:/tmt/bin/enemybodies.bin");
             float me[3]; float dd[kDtObjMax]; g_DtNObj = 0;
             if (SelfPos(me)) for (int k = 0; k < g_EnN; k++) { float p2[3]; if (!EnPos(k, p2)) continue; const float dx = p2[0] - me[0], dz = p2[2] - me[2], d = dx * dx + dz * dz;
                 int pos = g_DtNObj; while (pos > 0 && dd[pos - 1] > d) pos--; if (pos >= kDtObjMax) continue;
@@ -6800,8 +6800,8 @@ namespace {
     /* pchtxt の保存: ON/OFF を変えたファイルの @enabled / @disabled の行を書きかえる (まとまりに自分の行がなければ、最初のパッチの行の前に足す)。
        足した行があれば、ほかのまとまりも自分の行を持つので、前のまとまりの設定を引きつがなくなる */
     static void PchSave() {
-        static const char* const kPf[10] = { "inkd:/inkdraw/patches.pchtxt", "inkd:/inkdraw/patch1.pchtxt", "inkd:/inkdraw/patch2.pchtxt", "inkd:/inkdraw/patch3.pchtxt", "inkd:/inkdraw/patch4.pchtxt",
-            "inkd:/inkdraw/patch5.pchtxt", "inkd:/inkdraw/patch6.pchtxt", "inkd:/inkdraw/patch7.pchtxt", "inkd:/inkdraw/patch8.pchtxt", "inkd:/inkdraw/patch9.pchtxt" };
+        static const char* const kPf[10] = { "tmt:/tmt/patches.pchtxt", "tmt:/tmt/patch1.pchtxt", "tmt:/tmt/patch2.pchtxt", "tmt:/tmt/patch3.pchtxt", "tmt:/tmt/patch4.pchtxt",
+            "tmt:/tmt/patch5.pchtxt", "tmt:/tmt/patch6.pchtxt", "tmt:/tmt/patch7.pchtxt", "tmt:/tmt/patch8.pchtxt", "tmt:/tmt/patch9.pchtxt" };
         const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return;
         static char in[0x10000], out[0x10000 + 64 * 16];
         for (int f = 0; f < 10; f++) {
@@ -6839,7 +6839,7 @@ namespace {
             return n; };
         if (!loaded) {
             if (now - t0 < 3ull * 19200000ull) return; loaded = true;
-            const uintptr_t sdk = UpdSdk(); char t[2048]; int n = -1; if (sdk && UpdMount(sdk)) n = UpdReadSmall(sdk, "inkd:/inkdraw/settings.json", t, sizeof(t) - 1);
+            const uintptr_t sdk = UpdSdk(); char t[2048]; int n = -1; if (sdk && UpdMount(sdk)) { n = UpdReadSmall(sdk, "tmt:/tmt/settings.json", t, sizeof(t) - 1); if (n <= 0) n = UpdReadSmall(sdk, "tmt:/inkdraw/settings.json", t, sizeof(t) - 1); } /* tmt: 初回だけ Inkdraw の設定を引きつぐ */
             if (n > 0) { t[n] = 0;
                 auto get = [&](const char* key, int* out) { char pat[40]; std::snprintf(pat, sizeof(pat), "\"%s\":", key); const char* q = nullptr; { const int pl = static_cast<int>(std::strlen(pat)); for (const char* r = t; *r && !q; r++) { int k = 0; while (k < pl && r[k] == pat[k]) k++; if (k == pl) q = r; } } if (!q) return false; /* strstr は使わない (読み込む関数を増やさない) */ q += std::strlen(pat); while (*q == ' ') q++; int sg = 1; if (*q == '-') { sg = -1; q++; } if (*q < '0' || *q > '9') return false; int v = 0; while (*q >= '0' && *q <= '9') v = v * 10 + (*q++ - '0'); *out = v * sg; return true; };
                 int v;
@@ -6860,7 +6860,7 @@ namespace {
         char t[2048]; int L = std::snprintf(t, sizeof(t), "{\n");
         for (int k = 0; k < m && L < static_cast<int>(sizeof(t)) - 64; k++) L += std::snprintf(t + L, sizeof(t) - L, "  \"%s\": %d%s\n", kv[k].k ? kv[k].k : "?", kv[k].v, k + 1 < m ? "," : "");
         L += std::snprintf(t + L, sizeof(t) - L, "}\n");
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/settings.json", t, static_cast<u32>(L));
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/settings.json", t, static_cast<u32>(L));
     }
     /* 武器: ゲームが読み込んだ武器データ (メモリの中) を探して、つまみの倍率に合わせて、そのまま書きかえる (リアルタイム) */
     struct WpScanData {
@@ -6991,7 +6991,7 @@ namespace {
     static void WpDiag() {
         static char t[12288]; int L = std::snprintf(t, sizeof(t), "hits=%d packcopyhits=%d dropped=%d targets=%d ambiguous=%d scanKB=%d state=%d addr=%llx\n%s", g_WS.hn, g_WS.packHits, g_WS.dropped, g_WS.tn, g_WS.amb, g_WpScanMB, g_WpScanSt, static_cast<unsigned long long>(g_WS.addr), g_WS.lg);
         for (int w = 0; w < wpdata::kWN && L < static_cast<int>(sizeof(t)) - 80; w++) if (g_WS.best[w] || g_WS.ntg[w]) L += std::snprintf(t + L, sizeof(t) - L, "%s fp=%d best=%d targets=%d\n", wpdata::kW[w].id, g_WS.nfp[w], g_WS.best[w], g_WS.ntg[w]);
-        const uintptr_t sdk = UpdSdk(); const bool mt = sdk && UpdMount(sdk); if (mt) { UpdWrite(sdk, "inkd:/inkdraw/bin/wp_diag.txt", t, static_cast<u32>(L)); UpdWrite(sdk, "inkd:/inkdraw/wp_diag.txt", t, static_cast<u32>(L)); }
+        const uintptr_t sdk = UpdSdk(); const bool mt = sdk && UpdMount(sdk); if (mt) { UpdWrite(sdk, "tmt:/tmt/bin/wp_diag.txt", t, static_cast<u32>(L)); UpdWrite(sdk, "tmt:/tmt/wp_diag.txt", t, static_cast<u32>(L)); }
     }
     static void WpApplyAll() {
         WpScanData& S = g_WS; uintptr_t vb = 0, ve = 0; int bad = 0;
@@ -7009,11 +7009,11 @@ namespace {
     static void WpCacheSave() {
         static char t[110000]; int L = 0; WpScanData& S = g_WS;
         for (int i = 0; i < S.tn && L < static_cast<int>(sizeof(t)) - 48; i++) { MemoryInfo mi; u32 pg; if (R_FAILED(svcQueryMemory(&mi, &pg, S.ta[i]))) continue; L += std::snprintf(t + L, sizeof(t) - L, "%llx %llx %x\n", static_cast<unsigned long long>(mi.size), static_cast<unsigned long long>(S.ta[i] - mi.addr), static_cast<unsigned>(S.te[i])); }
-        if (!L) return; const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/wp_cache.txt", t, static_cast<u32>(L));
+        if (!L) return; const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/wp_cache.txt", t, static_cast<u32>(L));
     }
     static bool WpCacheLoad() {
         static char t[110000]; static uint64_t csz[4096], crel[4096]; static uint16_t ce_[4096]; static uintptr_t bst[256]; static uint64_t bsz[256]; static int vote[256];
-        const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return false; const int n = UpdReadSmall(sdk, "inkd:/inkdraw/wp_cache.txt", t, sizeof(t) - 1); if (n <= 0) return false; t[n] = 0;
+        const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return false; const int n = UpdReadSmall(sdk, "tmt:/tmt/wp_cache.txt", t, sizeof(t) - 1); if (n <= 0) return false; t[n] = 0;
         int cn = 0;
         for (int pos = 0; pos < n && cn < 4096; ) {
             int e = pos; while (e < n && t[e] != 10) e++;
@@ -7048,7 +7048,7 @@ namespace {
             L += std::snprintf(t + L, sizeof(t) - L, "K %s %d %d %d %d %d\n", wpdata::kW[w].id, g_WxKd[w][0], g_WxKd[w][1], g_WxKd[w][2], g_WxKd[w][3], g_WxKd[w][4]); }
         for (int p = 0; p < wxd::kPN && L < cap; p++) if (g_WxPd[p]) L += std::snprintf(t + L, sizeof(t) - L, "P %s %u %u %u %d\n", wpdata::kW[wxd::kPW[p]].id, static_cast<unsigned>(wxd::kPH[p]), static_cast<unsigned>(wxd::kPS[p]), static_cast<unsigned>(wxd::kPO[p]), g_WxPd[p]);
         if (!L) L = std::snprintf(t, sizeof(t), "\n");
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/weapons3.txt", t, static_cast<u32>(L));
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "tmt:/tmt/weapons3.txt", t, static_cast<u32>(L));
     }
     static void WpAnim(u64 now) { /* つまみの位置を、目標に向かってなめらかに動かす (もとに戻すときも同じ) */
         static u64 last = 0; float dt = last ? static_cast<float>(now - last) / 19200000.0f : 0.016f; last = now; if (dt > 0.1f) dt = 0.1f;
@@ -7062,7 +7062,7 @@ namespace {
         if (!loaded) {
             if (now - t0 < 3ull * 19200000ull) return; loaded = true;
             const uintptr_t sdk = UpdSdk(); static char t[262144]; int n = -1; bool legacy = false;
-            if (sdk && UpdMount(sdk)) { n = UpdReadSmall(sdk, "inkd:/inkdraw/weapons3.txt", t, sizeof(t) - 1); if (n <= 0) { n = UpdReadSmall(sdk, "inkd:/inkdraw/weapons2.txt", t, sizeof(t) - 1); legacy = n > 0; } }
+            if (sdk && UpdMount(sdk)) { n = UpdReadSmall(sdk, "tmt:/tmt/weapons3.txt", t, sizeof(t) - 1); if (n <= 0) { n = UpdReadSmall(sdk, "tmt:/tmt/weapons2.txt", t, sizeof(t) - 1); legacy = n > 0; } }
             if (n > 0) { /* 古い形式 (weapons2.txt: 「名前 つまみの段 5 つ」) も読んで、％に直す */
                 t[n] = 0; bool any = false;
                 for (int pos = 0; pos < n; ) {
@@ -7231,7 +7231,7 @@ HOOK_DEFINE_TRAMPOLINE(PaintRequestHook) {
             u32 rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCard)(kMountName);
             if (rc != 0) rc = reinterpret_cast<MountFn>(sdk + kSdkMountSdCardDbg)(kMountName);
             if (rc != 0) return 2;
-            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("inkd:/inkdraw"); }
+            g_DumpMounted = true; { using DirFn = u32 (*)(const char*); const auto mk = reinterpret_cast<DirFn>(sdk + 0xAA010); mk("tmt:/tmt"); }
         }
         std::memset(g_DgBuf, 0, sizeof(g_DgBuf));
         u64 t; asm volatile("mrs %0, cntpct_el0" : "=r"(t));
@@ -7255,7 +7255,7 @@ HOOK_DEFINE_TRAMPOLINE(PaintRequestHook) {
         std::memcpy(g_DgBuf + 0x200, g_Tmpl.raw, 0x60);
         std::memcpy(g_DgBuf + 0x260, g_EnemyTmpl.raw, 0x60);
         std::memcpy(g_DgBuf + 0x2C0, g_ShotRaw, 0x60); std::memcpy(g_DgBuf + 0x320, &g_ShotN, 4); std::memcpy(g_DgBuf + 0x324, &g_ShotNear, 4); std::memcpy(g_DgBuf + 0x328, &g_ShotOwn, 4); std::memcpy(g_DgBuf + 0x350, g_NearRaw, 0x60); std::memcpy(g_DgBuf + 0x3C0, &g_NearN, 4); std::memcpy(g_DgBuf + 0x3C4, &g_NearCap, 4);
-        char name[48]; const char* pp = "inkd:/inkdraw/bin/inkdiag_"; char* q = name;
+        char name[48]; const char* pp = "tmt:/tmt/bin/inkdiag_"; char* q = name;
         while (*pp) *q++ = *pp++;
         for (int i = 7; i >= 0; i--) *q++ = "0123456789abcdef"[(static_cast<u32>(t >> 4) >> (i * 4)) & 15];
         *q++ = '.'; *q++ = 'b'; *q++ = 'i'; *q++ = 'n'; *q = 0;
@@ -8327,7 +8327,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
             if (!g_TextImg) {
             char selPath[96]; const char* selp = nullptr;
             if (g_ImgSel >= 0 && g_ImgSel < g_ImgN) { /* メニューで選んだ絵を、描くたびに読み直す (ファイルを差し替えるとすぐ反映される) */
-                int o = 0; const char* pre = "inkd:/inkdraw/"; while (*pre) selPath[o++] = *pre++;
+                int o = 0; const char* pre = "tmt:/tmt/"; while (*pre) selPath[o++] = *pre++;
                 for (const char* q = g_ImgNames[g_ImgSel]; *q && o < 94; q++) selPath[o++] = *q;
                 selPath[o] = 0; selp = selPath;
             }
@@ -9791,7 +9791,7 @@ namespace nvnhook {
         RectC(c, px + 16, py + 44, pw - 32, 2, Col { 0.2f, 0.35f, 0.45f });
         const int top = py + 54, visible = (ph - 54 - 34) / font_glyphs::kLineH;
         if (g_PchLines == 0) {
-            DrawU8(c, T("SD:/inkdraw/patches.pchtxt が見つかりません","SD:/inkdraw/patches.pchtxt not found"), px + 20, top, pw - 40, Col { 0.8f, 0.6f, 0.6f }, panel);
+            DrawU8(c, T("SD:/tmt/patches.pchtxt が見つかりません","SD:/tmt/patches.pchtxt not found"), px + 20, top, pw - 40, Col { 0.8f, 0.6f, 0.6f }, panel);
         }
         int maxScroll = g_PchLines - visible; if (maxScroll < 0) maxScroll = 0;
         if (g_PchScroll > maxScroll) g_PchScroll = maxScroll;
@@ -10215,12 +10215,12 @@ namespace nvnhook {
     }
     void SwDrawFunc(Cv& v, int x, int y, int& outW, int& outH) {
         /* メニューと同じ見た目: 暗い板 + グレーのふち (太さ 2)、上にタイトルと線。行は「名前 : 値」を、名前は左 (白)、値は右 (グレー) にそろえる */
-        const Col panel { 0.235f, 0.240f, 0.250f }, frame { 0.56f, 0.57f, 0.60f }, line { 0.44f, 0.45f, 0.47f }, white { 0.98f, 0.98f, 0.99f }, dim { 0.74f, 0.75f, 0.78f };
+        const Col panel { 0.030f, 0.035f, 0.060f }, frame { 0.00f, 0.90f, 1.00f }, line { 1.00f, 0.17f, 0.84f }, white { 0.88f, 0.95f, 1.00f }, dim { 0.46f, 0.56f, 0.70f }; /* tmt */
         static char lb[24][64]; static int ln = 0; static int kind = 0; /* 消えていく間は、最後の中身のまま */
         if (g_FuncOn) { ln = BuildFuncList(lb); kind = (g_Fx[18] || g_Fx[19] || g_Fx[20] || g_Fx[21] || NowTick() < g_FillDiagUntil) ? 1 : 0; }
         const int n = ln, W = 300, head = 46, row = 30, H = head + row * (n ? n : 1) + 8;
-        SwRRect(v, x, y, W, H, 18.0f, frame);
-        SwRRect(v, x + 2, y + 2, W - 4, H - 4, 16.0f, panel);
+        SwRRect(v, x, y, W, H, 10.0f, frame);
+        SwRRect(v, x + 2, y + 2, W - 4, H - 4, 8.0f, panel);
         SwU8(v, kind == 1 ? T("ステータス","Status") : T("関数表示","Function Display"), x + 18, y + (head - font_glyphs::kLineH) / 2, W - 36, white);
         SwRect(v, x + 12, y + head - 6, W - 24, 1, line);
         if (!n) SwU8(v, T("有効な機能はありません","No features enabled"), x + 18, y + head + (row - font_glyphs::kLineH) / 2, W - 36, dim);
@@ -10233,7 +10233,7 @@ namespace nvnhook {
             int av = W - 36 - nw - 12; if (av < 40) av = 40; SwU8R(v, t + c + 3, x + W - 18, ty, av, dim);
         }
         { const u64 nq = NowTick(); if ((g_FuncOn && g_FuncOnT && nq - g_FuncOnT < 3840000ull) || (!g_FuncOn && g_FuncOffT && nq - g_FuncOffT < 3840000ull)) g_FadeBusy = true; /* 動いている間は毎フレーム描き直す */
-          PRect pr { x, y, W, H, 18 }; g_BaseRects[g_BaseRectN++] = pr; (void)g_FuncMenuA; }
+          PRect pr { x, y, W, H, 10 }; g_BaseRects[g_BaseRectN++] = pr; (void)g_FuncMenuA; }
         outW = W; outH = H;
     }
 constexpr unsigned char kIconWeapon[32*32] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22,101,179,252,255,222,86,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,25,76,141,225,255,255,255,255,255,255,255,113,0,0,0,0,0,89,55,0,0,0,0,0,66,0,0,0,0,47,122,190,255,255,255,255,255,255,255,255,255,255,255,255,15,0,0,6,153,255,151,0,0,0,0,5,216,86,0,79,245,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,82,20,26,201,255,255,232,106,0,0,0,0,55,235,83,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,207,195,121,255,255,255,255,166,0,0,0,0,3,202,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,189,255,192,255,255,255,255,116,0,0,0,63,169,224,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,237,167,239,124,156,212,248,255,163,0,0,149,198,201,208,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,246,185,152,193,143,0,0,1,28,25,0,0,149,199,202,202,253,255,255,255,255,255,255,255,255,255,255,255,248,227,225,232,247,255,255,206,209,0,0,0,0,0,0,0,100,198,200,200,216,255,255,255,255,255,255,255,255,250,212,153,147,251,255,255,255,255,255,112,222,7,0,0,0,0,0,0,39,118,113,108,95,162,255,255,255,255,233,204,184,183,187,214,182,235,255,255,255,200,125,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,74,194,214,204,194,186,185,189,191,189,89,199,255,255,166,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,127,199,194,192,192,139,91,145,1,20,253,163,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,31,189,185,183,154,102,86,91,0,0,25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,54,190,186,184,169,133,138,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,92,190,191,185,84,32,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,129,187,183,182,45,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,160,207,186,181,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,93,172,174,178,131,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -10265,7 +10265,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             for (int iy = sy0; iy < sy1; iy++) for (int ix = sx0; ix < sx1; ix++) { const float a = icon_emote::kA[iy * 64 + ix] / 255.0f; sa += a; st += a * (icon_emote::kT[iy * 64 + ix] / 255.0f); cn++; }
             if (cn == 0 || sa < 0.01f) continue; const float a = sa / static_cast<float>(cn), t = st / sa;
             const float al = sel ? 1.0f - 0.55f * t : 0.35f + 0.65f * t; /* 選んでいる行は暗い字 (明るい所は薄く)、ふだんは白 (暗い所は薄く) */
-            Blend(v, x0 + xx, y0 + yy, sel ? Col { 0.08f, 0.09f, 0.11f } : Col { 1.0f, 1.0f, 1.0f }, a * al);
+            Blend(v, x0 + xx, y0 + yy, sel ? Col { 0.40f, 0.97f, 1.00f } : Col { 0.88f, 0.95f, 1.00f }, a * al);
         }
     }
     /* 32x32 の白黒マスクを size 角に縮めて重ねる (なめらか) */
@@ -10557,6 +10557,10 @@ constexpr unsigned char kIconA[6][32*32] = {
     static int PchMenuW() { static int lastCat = -1; if (g_Cat >= 0) lastCat = g_Cat; if (lastCat == kWpCat) return 280; /* 武器のページは、横幅を狭く (縦長) */ if (lastCat != kPchCat || g_GrpN <= 0) return 400;
         int m = 0; for (int k = 0; k < g_GrpN && k < 64; k++) { const int w = U8W(g_Grp[k].name); if (w > m) m = w; }
         const int need = 56 + m + 90; return need < 400 ? 400 : (need > 600 ? 600 : need); }
+    static void SwNeonLine(Cv& v, int x, int y, int w) { /* tmt: シアン → マゼンタの細い線 */
+        for (int i = 0; i < w; i++) { const float t = w > 1 ? static_cast<float>(i) / static_cast<float>(w - 1) : 0.0f;
+            SwRect(v, x + i, y, 1, 1, Col { 0.00f + 1.00f * t, 0.90f - 0.73f * t, 1.00f - 0.16f * t }); }
+    }
     void SwDrawMenu(int, int) {
         std::memset(g_HoleRow, 0, sizeof(g_HoleRow));
         g_FadeBusy = false;
@@ -10574,8 +10578,8 @@ constexpr unsigned char kIconA[6][32*32] = {
         }
         /* デザイン 14「アイス」: 青みの暗いパネル + 氷色のアクセント + 丸いピル */
                 /* ドック: 白黒 + 光るふち (1分間に100色) */
-        const Col panel { 0.235f, 0.240f, 0.250f }, border { 0.44f, 0.45f, 0.47f }, whiteG { 0.98f, 0.98f, 0.99f }, accent { 1.0f, 1.0f, 1.0f }, good { 0.90f, 0.92f, 0.94f }; /* 版 645: 灰色の軽い色 */
-        const Col dimG { 0.74f, 0.75f, 0.78f }, selBg { 0.93f, 0.94f, 0.95f }, ink { 0.05f, 0.055f, 0.065f };
+        const Col panel { 0.030f, 0.035f, 0.060f }, border { 0.00f, 0.55f, 0.70f }, whiteG { 0.88f, 0.95f, 1.00f }, accent { 0.00f, 0.90f, 1.00f }, good { 0.55f, 1.00f, 0.80f }; /* tmt: ダーク + ネオン */ /* 版 645: 灰色の軽い色 */
+        const Col dimG { 0.46f, 0.56f, 0.70f }, selBg { 0.00f, 0.20f, 0.28f }, ink { 0.40f, 0.97f, 1.00f }; /* 選択: 暗いシアンの帯 + 光る文字 */
         const Col white = whiteG, dim = dimG;
         const int glowStep = static_cast<int>((NowTick() / 11520000ull) % 100ull); /* 0.6 秒ごとに 1 色 */
         static const float kMcH[6] = { 0.0f, 0.52f, 0.78f, 0.36f, 0.92f, 0.08f }; /* メニューの色: 虹 / 水色 / 紫 / 緑 / ピンク / オレンジ */
@@ -10648,12 +10652,12 @@ constexpr unsigned char kIconA[6][32*32] = {
             const int total = cnt; static int pKeep = 0, pKeepCat = -99; if (pKeepCat != pageCat) { pKeepCat = pageCat; pKeep = 0; } if (active) { if (selJ < pKeep) pKeep = selJ; if (selJ >= pKeep + visN) pKeep = selJ - visN + 1; } if (pKeep > total - visN) pKeep = total - visN; if (pKeep < 0) pKeep = 0; pOff = pKeep; /* 普通の選び方: 端に来たときだけ一覧が動く */
             selJ -= pOff; cnt = visN;
             const int trackH = rowH * visN, thumbH = (trackH * visN / total) < 16 ? 16 : (trackH * visN / total), thumbY = (trackH - thumbH) * pOff / (total - visN);
-            SwRRect(v, x0 + MW - 5, y0 + head + thumbY, 3, thumbH, 1.5f, Col { 0.38f, 0.40f, 0.45f });
+            SwRRect(v, x0 + MW - 5, y0 + head + thumbY, 3, thumbH, 1.5f, Col { 0.00f, 0.55f, 0.70f });
         }
-        SwRect(v, x0 + 12, y0 + head - 6, MW - 24, 1, border);
+        SwNeonLine(v, x0 + 12, y0 + head - 6, MW - 24);
         const int gapPx = (pageCat == kPchCat && pOff == 0) ? 10 : 0; /* pchtxt: 有効化の下に線を入れる隙間 (選択の帯にかぶらない) */
         static float barY = -1.0f; if (!active) barY = -1.0f;
-        if (!active) { if (selJ >= 0 && selJ < cnt) SwRRect(v, x0 + 6, y0 + head + rowH * selJ + (selJ >= 1 ? gapPx : 0) + 1, MW - 12, rowH - 2, 12.0f, Col { 0.16f, 0.17f, 0.19f }); }
+        if (!active) { if (selJ >= 0 && selJ < cnt) SwRRect(v, x0 + 6, y0 + head + rowH * selJ + (selJ >= 1 ? gapPx : 0) + 1, MW - 12, rowH - 2, 5.0f, Col { 0.05f, 0.11f, 0.17f }); }
         else {
             /* 選択の帯は、前の位置から今の位置へなめらかに滑らせる (時間で動く) */
             static float aY = -1.0f; static u64 aT = 0; static int aCat = -99; static int aSel = -1;
@@ -10665,32 +10669,33 @@ constexpr unsigned char kIconA[6][32*32] = {
             g_AnimBusy = (aY != tgt) || g_SlideBusy;
             if (selJ >= 0 && selJ < cnt) {
                 const int yy = static_cast<int>(aY);
-                SwRRect(v, x0 + 6, yy + 1, MW - 12, rowH - 2, 12.0f, side ? Col { 0.16f, 0.17f, 0.19f } : selBg);
+                SwRRect(v, x0 + 6, yy + 1, MW - 12, rowH - 2, 5.0f, side ? Col { 0.05f, 0.11f, 0.17f } : selBg);
+                if (!side) { SwRect(v, x0 + 6, yy + 5, 3, rowH - 10, Col { 0.00f, 0.90f, 1.00f }); SwRect(v, x0 + 9, yy + 5, 1, rowH - 10, Col { 0.00f, 0.45f, 0.55f }); } /* tmt: 左に光る線 */
             }
         }
         for (int j = 0; j < cnt; j++) {
             const int i = pageCat < 0 ? (j >= kTopCount ? kDynUpd : 100 + kTopOrder[(j) % kTopCount]) : CatItem(pageCat, j + pOff);
             const int y = y0 + head + rowH * j + (j >= 1 ? gapPx : 0);
             /* 区切り線は使わない (元の見た目に戻した) */
-            if (i == kDynPchMaster) SwRect(v, x0 + 14, y + rowH + gapPx / 2, MW - 28, 1, Col { 0.34f, 0.36f, 0.40f }); /* 区切りの線 */
+            if (i == kDynPchMaster) SwRect(v, x0 + 14, y + rowH + gapPx / 2, MW - 28, 1, Col { 0.14f, 0.26f, 0.36f }); /* 区切りの線 */
             const bool sel = !side && active && selJ >= 0 && selJ < cnt && (barY < 0.0f ? (selJ == j) : (barY - static_cast<float>(y) <= rowH * 0.5f && static_cast<float>(y) - barY < rowH * 0.5f)); /* 467: 帯が滑っている間も、帯が重なっている行だけ暗い文字にする (文字だけ先に反転して見えていた) */
-            const Col rowBg = sel ? (side ? Col { 0.16f, 0.17f, 0.19f } : selBg) : panel; /* 文字が消えるときに混ぜる背景色 */
+            const Col rowBg = sel ? (side ? Col { 0.05f, 0.11f, 0.17f } : selBg) : panel; /* 文字が消えるときに混ぜる背景色 */
             g_BarSel = sel; /* 472: スライダーの色は、行ごとに必ず決める (前の行・前の絵の値が残って、アップデートを確認に選択があるとき上のバーが反転していた) */
             const bool selDim = (selJ == j) && (side || !active);
-            const Col white = sel ? ink : whiteG, dim = sel ? Col { 0.40f, 0.42f, 0.46f } : dimG; (void)white; (void)dim;
-            const Col amb = sel ? Col { 0.25f, 0.27f, 0.30f } : Col { 0.78f, 0.80f, 0.84f };
+            const Col white = sel ? ink : whiteG, dim = sel ? Col { 0.20f, 0.75f, 0.85f } : dimG; (void)white; (void)dim;
+            const Col amb = sel ? Col { 0.30f, 0.85f, 0.95f } : Col { 0.70f, 0.78f, 0.88f };
             if (i >= 100 && i < kDyn) {
                 static const menu_text::Str* const kCatL2[5] = { &menu_text::kL_CAT0, &menu_text::kL_CAT1, &menu_text::kL_CAT2, &menu_text::kL_CAT3, &menu_text::kL_CAT6 };
                 if (i - 100 == kCatRst) SwIconShape(v, x0 + 28, y + rowH / 2, 20, 3, sel ? ink : whiteG); else if (i - 100 == 6) SwIconShape(v, x0 + 28, y + rowH / 2, 20, 0, sel ? ink : whiteG); else if (i - 100 == 7) SwIconShape(v, x0 + 28, y + rowH / 2, 20, 2, sel ? ink : whiteG); else if (i - 100 == 10) SwIconEmote(v, x0 + 28, y + rowH / 2, 26, sel); else if (i - 100 == kStageCat) SwIconShape(v, x0 + 28, y + rowH / 2, 20, 5, sel ? ink : whiteG); else if (i - 100 == 9) SwIconMask(v, x0 + 28, y + rowH / 2, 22, kIconWeapon, sel ? ink : whiteG, 1.0f); else SwIcon(v, x0 + 28, y + rowH / 2, 20, (i - 100) % 6, sel ? ink : whiteG, 1.0f); /* ガチチートは照準のアイコン */
-                if (i - 100 == kCatUlt) { const Col red = sel ? Col { 0.75f, 0.05f, 0.05f } : Col { 1.0f, 0.25f, 0.25f }; SwIconShape(v, x0 + 28, y + rowH / 2, 20, 0, red); SwU8(v, kCatName[i - 100], x0 + 48, y + ty, 226, red); continue; } /* 版 679: 最強チートは赤 */
+                if (i - 100 == kCatUlt) { const Col red = sel ? Col { 1.0f, 0.45f, 0.55f } : Col { 1.0f, 0.25f, 0.35f }; SwIconShape(v, x0 + 28, y + rowH / 2, 20, 0, red); SwU8(v, kCatName[i - 100], x0 + 48, y + ty, 226, red); continue; } /* 版 679: 最強チートは赤 */
                 SwU8(v, kCatName[i - 100], x0 + 48, y + ty, 226, white);
                 continue;
             }
             if (i >= kDynWx && i < kDynWx + kWxMaxRows) { /* 武器 (全パラメータ): カテゴリを開閉する一覧。項目は「名前 / 今の値 / ％」と、100% を真ん中にした細いバー */
                 const int rj = i - kDynWx; const WxRow rw = rj < g_WxN ? g_WxRow[rj] : WxRow { 255, 0, 0 };
                 const int rx = x0 + MW - 18; g_BarSel = sel;
-                const Col prp = sel ? Col { 0.36f, 0.20f, 0.64f } : Col { 0.78f, 0.66f, 1.0f }; /* 変えてある物の色 (むらさき) */
-                const Col off = Col { 0.34f, 0.36f, 0.40f };
+                const Col prp = sel ? Col { 1.00f, 0.45f, 0.90f } : Col { 0.85f, 0.60f, 1.0f }; /* 変えてある物の色 (むらさき) */
+                const Col off = Col { 0.14f, 0.26f, 0.36f };
                 char vb[64]; vb[0] = 0;
                 if (rw.t == kWrType || rw.t == kWrSel) {
                     WpEnsure(); const int w = WpCur(); const char* nm = rw.t == kWrType ? T("武器の種類","Weapon Type") : T("武器","Weapon");
@@ -10718,12 +10723,12 @@ constexpr unsigned char kIconA[6][32*32] = {
                     if (!isK && has) { const u32 nvb = WxNv(pid); char ab[32]; if (wxd::kPF[pid] & 1) std::snprintf(ab, sizeof(ab), "%d", static_cast<int>(nvb)); else { float f; std::memcpy(&f, &nvb, 4); std::snprintf(ab, sizeof(ab), "%.4g", static_cast<double>(f)); } SwU8R(v, ab, rx - 88, y + ty - 2, 72, dim); }
                     if (has) { /* 100% を真ん中にした、細いバー (対数: 左端 1/16、右端 16 倍) */
                         const int bx = nx, bw = rx - nx, by = y + rowH - 8;
-                        SwRRect(v, bx, by, bw, 3, 1.5f, sel ? Col { 0.70f, 0.71f, 0.75f } : Col { 0.16f, 0.15f, 0.22f });
+                        SwRRect(v, bx, by, bw, 3, 1.5f, sel ? Col { 0.00f, 0.45f, 0.58f } : Col { 0.10f, 0.08f, 0.18f });
                         float t = -1.0f; const float ratio = static_cast<float>(100 + dlt) * 0.01f;
                         if (ratio > 0.0f) { u32 bits; std::memcpy(&bits, &ratio, 4); const int ee = static_cast<int>((bits >> 23) & 255) - 127; const float mm = static_cast<float>(bits & 0x7FFFFF) / 8388608.0f; t = (static_cast<float>(ee) + mm) * 0.25f; if (t < -1.0f) t = -1.0f; if (t > 1.0f) t = 1.0f; }
                         const int mid = bx + bw / 2; const int len = static_cast<int>(static_cast<float>(bw / 2) * (t < 0.0f ? -t : t) + 0.5f);
                         if (len > 0 && mod) SwRRect(v, t < 0.0f ? mid - len : mid, by, len, 3, 1.5f, Col { 0.65f, 0.45f, 0.95f });
-                        SwRect(v, mid - 1, by - 2, 2, 7, sel ? Col { 0.40f, 0.40f, 0.46f } : Col { 0.40f, 0.38f, 0.50f });
+                        SwRect(v, mid - 1, by - 2, 2, 7, sel ? Col { 0.30f, 0.80f, 0.90f } : Col { 0.40f, 0.38f, 0.55f });
                     }
                 } else if (rw.t == kWrRst || rw.t == kWrRstAll) {
                     const bool all = rw.t == kWrRstAll; const char* nm = all ? T("全部の武器を戻す","Reset All Weapons") : T("この武器を戻す","Reset This Weapon"); const u64 tm = all ? g_WpRstAllT : g_WpRstT;
@@ -10867,7 +10872,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i >= kDynEmo && i < kDynEmo + 5) { static const char* const kEn[5] = { T("十字上のエモート","D-Pad Up Emote"), T("十字下のエモート","D-Pad Down Emote"), T("十字左のエモート","D-Pad Left Emote"), T("十字右のエモート","D-Pad Right Emote"), T("ランダムエモート","Random Emote") }; nm = kEn[i - kDynEmo]; std::snprintf(vb, sizeof(vb), "%s", g_EmoFire == i - kDynEmo ? T("閉じると出る","Shown on close") : T("L: 出す","L: Trigger")); }
                 for (int k = 0; vb[k]; k++) { if (k == 0 || vb[k - 1] == ' ') { const bool hl = vb[k] == 'L' && vb[k + 1] == ':'; const bool hr = static_cast<u8>(vb[k]) == 0xE5 && static_cast<u8>(vb[k + 1]) == 0x8F && static_cast<u8>(vb[k + 2]) == 0xB3 && vb[k + 3] == ':'; if (hl || hr) { int e = k; while (e > 0 && vb[e - 1] == ' ') e--; vb[e] = 0; break; } } } /* 「L: ...」「右: ...」の説明は出さない (後ろに付いているものも) */
                 
-                const bool pchDim = (!g_PatchEnabled && ((i >= kDynPch && i < kDynPch + 64) || i == kDynPchMsg)) || (i >= kDynWpK && i < kDynWpK + 5 && !wpdata::kW[WpCur()].cnt[i - kDynWpK]); SwU8(v, nm, x0 + nx0, y + ty, (st < 0 && !vb[0]) ? MW - nx0 - 12 : ((i >= kDynPch && i < kDynPch + 64) ? MW - nx0 - 80 : 250), pchDim ? Col { 0.34f, 0.36f, 0.40f } : white); /* 名前はいつも白 (OFF はスイッチでわかる) */
+                const bool pchDim = (!g_PatchEnabled && ((i >= kDynPch && i < kDynPch + 64) || i == kDynPchMsg)) || (i >= kDynWpK && i < kDynWpK + 5 && !wpdata::kW[WpCur()].cnt[i - kDynWpK]); SwU8(v, nm, x0 + nx0, y + ty, (st < 0 && !vb[0]) ? MW - nx0 - 12 : ((i >= kDynPch && i < kDynPch + 64) ? MW - nx0 - 80 : 250), pchDim ? Col { 0.14f, 0.26f, 0.36f } : white); /* 名前はいつも白 (OFF はスイッチでわかる) */
                 if (i == kDynRstBtn || i == kDynUpd) { /* 押せるボタンの印: 名前の右に小さな再生マーク (▶) を出す。オン/オフのスイッチとは別の形にして区別する */
                     const int mxx = x0 + nx0 + U8W(nm) + 12, myy = y + rowH / 2; const Col mc = sel ? ink : Col { 0.70f, 0.55f, 1.0f };
                     for (int dy = -5; dy <= 5; dy++) { const int w = 6 - (dy < 0 ? -dy : dy); if (w < 1) continue; SwRect(v, mxx + (5 - w), myy + dy, w, 1, mc); }
@@ -10875,7 +10880,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 RowStateSeen(i, st, sel);
                 if (st >= 0) {
                     const menu_text::Str& V = st ? menu_text::kV_ON : menu_text::kV_OFF;
-                    (void)V; g_SwKey = i + 1; if (pchDim) SwSwitch(v, rx, y + rowH / 2, st != 0, Col { 0.22f, 0.23f, 0.26f }, Col { 0.13f, 0.14f, 0.16f }, Col { 0.32f, 0.33f, 0.36f }); else SwSwitch(v, rx, y + rowH / 2, st != 0, sel ? ink : whiteG, sel ? Col { 0.66f, 0.67f, 0.70f } : Col { 0.20f, 0.21f, 0.24f }, st ? (sel ? whiteG : ink) : (sel ? Col { 0.96f, 0.96f, 0.97f } : Col { 0.45f, 0.47f, 0.51f }));
+                    (void)V; g_SwKey = i + 1; if (pchDim) SwSwitch(v, rx, y + rowH / 2, st != 0, Col { 0.22f, 0.23f, 0.26f }, Col { 0.13f, 0.14f, 0.16f }, Col { 0.32f, 0.33f, 0.36f }); else SwSwitch(v, rx, y + rowH / 2, st != 0, sel ? ink : whiteG, sel ? Col { 0.00f, 0.45f, 0.58f } : Col { 0.07f, 0.10f, 0.16f }, st ? (sel ? whiteG : ink) : (sel ? Col { 0.40f, 0.97f, 1.00f } : Col { 0.20f, 0.30f, 0.42f }));
                     if (i == kDynGsp) { const int bx = x0 + 148, bw = rx - 54 - 58 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, g_GspIdx / 49.0f, false, accent); char gb[24]; if (g_GspCalls == 0) std::snprintf(gb, sizeof(gb), T("%d倍?","x%d?"), GspMul(g_GspIdx)); else std::snprintf(gb, sizeof(gb), T("%d倍","x%d"), GspMul(g_GspIdx)); SwU8R(v, gb, rx - 54, y + ty, 64, amb); }
                     else if (i == kDynText) { const int av = rx - 54 - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx - 54, y + ty, av < 104 ? av : 104, amb, rowBg); }
                     else { const int av = rx - 54 - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx - 54, y + ty, av < 200 ? av : 200, amb, rowBg, i == kDynRstBtn ? g_RstDoneT : (i == kDynReset ? g_SetRstT : (i == kDynWpRst ? g_WpRstT : (i == kDynWpRstAll ? g_WpRstAllT : 0)))); }
@@ -10893,7 +10898,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynFlySpd || i == kDynHopSpd || i == kDynUiOpa || i == kDynCurlSpd) { const int bx = x0 + nx0 + U8W(nm) + 16, bw = rx - (i == kDynUiOpa ? 64 : 40) - bx; /* 版 637: 名前の右から (名前が長くて重なっていた) */ const int lv = i == kDynFlySpd ? g_FlySpd : i == kDynCurlSpd ? g_CurlSpd : g_HopSpd; SwBar(v, bx, y + rowH / 2 - 2, bw, i == kDynUiOpa ? (static_cast<float>(g_UiOpa) - 20.0f) / 80.0f : (static_cast<float>(lv) - 1.0f) / 9.0f, false, accent); SwU8R(v, vb, rx, y + ty, 24, amb); } /* 版 636: つまみ */
                 else if (i == kDynInkSz) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, (static_cast<float>(g_InkSz > 5 ? 5 : g_InkSz) - 1.0f) / 4.0f, false, accent); char nb[4] = { 0, 0, 0, 0 }; std::snprintf(nb, sizeof(nb), "%d", static_cast<int>(g_InkSz)); SwU8R(v, nb, rx, y + ty, 24, amb); }
                 else if (i == kDynImgSz) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, (static_cast<float>(g_ImgK) - 1.0f) / 7.0f, false, accent); char nb[2] = { static_cast<char>('0' + (g_ImgK < 1 ? 1 : (g_ImgK > 8 ? 8 : g_ImgK))), 0 }; SwU8R(v, nb, rx, y + ty, 24, amb); }
-                else if (i >= kDynWpK && i < kDynWpK + 5) { const int k = i - kDynWpK, w = WpCur(); if (wpdata::kW[w].cnt[k]) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, g_WpDisp[k] / 100.0f, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); } else SwU8R(v, vb, rx, y + ty, 80, Col { 0.34f, 0.36f, 0.40f }); }
+                else if (i >= kDynWpK && i < kDynWpK + 5) { const int k = i - kDynWpK, w = WpCur(); if (wpdata::kW[w].cnt[k]) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, g_WpDisp[k] / 100.0f, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); } else SwU8R(v, vb, rx, y + ty, 80, Col { 0.14f, 0.26f, 0.36f }); }
                 else if (i == kDynWpType || i == kDynWpSel) { const int av = rx - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 300 ? av : 300, dim, rowBg); }
                 else { const int av = rx - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 200 ? av : 200, i == kDyn + 1 ? amb : dim, rowBg, i == kDynRstBtn ? g_RstDoneT : (i == kDynReset ? g_SetRstT : (i == kDynWpRst ? g_WpRstT : (i == kDynWpRstAll ? g_WpRstAllT : 0)))); }
                 continue;
@@ -10918,7 +10923,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             if (states[i] >= 0) {
                 const menu_text::Str& V = states[i] ? menu_text::kV_ON : menu_text::kV_OFF;
                 const int pw = 44;
-                (void)V; g_SwKey = i + 1; SwSwitch(v, rx, y + rowH / 2, states[i] != 0, sel ? ink : whiteG, sel ? Col { 0.66f, 0.67f, 0.70f } : Col { 0.20f, 0.21f, 0.24f }, states[i] ? (sel ? whiteG : ink) : (sel ? Col { 0.96f, 0.96f, 0.97f } : Col { 0.45f, 0.47f, 0.51f }));
+                (void)V; g_SwKey = i + 1; SwSwitch(v, rx, y + rowH / 2, states[i] != 0, sel ? ink : whiteG, sel ? Col { 0.00f, 0.45f, 0.58f } : Col { 0.07f, 0.10f, 0.16f }, states[i] ? (sel ? whiteG : ink) : (sel ? Col { 0.40f, 0.97f, 1.00f } : Col { 0.20f, 0.30f, 0.42f }));
                 if (false) SwU8(v, g_DrawTeam == 0 ? T("色: 自分","Color: Self") : (g_DrawTeam == 1 ? T("色: チーム0","Color: Team 0") : T("色: チーム1","Color: Team 1")), rx - pw - 118, y + ty, 110, g_DrawTeam ? amb : dim);
                                 if (i == kItBunny) SwU8R(v, g_BunnyMode ? "< Squid >" : "< Human >", rx - pw - 10, y + ty, 70, dim);
                 if (i == kItPatch && g_PchPanel) SwU8R(v, T("表示中","Showing"), rx - pw - 10, y + ty, 70, Col { 0.85f, 0.75f, 1.0f });
@@ -10996,9 +11001,9 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (g_PchPanel) {
             const Col pp { 0.075f, 0.080f, 0.095f }, pb = accent;
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
-            { PRect pr { px0, y0, PW, PH, 18 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 18.0f, Col { 0.46f, 0.48f, 0.52f }); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
-            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 16.0f, panel); (void)pp;
+            { PRect pr { px0, y0, PW, PH, 10 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
+            SwRRect(v, px0, y0, PW, PH, 10.0f, Col { 0.00f, 0.90f, 1.00f }); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
+            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 8.0f, panel); (void)pp;
             char hd[48]; int k = 0;
             const char* h1 = T("パッチの一覧  ","Patch list  "); for (const char* q = h1; *q; q++) hd[k++] = *q;
             int nl = g_GrpN; char num[4]; int nn = 0; do { num[nn++] = static_cast<char>('0' + nl % 10); nl /= 10; } while (nl && nn < 3);
@@ -11018,11 +11023,11 @@ constexpr unsigned char kIconA[6][32*32] = {
                 const int gi = first + i;
                 const int y = top + prow * i;
                 const bool sel = (g_PchSel == gi);
-                if (sel) SwRRect(v, px0 + 6, y + 1, PW - 12, prow - 2, 14.0f, selBg); (void)pb; /* 選んでいる行: 2 つ目のメニューと同じ白い帯 */
+                if (sel) SwRRect(v, px0 + 6, y + 1, PW - 12, prow - 2, 8.0f, selBg); (void)pb; /* 選んでいる行: 2 つ目のメニューと同じ白い帯 */
                 const bool on = g_Grp[gi].on;
                 const int pw = 44, ph = prow - 12, ppx = px0 + PW - 22 - pw, ppy = y + 6;
                 SwU8(v, g_Grp[gi].name, px0 + 20, y + (prow - font_glyphs::kLineH) / 2, ppx - px0 - 30, sel ? ink : white); (void)ppy; (void)ph;
-                SwSwitch(v, px0 + PW - 18, y + prow / 2, on, sel ? ink : whiteG, sel ? Col { 0.66f, 0.67f, 0.70f } : Col { 0.20f, 0.21f, 0.24f }, on ? (sel ? whiteG : ink) : (sel ? Col { 0.96f, 0.96f, 0.97f } : Col { 0.45f, 0.47f, 0.51f })); /* ON/OFF は 2 つ目のメニューと同じスイッチ */
+                SwSwitch(v, px0 + PW - 18, y + prow / 2, on, sel ? ink : whiteG, sel ? Col { 0.00f, 0.45f, 0.58f } : Col { 0.07f, 0.10f, 0.16f }, on ? (sel ? whiteG : ink) : (sel ? Col { 0.40f, 0.97f, 1.00f } : Col { 0.20f, 0.30f, 0.42f })); /* ON/OFF は 2 つ目のメニューと同じスイッチ */
             }
             if (g_GrpN > visible) {
                 const int trackH = visible * prow, barH = trackH * visible / g_GrpN < 16 ? 16 : trackH * visible / g_GrpN;
@@ -11035,15 +11040,15 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (g_SelPanel == 13) {
             /* 武器: 項目のパネル (右に開く)。名前 (英語の内部名) / ％ / 100% を真ん中にした細いバー */
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
-            { PRect pr { px0, y0, PW, PH, 18 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 18.0f, Col { 0.46f, 0.48f, 0.52f });
-            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 16.0f, panel);
+            { PRect pr { px0, y0, PW, PH, 10 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
+            SwRRect(v, px0, y0, PW, PH, 10.0f, Col { 0.00f, 0.90f, 1.00f });
+            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 8.0f, panel);
             SwU8(v, g_WxPG < 0 ? T("主要な項目","Main Items") : WxStr(wxd::kG[g_WxPG].name), px0 + 16, y0 + 14, PW - 120, white);
             SwRect(v, px0 + 12, y0 + head - 6, PW - 24, 1, border);
             const int n = g_WxPN, prow = 38, top = y0 + head, visible = (PH - head - foot) / prow;
             int first = g_SelScroll; if (g_SelCur < first) first = g_SelCur; if (g_SelCur >= first + visible) first = g_SelCur - visible + 1; if (first > n - visible) first = n - visible; if (first < 0) first = 0; g_SelScroll = first;
             const Col prp2 { 0.78f, 0.66f, 1.0f }, off2 { 0.34f, 0.36f, 0.40f };
-            if (n > visible) { const int trackH = prow * visible, thumbH = (trackH * visible / n) < 16 ? 16 : (trackH * visible / n), thumbY = (trackH - thumbH) * first / (n - visible); SwRRect(v, px0 + PW - 8, top + thumbY, 3, thumbH, 1.5f, Col { 0.38f, 0.40f, 0.45f }); }
+            if (n > visible) { const int trackH = prow * visible, thumbH = (trackH * visible / n) < 16 ? 16 : (trackH * visible / n), thumbY = (trackH - thumbH) * first / (n - visible); SwRRect(v, px0 + PW - 8, top + thumbY, 3, thumbH, 1.5f, Col { 0.00f, 0.55f, 0.70f }); }
             for (int i = 0; i < visible && first + i < n; i++) {
                 const int gi = first + i, y = top + prow * i; const bool cur = (g_SelCur == gi); g_BarSel = cur;
                 const WxRow rw = g_WxRow[kWxPB + gi]; static const char* const kKn2[5] = { T("射程","Range"), T("連射速度","Fire Rate"), T("インク消費量","Ink Consumption"), T("チャージ時間","Charge Time"), T("当たり判定","Hitbox") };
@@ -11071,9 +11076,9 @@ constexpr unsigned char kIconA[6][32*32] = {
             /* 右に開く選択パネル (絵の選択 / 渦の形 / インク消しの種類) */
             const Col pp { 0.086f, 0.133f, 0.180f };
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
-            { PRect pr { px0, y0, PW, PH, 18 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 18.0f, Col { 0.46f, 0.48f, 0.52f });
-            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 16.0f, panel); (void)pp;
+            { PRect pr { px0, y0, PW, PH, 10 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
+            SwRRect(v, px0, y0, PW, PH, 10.0f, Col { 0.00f, 0.90f, 1.00f });
+            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 8.0f, panel); (void)pp;
             SwU8(v, g_SelPanel == 1 ? T("絵の選択","Image Select") : (g_SelPanel == 2 ? T("渦の形","Swirl Shape") : (g_SelPanel == 4 ? T("インクの道の形","Ink Trail Pattern") : (g_SelPanel == 5 ? T("ワープ地点","Warp Point") : g_SelPanel == 9 ? T("ワープ地点 > ワープ","Warp Point > Warp") : g_SelPanel == 10 ? T("ワープ地点 > 記憶する","Warp Point > Save") : g_SelPanel == 11 ? T("ワープ地点 > 印・消す","Warp Point > Mark/Clear") : g_SelPanel == 12 ? T("ワープ地点 > 地点を見る","Warp Point > View Point") : (g_SelPanel == 6 ? T("インクの道の太さ","Ink Trail Width") : (g_SelPanel == 7 ? T("絵の向き","Image Rotation") : (g_SelPanel == 8 ? T("描く場所の予約","Reserve Draw Spot") : T("インク消しの種類","Ink Eraser Type"))))))), px0 + 18, y0 + 14, PW - 36, white);
             SwRect(v, px0 + 12, y0 + head - 6, PW - 24, 1, border);
             const int n = SelCount(), prow = 34, top = y0 + head, visible = (PH - head - foot) / prow;
@@ -11084,7 +11089,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             g_SelScroll = first;
             const char* const* const kUn = PaintRequestHook::kTplNames;
             static const char* const kEr[3] = { T("敵インク","Enemy Ink"), T("自陣インク","Own Ink"), T("全消し","Clear All") };
-            if (g_SelPanel == 1 && g_ImgN == 0) SwU8(v, T("画像がありません (SD の inkdraw に png)","No images (put a png in SD's inkdraw folder)"), px0 + 20, top + 44, PW - 40, Col { 0.85f, 0.6f, 0.6f });
+            if (g_SelPanel == 1 && g_ImgN == 0) SwU8(v, T("画像がありません (SD の tmt に png)","No images (put a png in SD's tmt folder)"), px0 + 20, top + 44, PW - 40, Col { 0.85f, 0.6f, 0.6f });
             for (int i = 0; i < visible && first + i < n; i++) {
                 const int gi = first + i, y = top + prow * i;
                 const bool cur = (g_SelCur == gi);
@@ -11116,9 +11121,9 @@ constexpr unsigned char kIconA[6][32*32] = {
             /* メモリサーチ: x6 (028595E0 で拾った値) の +0x004〜+0x1000 */
             const Col pp { 0.075f, 0.080f, 0.095f }, pb = accent, sel2 { 0.14f, 0.17f, 0.24f };
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
-            { PRect pr { px0, y0, PW, PH, 18 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 18.0f, Col { 0.46f, 0.48f, 0.52f }); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
-            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 16.0f, panel); (void)pp;
+            { PRect pr { px0, y0, PW, PH, 10 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
+            SwRRect(v, px0, y0, PW, PH, 10.0f, Col { 0.00f, 0.90f, 1.00f }); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
+            SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 8.0f, panel); (void)pp;
             auto hex = [](char* o, u64 x, int digits) { for (int i = digits - 1; i >= 0; i--) { const int d = (x >> (i * 4)) & 15; *o++ = static_cast<char>(d < 10 ? '0' + d : 'A' + d - 10); } *o = 0; };
             auto dec = [](char* o, s64 x) { char t[24]; int n = 0; bool neg = x < 0; u64 u = neg ? static_cast<u64>(-x) : static_cast<u64>(x); do { t[n++] = static_cast<char>('0' + u % 10); u /= 10; } while (u && n < 22); if (neg) *o++ = '-'; while (n) *o++ = t[--n]; *o = 0; };
             auto flt = [&](char* o, float f) {
@@ -11167,7 +11172,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 float pc = static_cast<float>(NowTick() - sideCloseT) / 3840000.0f; if (pc > 1.0f) pc = 1.0f;
                 const int cxo = -static_cast<int>(pc * pc * static_cast<float>((dCat >= 0 ? MW : MWt) + gap)); g_SlideBusy = true; g_AnimBusy = true;
                 for (int yy = 0; yy < snapH; yy++) for (int xx = 0; xx < PW; xx++) { const u32 pxl = snapPx[yy * 360 + xx]; if (!pxl) continue; const int sx = spx + cxo + xx, sy = y0 + yy; if (sx >= 0 && sx < g_BaseW && sy >= 0 && sy < g_BaseH) v.px[sy * v.w + sx] = pxl; }
-                PRect pr { spx + cxo, y0, PW, snapH, 18 }; g_BaseRects[g_BaseRectN++] = pr;
+                PRect pr { spx + cxo, y0, PW, snapH, 10 }; g_BaseRects[g_BaseRectN++] = pr;
             }
         }
         {
@@ -11182,31 +11187,32 @@ constexpr unsigned char kIconA[6][32*32] = {
                 const float ph = static_cast<float>(NowTick() % 38400000ull) / 38400000.0f;
                 const float tri = ph < 0.5f ? ph * 2.0f : (1.0f - ph) * 2.0f;
                 const float gl = 0.55f + 0.45f * tri;
-                (void)gl; SwRRect(v, bx, y0, MW, MHc, 18.0f, Col { 0.46f, 0.48f, 0.52f }); /* ふち: グレー、太さ 2 */
-                SwRRect(v, bx + 2, y0 + 2, MW - 4, MHc - 4, 16.0f, panel);
+                (void)gl; SwRRect(v, bx, y0, MW, MHc, 10.0f, Col { 1.00f, 0.17f, 0.84f }); /* tmt: 2 つ目はマゼンタのふち */ /* ふち: グレー、太さ 2 */
+                SwRRect(v, bx + 2, y0 + 2, MW - 4, MHc - 4, 8.0f, panel);
                 static const menu_text::Str* const kCatLB[5] = { &menu_text::kL_CAT0, &menu_text::kL_CAT1, &menu_text::kL_CAT2, &menu_text::kL_CAT3, &menu_text::kL_CAT6 };
                 SwU8(v, kCatName[dCat], bx + 18, y0 + 14, 240, dCat == kCatUlt ? Col { 1.0f, 0.25f, 0.25f } : whiteG); /* メニューの名前: 2 つ目も 3 つ目も同じ高さ・白 */
                 drawRows(dCat, bx, g_Cat >= 0 ? g_MenuSel : -1, g_Cat >= 0);
-                { PRect pr { bx, y0, MW, MHc, 18 }; pr.a = mA; (void)pc; g_BaseRects[g_BaseRectN++] = pr; } /* 出るときはふわっと濃く、戻るときは薄く */
+                { PRect pr { bx, y0, MW, MHc, 10 }; pr.a = mA; (void)pc; g_BaseRects[g_BaseRectN++] = pr; } /* 出るときはふわっと濃く、戻るときは薄く */
             }
         }
         if (tabP > 0.0f) { /* 札: 先に描いて、メニューの板をその上に重ねる (メニューの下から出てくるように見える) */
             const int tabTop = y0 + MHt - tabH + static_cast<int>(tabE * static_cast<float>(tabH - 10));
-            SwRRect(v, x0 + 12, tabTop, tabW, tabH, 14.0f, Col { 0.46f, 0.48f, 0.52f }); SwRRect(v, x0 + 14, tabTop + 2, tabW - 4, tabH - 4, 12.0f, panel);
+            SwRRect(v, x0 + 12, tabTop, tabW, tabH, 8.0f, Col { 0.00f, 0.90f, 1.00f }); SwRRect(v, x0 + 14, tabTop + 2, tabW - 4, tabH - 4, 12.0f, panel);
             SwU8(v, T("十字キーで移動","D-Pad to move"), x0 + 26, tabTop + 14, tabW - 28, Col { 1.0f, 0.85f, 0.4f }); SwU8(v, T("L: 決定","L: Confirm"), x0 + 26, tabTop + 38, tabW - 28, Col { 1.0f, 0.85f, 0.4f });
-            { PRect pr { x0 + 12, tabTop, tabW, tabH, 14 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
+            { PRect pr { x0 + 12, tabTop, tabW, tabH, 8 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
             if ((g_UiMove && g_MenuOpen && tabP < 1.0f) || (!(g_UiMove && g_MenuOpen) && tabP > 0.0f)) g_FadeBusy = true;
         }
-        { PRect pr { x0, y0, MWt, MHt, 18 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
+        { PRect pr { x0, y0, MWt, MHt, 10 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
         if (mA < 8) g_FadeBusy = true; g_FuncMenuA = mA;
-        SwRRect(v, x0, y0, MWt, MHt, 18.0f, Col { 0.46f, 0.48f, 0.52f }); /* ふち: グレー、太さ 2 (中の色となじむように) */
-        SwRRect(v, x0 + 2, y0 + 2, MWt - 4, MHt - 4, 16.0f, panel);
+        SwRRect(v, x0, y0, MWt, MHt, 10.0f, Col { 0.00f, 0.90f, 1.00f }); /* ふち: グレー、太さ 2 (中の色となじむように) */
+        SwRRect(v, x0 + 2, y0 + 2, MWt - 4, MHt - 4, 8.0f, panel);
         {
             /* タイトル: 光らせずに白い文字だけ。左に細い縦の線、右に小さくバージョン (白い枠に合わせて、すっきり) */
             const float tsc = 1.25f; const int tx = x0 + 18, ty2 = y0 + 11; /* 左の縦線はなし */
-            SwStrBig(v, menu_text::kTITLE, tx, ty2, tsc, whiteG, 1.0f);
+            SwStrBig(v, menu_text::kTITLE, tx + 2, ty2 + 1, tsc, Col { 1.00f, 0.17f, 0.84f }, 0.55f); /* tmt: マゼンタの影 */
+            SwStrBig(v, menu_text::kTITLE, tx, ty2, tsc, Col { 0.00f, 0.92f, 1.00f }, 1.0f);
             { char vd[16]; FmtVerDigits(vd, sizeof(vd), kInkVer); char vt[32]; std::snprintf(vt, sizeof(vt), "Ver.%s", vd);
-              SwU8(v, vt, tx + static_cast<int>(menu_text::kTITLE.w * tsc) + 10, ty2 + static_cast<int>(menu_text::kTITLE.h * tsc) - font_glyphs::kLineH, 120, dimG); } /* ロゴの右に小さくバージョン */
+              SwU8(v, vt, tx + static_cast<int>(menu_text::kTITLE.w * tsc) + 10, ty2 + static_cast<int>(menu_text::kTITLE.h * tsc) - font_glyphs::kLineH, 120, Col { 1.00f, 0.45f, 0.90f }); } /* ロゴの右に小さくバージョン (マゼンタ) */
             static const menu_text::Str* const kCatL[5] = { &menu_text::kL_CAT0, &menu_text::kL_CAT1, &menu_text::kL_CAT2, &menu_text::kL_CAT3, &menu_text::kL_CAT6 };
             if (false && g_Cat >= 0 && g_Cat < 5) SwStr(v, *kCatL[g_Cat], x0 + MW - 18 - kCatL[g_Cat]->w, y0 + 14, dimG);
             else if (false && g_Cat >= 5 && g_Cat < kCatCount) SwU8(v, kCatName[g_Cat], x0 + MW - 18 - 100, y0 + 14, 100, dimG);
@@ -11217,7 +11223,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             for (int q = 0; q < nIc; q++) {
                 const int cy = y0 + 30 + q * ((RH - 60) / (nIc - 1));
                 const bool act = g_Cat >= 0 ? (kTopOrder[q] == g_Cat) : (q == g_MenuSel);
-                if (act) { SwRRect(v, rx0 + (RW - 36) / 2, cy - 18, 36, 36, 18.0f, selBg); { if (kTopOrder[q] == kCatRst) SwIconShape(v, rx0 + RW / 2, cy, 24, 3, ink); else SwIcon(v, rx0 + RW / 2, cy, 24, kTopOrder[q], ink, 1.0f); } }
+                if (act) { SwRRect(v, rx0 + (RW - 36) / 2, cy - 18, 36, 36, 10.0f, selBg); { if (kTopOrder[q] == kCatRst) SwIconShape(v, rx0 + RW / 2, cy, 24, 3, ink); else SwIcon(v, rx0 + RW / 2, cy, 24, kTopOrder[q], ink, 1.0f); } }
                 else if (kTopOrder[q] == kCatRst) SwIconShape(v, rx0 + RW / 2, cy, 24, 3, Col { 0.55f, 0.57f, 0.61f }); else SwIcon(v, rx0 + RW / 2, cy, 24, kTopOrder[q], Col { 0.55f, 0.57f, 0.61f }, 1.0f);
             }
         }
@@ -11425,20 +11431,20 @@ constexpr unsigned char kIconA[6][32*32] = {
         /* メニュー / 起動の表示と同じ見た目: 暗い板 + グレーのふち、上に Inkdraw とバージョン、左にグラデーションの短い線、はい / いいえ は丸い札 */
         const Col edge { 0.30f, 0.31f, 0.33f }, wh { 0.96f, 0.97f, 0.98f }, dim { 0.55f, 0.57f, 0.62f }, okc { 0.55f, 0.92f, 0.62f }, ngc { 1.0f, 0.62f, 0.50f };
         for (int k = 0; k < uw * uh; k++) g_Scratch[off + k] = 0;
-        SwRRect(v, 0, 0, uw, uh, 18.0f, edge);
+        SwRRect(v, 0, 0, uw, uh, 10.0f, edge);
         SwRRect(v, 1, 1, uw - 2, uh - 2, 17.0f, Col { 0.043f, 0.047f, 0.055f });
         auto grad = [&](int x0, int y0, int w, int h) { for (int x = 0; x < w; x++) { const float k = static_cast<float>(x) / static_cast<float>(w > 1 ? w - 1 : 1); SwRect(v, x0 + x, y0, 1, h, Col { 0.62f - 0.42f * k, 0.40f + 0.48f * k, 1.0f }); } };
         const menu_text::Str& T = menu_text::kTITLE;
         SwStr(v, T, 22, (52 - T.h) / 2, wh);
         { char vd[16]; FmtVerDigits(vd, sizeof(vd), kInkVer); char o[32]; std::snprintf(o, sizeof(o), "Ver.%s", vd); SwU8(v, o, 22 + T.w + 12, (52 - font_glyphs::kLineH) / 2, 120, dim); }
-        SwRect(v, 16, 51, uw - 32, 1, Col { 0.20f, 0.21f, 0.24f });
+        SwRect(v, 16, 51, uw - 32, 1, Col { 0.07f, 0.10f, 0.16f });
         auto head = [&](const char* t, Col c) { grad(22, 70, 5, 22); SwU8(v, t, 38, 68, uw - 60, c); };
         auto sub = [&](const char* t, int line) { SwU8(v, t, 38, 68 + font_glyphs::kLineH + 6 + line * (font_glyphs::kLineH + 4), uw - 60, dim); };
         auto btns = [&]() { /* はい / いいえ: 右下の丸い札 (起動の表示と同じ) */
             for (int k = 0; k < 2; k++) {
                 const int bw = 116, bh = 36, bx = uw - 22 - (2 - k) * (bw + 12) + 12, by = uh - bh - 18; const bool sel = g_UpdSel == k;
-                if (sel) { SwRRect(v, bx, by, bw, bh, 18.0f, Col { 0.62f, 0.45f, 1.0f }); SwRRect(v, bx + 2, by + 2, bw - 4, bh - 4, 16.0f, Col { 0.22f, 0.18f, 0.36f }); }
-                else { SwRRect(v, bx, by, bw, bh, 18.0f, Col { 0.26f, 0.27f, 0.31f }); SwRRect(v, bx + 1, by + 1, bw - 2, bh - 2, 17.0f, Col { 0.075f, 0.080f, 0.095f }); }
+                if (sel) { SwRRect(v, bx, by, bw, bh, 10.0f, Col { 0.62f, 0.45f, 1.0f }); SwRRect(v, bx + 2, by + 2, bw - 4, bh - 4, 8.0f, Col { 0.22f, 0.18f, 0.36f }); }
+                else { SwRRect(v, bx, by, bw, bh, 10.0f, Col { 0.26f, 0.27f, 0.31f }); SwRRect(v, bx + 1, by + 1, bw - 2, bh - 2, 17.0f, Col { 0.075f, 0.080f, 0.095f }); }
                 const char* t = k == 0 ? T("はい","Yes") : T("いいえ","No"); SwU8(v, t, bx + (bw - U8W(t)) / 2, by + (bh - font_glyphs::kLineH) / 2, bw, sel ? wh : dim);
             }
         };
@@ -12227,59 +12233,10 @@ namespace {
               if (!WpRd(reinterpret_cast<uintptr_t>(tg.p), 4)) { gone[w]++; continue; } const u32 c = *tg.p; if (c == nv) kept[w]++; else if (c == o) rev[w]++; else oth[w]++; }
           L += std::snprintf(t + L, sizeof(t) - L, "audit (changed params): kept / reverted-by-game / other / unreadable\n");
           for (int w = 0; w < wpdata::kWN && L < static_cast<int>(sizeof(t)) - 120; w++) if (tot[w]) L += std::snprintf(t + L, sizeof(t) - L, "%s: %d / %d / %d / %d\n", wpdata::kW[w].id, kept[w], rev[w], oth[w], gone[w]); }
-        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) { UpdWrite(sdk, "inkd:/inkdraw/bin/wp_hook.txt", t, static_cast<u32>(L)); UpdWrite(sdk, "inkd:/inkdraw/wp_hook.txt", t, static_cast<u32>(L)); }
+        const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) { UpdWrite(sdk, "tmt:/tmt/bin/wp_hook.txt", t, static_cast<u32>(L)); UpdWrite(sdk, "tmt:/tmt/wp_hook.txt", t, static_cast<u32>(L)); }
     }
 }
-/* ==== 版 700: アップデート後、セーブデータを渡されたものに入れ替える ====
-   ゲーム自身が nn::fs::MountSaveData (4 種類) を呼んだ直後に割り込む。マウント名もアカウントもゲームが選んだままなので、そのアカウントのセーブが対象になり、
-   ゲームが読み込む前に書き換えられる。1 つの中身 (kSavePayloadId) につき 1 回だけ (SD の inkdraw/saveapplied.txt に記録)。
-   書く前に、今のセーブを SD の inkdraw/savebak/before_<ID>.dat にバックアップする (取れなければ書かない)。書いて失敗したらバックアップを書き戻す。結果は inkdraw/saveswap.txt */
-#include "savepayload.hpp"
-namespace {
-    constexpr bool kSaveSwapOn = !kEn; /* 英語版は無効 */
-    static void SsNote(uintptr_t sdk, int code, const char* mnt, int got) {
-        char b[160]; const int n = std::snprintf(b, sizeof(b), "saveswap build %d payload %s state %d mount %s oldsize %d\n", kInkVer, kSavePayloadId, code, mnt ? mnt : "-", got);
-        UpdWrite(sdk, "inkd:/inkdraw/saveswap.txt", b, static_cast<u32>(n));
-    }
-    /* 版 704: 置き換える前の元セーブは、もうバックアップしない。SD に前の版までで残っていたバックアップ (inkd:/inkdraw/savebak/ の中身) も、起動のたびに自動で消す。
-       これを入れると、元のセーブへ戻す手段は MOD 側には無くなる */
-    static void SsPurgeBackups(uintptr_t sdk) {
-        using DelFn = u32 (*)(const char*);
-        static bool done = false; if (done) return; done = true;
-        if (!g_DirOpen || (!g_DirRead && !g_DirRead2) || !g_DirClose) return;
-        void* dh = nullptr; if (g_DirOpen(&dh, "inkd:/inkdraw/savebak", 2) != 0) return; /* 2 = ファイルだけ */
-        static u8 ent[0x310 * 8];
-        for (int guard = 0; guard < 50; guard++) {
-            s64 got = 0; const u32 rr = g_DirRead2 ? g_DirRead2(&got, ent, dh, 8) : g_DirRead(&got, ent, 8, dh); if (rr != 0 || got <= 0) break;
-            for (s64 k = 0; k < got; k++) {
-                const char* nm = reinterpret_cast<const char*>(ent + k * 0x310); size_t L = 0; while (L < 200 && nm[L]) L++; if (!L) continue;
-                char path[260]; const int n = std::snprintf(path, sizeof(path), "inkd:/inkdraw/savebak/%.*s", static_cast<int>(L), nm);
-                if (n > 0) reinterpret_cast<DelFn>(sdk + 0xA9E80)(path);
-            }
-        }
-        g_DirClose(dh);
-    }
-    static void SaveSwapRun(const char* mnt) {
-        static bool busy = false; if (busy || !kSaveSwapOn) return; busy = true;
-        const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) { busy = false; return; }
-        SsPurgeBackups(sdk);
-        /* 版 702: 適用済みの記録は見ない。起動のたびに (1 起動に 1 回) 毎回入れ替える */
-        char sp[96]; std::snprintf(sp, sizeof(sp), "%s:/save.dat", mnt);
-        using MallocFn = void* (*)(size_t); MallocFn mf = nullptr; if (!UpdSym(mf, "malloc")) return;
-        constexpr int kCap = 262144; char* old = static_cast<char*>(mf(kCap)); if (!old) return;
-        const int got = UpdReadSmall(sdk, sp, old, kCap); /* -1 = まだセーブが無い */
-        if (got >= kCap - 1) { SsNote(sdk, 5, mnt, got); return; } /* 想定より大きい: 触らない */
-        if (got < 1000) { SsNote(sdk, 7, mnt, got); busy = false; return; } /* この領域に save.dat が無い (別のセーブ領域 / まだ一度も遊んでいないアカウント): 触らない。あとの別のマウントで試す */
-        { using DirFn = u32 (*)(const char*); const auto mkd = reinterpret_cast<DirFn>(sdk + 0xAA010); mkd("inkd:/inkdraw"); } /* 版 704: savebak フォルダはもう作らない (バックアップを残さない) */
-        if (!UpdWrite(sdk, sp, kSavePayload, kSavePayloadLen)) { if (got >= 0) UpdWrite(sdk, sp, old, static_cast<u32>(got)); SsNote(sdk, 3, mnt, got); return; }
-        using CommitFn = u32 (*)(const char*); const CommitFn cm = reinterpret_cast<CommitFn>(UpdLookup("_ZN2nn2fs14CommitSaveDataEPKc"));
-        if (!cm || cm(mnt) != 0) { SsNote(sdk, 4, mnt, got); return; }
-        UpdWrite(sdk, "inkd:/inkdraw/saveapplied.txt", kSavePayloadId, 8u);
-        SsNote(sdk, 1, mnt, got);
-    }
-}
-#define INK_SS_HOOK(N) HOOK_DEFINE_TRAMPOLINE(N) { static u32 Callback(const char* n, u64 a, u64 b, u64 c) { const u32 r = Orig(n, a, b, c); if (r == 0 && n) SaveSwapRun(n); return r; } };
-INK_SS_HOOK(SsMountA) INK_SS_HOOK(SsMountB) INK_SS_HOOK(SsMountC) INK_SS_HOOK(SsMountD)
+/* tmt: セーブデータの入れ替え・削除の機能 (Inkdraw 版 700〜704) は入れない */
 extern "C" void exl_main(void* x0, void* x1) {
     exl::hook::Initialize();
 
@@ -12288,10 +12245,6 @@ extern "C" void exl_main(void* x0, void* x1) {
     if (verOk)
         { PaintRequestHook::InstallAtOffset(g_OffPaintRequest); PaintRequestHook::InstallDrive(); }
     InstallHid();
-    { const unsigned long a = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcNS0_6UserIdE"); if (a) SsMountA::InstallAtPtr(a); /* 版 700 */
-      const unsigned long b = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcNS_3ncm13ApplicationIdENS0_6UserIdE"); if (b) SsMountB::InstallAtPtr(b);
-      const unsigned long c = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcRKNS_7account3UidE"); if (c) SsMountC::InstallAtPtr(c);
-      const unsigned long e = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcNS_13ApplicationIdERKNS_7account3UidE"); if (e) SsMountD::InstallAtPtr(e); }
     if (verOk) { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start; if (*reinterpret_cast<const u32*>(mb + 0x28238B8) == 0xD101C3FFu) EmoteSelHook::InstallAtOffset(0x28238B8); }
     if (verOk) { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start; if (*reinterpret_cast<const u32*>(mb + 0x48CCAC0) == 0xA9BD7BFDu) { WpVisitHook::InstallAtOffset(0x48CCAC0); g_WpHkOn = true; } } /* 武器データの読み込みに割り込む (入口の命令が合うときだけ) */
     /* ハート: 版583からは既存関数を乗っ取らず、自分からエフェクト生成関数を直接呼ぶ方式なので、ここでのフック設置は不要 */

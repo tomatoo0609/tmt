@@ -1,3 +1,5 @@
 build_normal/*.elf
 build_normal/subsdk9
 build_normal/subsdk9_en
+build_normal/obj/source_program_main.cpp.o
+build_normal/obj_en/source_program_main.cpp.o

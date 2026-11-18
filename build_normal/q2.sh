@@ -7,7 +7,7 @@ COMMON="-mno-outline-atomics --target=aarch64-linux-gnu -mcpu=cortex-a57+crc+cry
 INC="-nostdinc -isystem $SH -isystem $G -isystem /usr/include/x86_64-linux-gnu/c++/13 -isystem /usr/lib/llvm-18/lib/clang/18/include -isystem /usr/include -isystem /usr/include/x86_64-linux-gnu"
 MODS=$(find source -mindepth 1 -maxdepth 1 -type d | sed 's/^/-I/')
 clang++ $COMMON $INC $MODS -std=gnu++23 -fno-rtti -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -c $f -o $o 2>&1 | grep -E "error|warning"
-ld.lld -T misc/link.ld --shared --export-dynamic --gc-sections --build-id=sha1 -init=exl_module_init -z max-page-size=0x1000 -z norelro -o inkdraw.elf obj/*.o 2>&1 | tail -3
-../tc/elf2nso inkdraw.elf subsdk9 | tail -1
+ld.lld -T misc/link.ld --shared --export-dynamic --gc-sections --build-id=sha1 -init=exl_module_init -z max-page-size=0x1000 -z norelro -o tmt.elf obj/*.o 2>&1 | tail -3
+../tc/elf2nso tmt.elf subsdk9 | tail -1
 ls -la subsdk9
-llvm-nm -u inkdraw.elf
+llvm-nm -u tmt.elf

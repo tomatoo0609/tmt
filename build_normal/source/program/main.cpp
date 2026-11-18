@@ -25,7 +25,7 @@ namespace nvnhook { bool SplashOn(); bool UpdWanted(); void SplashManual(); } /*
  *         そのあと床を塗ると (撃つ / ローラーを転がす)、その場所を中心に絵が描かれていく。
  *
  * 仕組み:
- *   Paint_Request (0x371D1C0) は「塗り要求」1件を通信に送り、自分の画面でも塗る関数。
+ *   Paint_Request (0x37246F0) は「塗り要求」1件を通信に送り、自分の画面でも塗る関数。
  *   予約中に床塗りの要求が来たら、その要求のコピーを元に、位置だけずらしたコピーを
  *   画像の黒いピクセルの数だけ Paint_Request に渡す。通信にも送られるので友達にも見える。
  *   一度に全部送ると通信があふれるおそれがあるので、以後この関数が呼ばれるたびに
@@ -71,12 +71,11 @@ namespace {
         uintptr_t    playerMgrPtr;   /* プレイヤー管理物のポインタの置き場所 (0 = このバージョンでは未確認) */
     };
     constexpr GameOffsets kVersions[] = {
-        { "1.3.0 (main1130)", 0x371D1C0, 0x371D320, 0x60FB568, 0x6048568 },
-        { "1.2.0 (main1120)", 0x371C880, 0x371C9E0, 0x60FA558, 0 },
+        { "12.0.0 (6cbb1669)", 0x37246F0, 0x3724850, 0x610A718, 0x6057568 }, /* tmt: 12.0.0 専用 (11.3.0 の 28c4287a から全部移植) */
     };
     constexpr u32 kPaintRequestSig = 0x5A6A1F07; /* Paint_Request の先頭40命令の特徴 (どちらの版も同じ) */
     uintptr_t g_OffPaintRequest = 0, g_OffPaintExecLocal = 0, g_OffPaintMgrPtr = 0;
-    uintptr_t g_OffPlayerMgrPtr = 0; /* プレイヤー管理物のポインタの置き場所 (main+オフセット)。+0xC8=人数 +0xD0=並び(ポインタの配列) +0xD738=自分の番号。
+    uintptr_t g_OffPlayerMgrPtr = 0; /* プレイヤー管理物のポインタの置き場所 (main+オフセット)。+0xC8=人数 +0xD0=並び(ポインタの配列) +0xDCD8=自分の番号。
                                          本体 (配列の中身) の +0x10/+0x14/+0x18 がそのまま x/y/z (float)。毎フレームの処理 (main 内の関数) が実際に読む値そのものなので、
                                          頭の部位など「写し」ではなく、ここに書けば本体そのものが動く。0 ならこのバージョンでは未確認 (従来のブルートフォース組だけを使う) */
 
@@ -99,10 +98,7 @@ namespace {
         return x;
     }
     bool SelectVersion() {
-        if (INKDRAW_BASELINE) {
-            g_OffPaintRequest = 0x371D1C0; g_OffPaintExecLocal = 0x371D320; g_OffPaintMgrPtr = 0x60FB568; g_OffPlayerMgrPtr = 0x6048568;
-            return true;
-        }
+        /* tmt: BASELINE でも署名は必ず確かめる (違う版のゲームで起動したら何もしない = 落とさない) */
         for (const auto& v : kVersions) {
             if (SignatureAt(v.paintRequest) == kPaintRequestSig) {
                 g_OffPaintRequest = v.paintRequest;
@@ -115,14 +111,14 @@ namespace {
         return false;
     }
 
-    /* SDK モジュール (ビルドID 574284B4) 内の nn::hid::GetNpadStates の位置。
+    /* SDK モジュール (12.0.0 のビルドID 6A0A2600。旧 574284B4 から +0x520) 内の nn::hid::GetNpadStates の位置。
        SDK の関数名表から確認した値で、モジュール先頭からのオフセット。 */
     constexpr uintptr_t kSdkHid[] = {
-        0x5161D0, /* GetNpadStates(NpadFullKeyState*)  */
-        0x5162B0, /* GetNpadStates(NpadHandheldState*) */
-        0x516970, /* GetNpadStates(NpadJoyDualState*)  */
-        0x516A50, /* GetNpadStates(NpadJoyLeftState*)  */
-        0x516B30, /* GetNpadStates(NpadJoyRightState*) */
+        0x5166F0, /* GetNpadStates(NpadFullKeyState*)  */
+        0x5167D0, /* GetNpadStates(NpadHandheldState*) */
+        0x516E90, /* GetNpadStates(NpadJoyDualState*)  */
+        0x516F70, /* GetNpadStates(NpadJoyLeftState*)  */
+        0x517050, /* GetNpadStates(NpadJoyRightState*) */
     };
     /* 各関数の最初の命令 (SDK が想定と同じか確かめる用)。違ったらフックを入れない。 */
     constexpr u32 kSdkHidFirst[] = { 0xD10083FF, 0xD10083FF, 0xD10083FF, 0xD10083FF, 0xD10083FF };
@@ -263,8 +259,8 @@ namespace {
     volatile bool g_ReqScan = false;     /* 十字キー左: 追跡スキャンを1歩進める */
     volatile bool g_ReqRefs = false;
     volatile bool g_HbOn = false; volatile bool g_KnockOn = false; /* ノックバック: 敵への分だけ、横方向に強く飛ばす */ /* hitbox: 相手・味方の位置に虹色の四角を出す */
-    volatile uintptr_t g_FfObj = 0; volatile int g_FfMsg = 0; /* 版 618: キャラの位置を持つ物 (vtable main+0x5C43440、+0x338 が xyz)。0 = 探し中 */ volatile uintptr_t g_CfBody = 0; volatile u64 g_CfT = 0; volatile bool g_CfWant = false; void AsHookWrite(); /* 版 615: カメラが追う物 (*(部品+0x108)) の場所。読むだけ。+0x10 が xyz */
-    volatile bool g_BfHooked = false; /* フリーフライの新方式: main+0x273D348 にフックを入れられた */ volatile bool g_BfHover = false; /* 新方式で空中に止まっている */
+    volatile uintptr_t g_FfObj = 0; volatile int g_FfMsg = 0; /* 版 618: キャラの位置を持つ物 (vtable main+0x5C52458、+0x338 が xyz)。0 = 探し中 */ volatile uintptr_t g_CfBody = 0; volatile u64 g_CfT = 0; volatile bool g_CfWant = false; void AsHookWrite(); /* 版 615: カメラが追う物 (*(部品+0x108)) の場所。読むだけ。+0x10 が xyz */
+    volatile bool g_BfHooked = false; /* フリーフライの新方式: main+0x273D9A8 にフックを入れられた */ volatile bool g_BfHover = false; /* 新方式で空中に止まっている */
     volatile bool g_ModeOn = false;         /* 飛ぶ (未完成)。最初は OFF: 十字キーや右スティックで、調査用の印 (ニコニコや四角) が出ないように */
     volatile int g_PendingGlyph = 0;
     /* 画面のメニュー */
@@ -296,7 +292,7 @@ namespace {
     void LookTick(); /* 地点を見る (定義はカメラの向きを探す処理のあと) */
     volatile int g_ScanStep = 0, g_ScanMsg = 0; volatile int g_ScanRel = 0, g_ScanSign = 1, g_ScanN = 0; volatile bool g_ScanFix = false; /* 視点探し: 0 待ち / 1〜6 探し中。g_ScanFix: 見つけた向きを使う (追従先から g_ScanRel バイト) */
     void ScanTick();
-    volatile bool g_LookOn = false; volatile int g_LookSlot = 0, g_LookMsg = 0; volatile int g_LookRx = 0, g_LookRy = 0; volatile bool g_LookPause = false; volatile float g_GyroW = 0.0f; volatile int g_GyroAx = 0; volatile u32 g_GyroCalls = 0; volatile bool g_GyroVirt = false; volatile bool g_StartBlock = false; bool FootValid(); void FootFind(); void FootFindScan(); bool BgRequest(u32 bits, const float* ref); /* 重い探し物を裏の流れに頼む (頼めなければ false) */ extern uintptr_t g_FootPos; bool CamValid(); void CamFind(); bool SelfValid(); bool SelfPos(float* o); bool FlyGrpStep(int rd, float dx, float dz); void FlyGrpReset(); bool FlyGrpTesting(); extern volatile int g_FlyGroup; bool FlyGrpHovering(); void FlyGrpHoverOff(); /* 自分の座標 (足元の座標があればそれ + kLiveHeight、なければ今までの座標) */ float g_SnapCam[6] = {}, g_SnapLive[3] = {}; float g_SnapEn[48][3] = {}; bool g_SnapEnOk[48] = {}; volatile int g_SnapEnN = 0; volatile u64 g_FrameT = 0; /* 敵の座標も同じ瞬間に写す / 毎フレーム更新が最後に動いた時刻 */ volatile u32 g_SnapSeq = 0; volatile bool g_SnapCamOk = false, g_SnapLiveOk = false; /* box 用: ゲームの 1 フレームの更新が終わった瞬間のカメラ (目・追従先) と自分の座標 (描く絵と同じフレームの値にそろえる) */ volatile int g_LookRange = 9; volatile bool g_LookActive = false; volatile int g_LookWhy = 0; float g_GyroKg = 6.0f; /* ジャイロを動かす量 1 あたり、1 フレームで何度上下に回るか (覚えた値) */ /* 向いていない理由: 1 狙いが範囲の外 / 2 自分が遠い / 3 自分でスティックを倒した */ /* 向く範囲: 0〜9 (半径 2.8〜28 = インクの絵のいちばん小さい大きさ〜いちばん大きい絵の半径)。狙いがこの中に入ったときだけ向く */ /* g_StartBlock: 「全部消す」のあとは、次のロードまでスタート地点を覚えない */ volatile int g_GyroRange = 0; volatile bool g_BoxOn = false; volatile bool g_BalOn = false; volatile bool g_BalScanNow = false; volatile bool g_EnOn = false; u64 g_LoadT = 0; volatile u32 g_LoadGen = 0; /* ロードのたびに 1 増える (裏で探していた結果が、ロード前の物なら捨てる) */ volatile int g_CircR = 30; volatile bool g_CircOn = false; volatile bool g_LineOn = true; volatile int g_LeadLv = 0; volatile int g_AimTgt = 0; volatile int g_FovLv = 0; volatile int g_FovSel = 0, g_FovN = 0; /* 視野の広さを書く場所の候補 (カメラの近くで、画角らしい値が入っている所) */ volatile int g_EnWarpMsg = 0; /* 視野の広さ: 0 = そのまま、1〜12 = 60〜115 度 / 敵の近くへワープ: 1 = 敵がいない */ uintptr_t g_RtObj = 0; bool g_RetUsed = false; constexpr int kEnMaxFwd = 48; bool EnOccluded(int k); void EnOccTick(); bool RetPoint(float* A); /* レティクル: レティクルサーチの結果、vtable main+0x5D34000 の物の +0x8C に銃口、+0xB8 にレティクルの点 (撃つ先) が入っていた */ /* エイムボットのねらう相手: 0 敵 / 1 バルーン / 2 両方 */ /* 偏差射撃: 0 = なし、1〜20 (弾が届くまでの時間ぶん、動いている相手の先を狙う) */ /* 自分から相手への線 */ /* 視点が向く円の大きさ (1〜100。画面の高さの半分 × 値/100 の半径) */ volatile bool g_EnScanNow = false; bool EnPos(int k, float* o); bool EnSquid(int k); extern volatile int g_EnN; extern volatile int g_BalN; /* 敵も box */ /* box でイカバルーンも囲む */ /* g_GyroVirt: 地点の近くでは本物のジャイロを止めて、こちらで動かす。g_GyroRange: その距離 (番号) / box: ワープ地点に四角い枠を出す */ /* ジャイロのとき: 角速度に足す値 (1 = 1 秒に 1 回転) と、足す軸 */ /* 地点を見る: 右スティックを自動で倒して、地点の向きへカメラを回す */
+    volatile bool g_LookOn = false; volatile int g_LookSlot = 0, g_LookMsg = 0; volatile int g_LookRx = 0, g_LookRy = 0; volatile bool g_LookPause = false; volatile float g_GyroW = 0.0f; volatile int g_GyroAx = 0; volatile u32 g_GyroCalls = 0; volatile bool g_GyroVirt = false; volatile bool g_StartBlock = false; bool FootValid(); void FootFind(); void FootFindScan(); bool BgRequest(u32 bits, const float* ref); /* 重い探し物を裏の流れに頼む (頼めなければ false) */ extern uintptr_t g_FootPos; bool CamValid(); void CamFind(); bool SelfValid(); bool SelfPos(float* o); bool FlyGrpStep(int rd, float dx, float dz); void FlyGrpReset(); bool FlyGrpTesting(); extern volatile int g_FlyGroup; bool FlyGrpHovering(); void FlyGrpHoverOff(); /* 自分の座標 (足元の座標があればそれ + kLiveHeight、なければ今までの座標) */ float g_SnapCam[6] = {}, g_SnapLive[3] = {}; float g_SnapEn[48][3] = {}; bool g_SnapEnOk[48] = {}; volatile int g_SnapEnN = 0; volatile u64 g_FrameT = 0; /* 敵の座標も同じ瞬間に写す / 毎フレーム更新が最後に動いた時刻 */ volatile u32 g_SnapSeq = 0; volatile bool g_SnapCamOk = false, g_SnapLiveOk = false; /* box 用: ゲームの 1 フレームの更新が終わった瞬間のカメラ (目・追従先) と自分の座標 (描く絵と同じフレームの値にそろえる) */ volatile int g_LookRange = 9; volatile bool g_LookActive = false; volatile int g_LookWhy = 0; float g_GyroKg = 6.0f; /* ジャイロを動かす量 1 あたり、1 フレームで何度上下に回るか (覚えた値) */ /* 向いていない理由: 1 狙いが範囲の外 / 2 自分が遠い / 3 自分でスティックを倒した */ /* 向く範囲: 0〜9 (半径 2.8〜28 = インクの絵のいちばん小さい大きさ〜いちばん大きい絵の半径)。狙いがこの中に入ったときだけ向く */ /* g_StartBlock: 「全部消す」のあとは、次のロードまでスタート地点を覚えない */ volatile int g_GyroRange = 0; volatile bool g_BoxOn = false; volatile bool g_BalOn = false; volatile bool g_BalScanNow = false; volatile bool g_EnOn = false; u64 g_LoadT = 0; volatile u32 g_LoadGen = 0; /* ロードのたびに 1 増える (裏で探していた結果が、ロード前の物なら捨てる) */ volatile int g_CircR = 30; volatile bool g_CircOn = false; volatile bool g_LineOn = true; volatile int g_LeadLv = 0; volatile int g_AimTgt = 0; volatile int g_FovLv = 0; volatile int g_FovSel = 0, g_FovN = 0; /* 視野の広さを書く場所の候補 (カメラの近くで、画角らしい値が入っている所) */ volatile int g_EnWarpMsg = 0; /* 視野の広さ: 0 = そのまま、1〜12 = 60〜115 度 / 敵の近くへワープ: 1 = 敵がいない */ uintptr_t g_RtObj = 0; bool g_RetUsed = false; constexpr int kEnMaxFwd = 48; bool EnOccluded(int k); void EnOccTick(); bool RetPoint(float* A); /* レティクル: レティクルサーチの結果、vtable main+0x5D43018 の物の +0x8C に銃口、+0xB8 にレティクルの点 (撃つ先) が入っていた */ /* エイムボットのねらう相手: 0 敵 / 1 バルーン / 2 両方 */ /* 偏差射撃: 0 = なし、1〜20 (弾が届くまでの時間ぶん、動いている相手の先を狙う) */ /* 自分から相手への線 */ /* 視点が向く円の大きさ (1〜100。画面の高さの半分 × 値/100 の半径) */ volatile bool g_EnScanNow = false; bool EnPos(int k, float* o); bool EnSquid(int k); extern volatile int g_EnN; extern volatile int g_BalN; /* 敵も box */ /* box でイカバルーンも囲む */ /* g_GyroVirt: 地点の近くでは本物のジャイロを止めて、こちらで動かす。g_GyroRange: その距離 (番号) / box: ワープ地点に四角い枠を出す */ /* ジャイロのとき: 角速度に足す値 (1 = 1 秒に 1 回転) と、足す軸 */ /* 地点を見る: 右スティックを自動で倒して、地点の向きへカメラを回す */
     volatile bool g_WarpMark = false; /* ワープの印: 画面の上に方位計を出し、記憶した地点の向きと距離を光る印で示す */
     volatile int g_ImgRot = 0; /* 絵の向き: 0 そのまま / 1 90° / 2 180° / 3 270° */ volatile bool g_ResvHave = false, g_ResvReq = false; float g_ResvPos[3] = {}; volatile int g_ResvMsg = 0; /* 描く場所の予約 (足元の座標で覚える) */
     volatile int g_WarpMsg = 0, g_WarpHold = 0, g_WarpHoldL = 0, g_WarpRetry = 0, g_WarpTick = 0; constexpr float kWarpUp = 1.0f; /* 戻る先は記憶した場所より少し上 (地面に埋まらないように) */ /* ワープ地点: 覚えた場所へ戻る。g_WarpMsg 0 なし 1 遠すぎ 2 戻った。g_WarpHold: 戻ったあと、その場所に固定しておく残りフレーム */
@@ -354,8 +350,8 @@ namespace {
     volatile uintptr_t g_SelfCc = 0; /* 版 629: 自分の CharacterController */ volatile u64 g_SelfCcT = 0; volatile u64 g_CcAnyT = 0; /* 版 644: どれかのキャラの物理が最後に動いた時刻 (止まっている = ロード中) */ inline bool ScanPause() { const u64 t = g_CcAnyT; return !t || NowTick() - t > 9600000ull; } /* 版 634: 自分の物理が最後に更新された時刻 */
     /* 版 650: ステージ差し替え (試し撃ち場など、1 人で入る場所用)。ゲームがファイルを開くところ (nn::fs::OpenFile) で、
        シーンのファイル (…/Scene/○○.pack.zs) を見て覚え、差し替えが ON なら、決めた元の名前のときだけ行き先の名前に変えて開く */
-    /* 版 652: シーン移動。ゲーム自身の「シーンを変える」関数 main+0x3d2fd80 (管理物, const char** 名前, 1) を、ゲームの毎フレーム処理の中から呼ぶ。
-       管理物 = *(main+0x605f358)。+0x34a が 0 でないときは、もう切り替え中なので呼ばない */
+    /* 版 652: シーン移動。ゲーム自身の「シーンを変える」関数 main+0x3d3c740 (管理物, const char** 名前, 1) を、ゲームの毎フレーム処理の中から呼ぶ。
+       管理物 = *(main+0x606e378)。+0x34a が 0 でないときは、もう切り替え中なので呼ばない */
     constexpr int kScnN = 6; const char* const kScnName[kScnN] = { "Plaza", "Lobby", "LobbyLocal", "ShootingRange", "LobbyCoop", "Shop" };
     const char* const kScnJa[kScnN] = { "広場", "ロビー", "ローカルロビー", "試し撃ち場", "バイトロビー", "ショップ" };
     volatile int g_ScnSel = 0, g_ScnReq = -1, g_ScnMsg = 0; char g_ScnReqName[48] = {}; /* 版 654: 行き先の名前 (g_ScnReq >= 0 のとき有効) */
@@ -977,7 +973,7 @@ namespace {
         g_PchApplied = any;
     }
     /* 元気数値: 02846068 の「fcsel s1, s1, s2, eq」を「ldr s1, (近くの空き場所)」に替えて、そこに数値 (1〜100) を置く。0 なら元に戻す。 */
-    constexpr u32 kGenkiOff = 0x2846068, kGenkiCave = 0x2759F98, kGenkiOrig = 0x1E220C21;
+    constexpr u32 kGenkiOff = 0x28466C8, kGenkiCave = 0x275A5F8, kGenkiOrig = 0x1E220C21;
     bool g_GenkiPatched = false; u32 g_GenkiPrev = 0x1E220C21; u32 g_GenkiFail = 0;
     void GenkiApply(int v) {
         exl::patch::RandomAccessPatcher rp;
@@ -1003,7 +999,7 @@ namespace {
     }
 
     /* 人速度: 0284605C の「fmov s2, #1.0」(イカ泳ぎ以外の速さ倍率) を「ldr s2, (空き場所)」に替える。0 なら元に戻す。倍率 = 1 + 値 x 0.5 */
-    constexpr u32 kHSpdOff = 0x284605C, kHSpdCave = 0x2759F94, kHSpdOrig = 0x1E2E1002;
+    constexpr u32 kHSpdOff = 0x28466BC, kHSpdCave = 0x275A5F4, kHSpdOrig = 0x1E2E1002;
     bool g_HSpdPatched = false;
     void HSpdApply(int v) {
         exl::patch::RandomAccessPatcher rp;
@@ -1345,7 +1341,7 @@ namespace {
     void MemEditTick();
     void JumpApply(int mode);
     volatile bool g_FrameFallback = false;
-    static inline bool InLobbyNow() { return g_OffPaintRequest == 0x371D1C0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x60F6528)) != 0; } /* 451: ロビーか */
+    static inline bool InLobbyNow() { return g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x61056D8)) != 0; } /* 451: ロビーか */
     void FlowTick();
     void HidTick() {
         ExtraTick();
@@ -1353,7 +1349,7 @@ namespace {
         SettingsTick();
         WpTick();
         AsTick();
-        FfTick(); /* 版 626: SelfRootTick (625) はやめた: vtable main+0x5C43440 +0x338 は体の位置ではなく、視点に合わせて自分のまわりを回る点だった (インクの道が円を描いた)。メモリ全体を何度も探してカクつき、探している途中で消えたメモリを読んで落ちてもいた */
+        FfTick(); /* 版 626: SelfRootTick (625) はやめた: vtable main+0x5C52458 +0x338 は体の位置ではなく、視点に合わせて自分のまわりを回る点だった (インクの道が円を描いた)。メモリ全体を何度も探してカクつき、探している途中で消えたメモリを読んで落ちてもいた */
         Ft2Tick();
         BalTick();
         ClamTick(); /* アサリ集め */
@@ -1433,9 +1429,9 @@ namespace {
     /* ジャンプ: 1 = Air Jump (028AB918 の b.ne を nop)、2 = Moon Jump (02859614 の mov w12,#0x270e を mov w12,#0)、3 = 両方。
        番地は IDA の番地そのまま (main の先頭からの位置)。元の命令を確かめてから書き換える。 */
     void JumpApply(int mode) {
-        constexpr u32 kAirOff = 0x28AB918, kMoonOff = 0x2859614;
+        constexpr u32 kAirOff = 0x28ABFB8, kMoonOff = 0x2859CA4;
         constexpr u32 kAirOrig = 0x5400E661u, kAirVal = 0xD503201Fu, kMoonOrig = 0x5284E1CCu, kMoonVal = 0x5280000Cu;
-        if (g_OffPaintRequest != 0x371D1C0) { g_Jump = 0; return; } /* 11.3.0 以外では触らない */
+        if (g_OffPaintRequest != 0x37246F0) { g_Jump = 0; return; } /* 11.3.0 以外では触らない */
         exl::patch::RandomAccessPatcher rp;
         const u32 a = rp.Read<u32>(kAirOff), m = rp.Read<u32>(kMoonOff);
         if ((a != kAirOrig && a != kAirVal) || (m != kMoonOrig && m != kMoonVal)) { g_Jump = 0; return; } /* 違う命令なら触らない */
@@ -1544,7 +1540,7 @@ namespace {
 
 
     /* ---- 自分の座標 (1.13.0 用): 撃った瞬間のスタックにある、ある種類のオブジェクトの +0x10 に (x, 高さ, z) がある --------- */
-    constexpr uintptr_t kPosObjVtable = 0x5C65698; /* main 先頭からのオフセット */
+    constexpr uintptr_t kPosObjVtable = 0x5C746B0; /* main 先頭からのオフセット */
     constexpr float kPosObjHeight = 2.54f;           /* 床からこの分だけ高い */
     uintptr_t g_PosObj = 0;
     float g_PosCopy[3] = {};
@@ -1555,19 +1551,19 @@ namespace {
     }
 
     /* Switch のソフトウェアキーボードを呼んで、入れた文字を g_TextU8 に入れる (ゲームが使っているのと同じ nn::swkbd の関数。
-       関数の場所は main の GOT (+0x4E8BBF0〜) に実行時に入る) */
+       関数の場所は main の GOT (+0x4E98980〜) に実行時に入る) */
     void TextKeyboard() {
         struct KbStr { void* p; u64 n; };
         using FnSize = u64 (*)(); using FnWork = u64 (*)(bool); using FnPreset = void (*)(void*, int);
         using FnInit8 = void (*)(void*, const char*); using FnShow = u32 (*)(KbStr*, const void*);
         const uintptr_t b = MainBase();
         auto GotAt = [&](u64 off) -> uintptr_t { return b + off; /* PLT の入口 (遅延解決のため、GOT を直接読まない) */ };
-        const uintptr_t aTc = GotAt(0x4E8BBF0), aWork = GotAt(0x4E8BC00), aStr = GotAt(0x4E8BC10), aPre = GotAt(0x4E8BC30), aIni = GotAt(0x4E8BC40), aShow = GotAt(0x4E8BC50);
+        const uintptr_t aTc = GotAt(0x4E98980), aWork = GotAt(0x4E98990), aStr = GotAt(0x4E989A0), aPre = GotAt(0x4E989C0), aIni = GotAt(0x4E989D0), aShow = GotAt(0x4E989E0);
         if (!aTc || !aWork || !aStr || !aPre || !aIni || !aShow) { g_TextMsg = 1; return; }
         const u64 tcSz = reinterpret_cast<FnSize>(aTc)(), wkSz = reinterpret_cast<FnWork>(aWork)(false), stSz = reinterpret_cast<FnSize>(aStr)();
         if (tcSz > 0x400000 || wkSz > 0x400000 || stSz > 0x400000) { g_TextMsg = 2; return; }
         using FnAA = void* (*)(size_t, size_t); using FnFree = void (*)(void*);
-        const FnAA aa = reinterpret_cast<FnAA>(b + 0xA77C20); const FnFree fr = reinterpret_cast<FnFree>(b + 0xA77B40);
+        const FnAA aa = reinterpret_cast<FnAA>(b + 0xA77F30); const FnFree fr = reinterpret_cast<FnFree>(b + 0xA77E50);
         auto up = [](u64 v) -> size_t { return static_cast<size_t>((v + 0xFFF) & ~0xFFFull); };
         u8* const kbWork = static_cast<u8*>(aa(0x1000, up(wkSz))); u8* const kbCheck = static_cast<u8*>(aa(0x1000, up(tcSz))); u8* const kbStr = static_cast<u8*>(aa(0x1000, up(stSz)));
         if (!kbWork || !kbCheck || !kbStr) { if (kbWork) fr(kbWork); if (kbCheck) fr(kbCheck); if (kbStr) fr(kbStr); g_TextMsg = 4; return; }
@@ -1620,7 +1616,7 @@ namespace {
     void FlowTick() {
         static uintptr_t cur = 0; static bool wasOn = false; static u64 nextPass = 0; static bool flowDone = false;
         const bool on = g_FlowOn;
-        const uintptr_t vt = MainBase() + 0x5D706F8;
+        const uintptr_t vt = MainBase() + 0x5D7F710;
         if (on) {
             /* GUI の機能のオン/オフが変わったら、5 秒のあいだ加点を大きくして、イカフローが出やすくする */
             static u64 prevH = ~0ull; u64 h = 1469598103934665603ull;
@@ -1729,7 +1725,7 @@ namespace {
 
 
     /* ---- 自分の座標 (常に更新される場所) ---- */
-    constexpr uintptr_t kLiveVtable = 0x5ED1810; /* main 先頭からのオフセット */
+    constexpr uintptr_t kLiveVtable = 0x5EE0A08; /* main 先頭からのオフセット */
     constexpr uintptr_t kLivePosToVt = 0x28;      /* 座標 (float x3) の 0x28 先に vtable がある */
     constexpr uintptr_t kLivePageOff = 0x948;     /* vtable のあるアドレスの、ページ内の位置 */
     constexpr float kLiveHeight = 2.27f;          /* 座標の高さ - 床の高さ */
@@ -1779,10 +1775,10 @@ namespace {
         return out[0] == out[0] && out[1] == out[1] && out[2] == out[2];
     }
 
-    /* 新しいやり方: ブルートフォースで見つけた「組」ではなく、ゲーム自身の毎フレーム処理 (main+0x273D348 相当) が
+    /* 新しいやり方: ブルートフォースで見つけた「組」ではなく、ゲーム自身の毎フレーム処理 (main+0x273D9A8 相当) が
        実際に読む「プレイヤー本体」のアドレスを、管理物をたどって直接求める。
          main+g_OffPlayerMgrPtr (ポインタの置き場所) → 管理物
-         管理物 +0xC8 = 今の人数、+0xD0 = 本体ポインタの並び、+0xD738 = 自分の番号
+         管理物 +0xC8 = 今の人数、+0xD0 = 本体ポインタの並び、+0xDCD8 = 自分の番号
          本体 +0x10/+0x14/+0x18 = x / y(高さ) / z (float, 3つ並び)
        頭の部位などの「写し」ではなく本体そのものなので、ここに書けば体ごと正しく動く。
        見つからなければ false (このときは従来のブルートフォース組だけで動く)。 */
@@ -1791,10 +1787,10 @@ namespace {
         const uintptr_t mgrLoc = exl::util::modules::GetTargetOffset(g_OffPlayerMgrPtr);
         if (!Readable(mgrLoc, 8)) return false;
         const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(mgrLoc);
-        if (!mgr || !Readable(mgr, 0xD740)) return false;
+        if (!mgr || !Readable(mgr, 0xDCE0)) return false;
         const s32 count = *reinterpret_cast<const s32*>(mgr + 0xC8);
         const uintptr_t arr = *reinterpret_cast<const uintptr_t*>(mgr + 0xD0);
-        const s32 myIdx = *reinterpret_cast<const s32*>(mgr + 0xD738);
+        const s32 myIdx = *reinterpret_cast<const s32*>(mgr + 0xDCD8);
         if (!arr || count <= 0 || count > 16 || myIdx < 0 || myIdx >= count) return false;
         const uintptr_t slot = arr + static_cast<uintptr_t>(myIdx) * 8;
         if (!Readable(slot, 8)) return false;
@@ -1924,10 +1920,10 @@ namespace {
         }
     }
     /* 自分の座標を塗り要求の座標系 (a,b,c) で返す。わからなければ false。 */
-    /* 版 625: 自分の体の基準の位置。アドレスサーチの書き込みテストで見つかった「vtable main+0x5C43440 の物の +0x338」。
+    /* 版 625: 自分の体の基準の位置。アドレスサーチの書き込みテストで見つかった「vtable main+0x5C52458 の物の +0x338」。
        今まで広場で使っていた LivePos は体の一部の位置で、視点を回すとキャラが向きを変えるのにつれてずれていた。これは向きに左右されない。
        見つけるのは HidTick (SelfRootTick) で、ここでは読むだけ */
-    constexpr uintptr_t kRootVt = 0x5C43440; constexpr u32 kRootOff = 0x338;
+    constexpr uintptr_t kRootVt = 0x5C52458; constexpr u32 kRootOff = 0x338;
     volatile uintptr_t g_RootObj = 0;
     bool SelfRoot(float* o) {
         const uintptr_t ob = g_RootObj; if (!ob || !Readable(ob, kRootOff + 12)) return false;
@@ -1936,10 +1932,10 @@ namespace {
         if (!(f[0] == f[0] && f[1] == f[1] && f[2] == f[2] && f[0] > -5000.0f && f[0] < 5000.0f && f[1] > -5000.0f && f[1] < 5000.0f && f[2] > -5000.0f && f[2] < 5000.0f)) return false;
         o[0] = f[0]; o[1] = f[1]; o[2] = f[2]; return true;
     }
-    /* 版 632: 自分の本当の位置 (物理)。デバッガで突き止めた: CharacterController (vtable main+0x5EF5D00) の +0x18 の剛体が
+    /* 版 632: 自分の本当の位置 (物理)。デバッガで突き止めた: CharacterController (vtable main+0x5F04EF8) の +0x18 の剛体が
        3x4 の変換行列を持ち、位置は +0xE4 (x) / +0xF4 (y) / +0x104 (z) (16 バイトずつ離れているので、x,y,z が並んだ所を探すアドレスサーチでは見つからなかった)。
        視点を回しても変わらない */
-    constexpr uintptr_t kCcVt = 0x5EF5D00, kCcSetPos = 0x4A8DFC4;
+    constexpr uintptr_t kCcVt = 0x5F04EF8, kCcSetPos = 0x4A9AD54;
     bool CcValid(uintptr_t cc) { return cc && Readable(cc, 0x5C8) && *reinterpret_cast<const uintptr_t*>(cc) == MainBase() + kCcVt; }
     bool CcBodyPos(uintptr_t cc, float* o) { const uintptr_t b = *reinterpret_cast<const uintptr_t*>(cc + 0x18); if (!b || !Readable(b + 0xE0, 0x30)) return false;
         o[0] = *reinterpret_cast<const float*>(b + 0xE4); o[1] = *reinterpret_cast<const float*>(b + 0xF4); o[2] = *reinterpret_cast<const float*>(b + 0x104);
@@ -1959,8 +1955,8 @@ namespace {
         return GetPlayerPosLegacy(out);
     }
     bool GetPlayerPosLegacy(float* out) {
-        const bool lbF = g_OffPaintRequest == 0x371D1C0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x60F6528)) != 0; /* 449: ロビーでは足元の座標を使わない (397 のころはロビーで描けた) */
-        if (!lbF) { /* 足元の座標 (床の高さ。ロードしても同じ物を探せる: アドレスサーチで見つけた main+0x5BF8770 の +0x18) があれば、いちばんにそれを使う。なければ探す (2 秒に 1 回) */
+        const bool lbF = g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x61056D8)) != 0; /* 449: ロビーでは足元の座標を使わない (397 のころはロビーで描けた) */
+        if (!lbF) { /* 足元の座標 (床の高さ。ロードしても同じ物を探せる: アドレスサーチで見つけた main+0x5C07780 の +0x18) があれば、いちばんにそれを使う。なければ探す (2 秒に 1 回) */
             static u64 nextF = 0, nextC = 0; const u64 now = NowTick();
             if (!FootValid()) {
                 if (!CamValid() && LiveValid() && now >= nextC) { nextC = now + 38400000ull; CamFind(); }
@@ -2096,8 +2092,8 @@ namespace {
             constexpr u64 kUp = 1ull << 13, kDn = 1ull << 15, kLf = 1ull << 12, kRt = 1ull << 14, kY = 1ull << 3, kL = 1ull << 6, kLS = 1ull << 4;
             /* メニューを開いていても B / ZL でフリーフライの上下はそのまま効く (メニューの操作には B / ZL を使わないため) */
             /* ロビー (LobbyVersus / LobbyCoop) では L はゲームのメニューに使うので、R を押しながら L で開く。
-               0x60F6528 = ゲームが「ロビーの場面か」を入れておく 1 バイト (11.3.0, 場面の名前が LobbyVersus / LobbyCoop のとき 1) */
-            const bool inLobby = g_OffPaintRequest == 0x371D1C0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x60F6528)) != 0;
+               0x61056D8 = ゲームが「ロビーの場面か」を入れておく 1 バイト (11.3.0, 場面の名前が LobbyVersus / LobbyCoop のとき 1) */
+            const bool inLobby = g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x61056D8)) != 0;
             if (!g_MenuOpen && (edge & kL) && (!inLobby || (buttons & (1ull << 7)))) { g_MenuOpen = true; g_OpenEdge = true; g_UiMove = false; g_PchPanel = false; g_MemPanel = false; g_SelPanel = 0; return; }
             if (g_MenuOpen && (edge & kLS)) {
                 /* Lスティック押し込み: ひとつ戻る (位置の移動 → 一覧 → カテゴリの一覧 → メニューを閉じる) */
@@ -2395,7 +2391,7 @@ namespace {
         if (!g_NickHooked) {
             static int wait = 0;
             if (++wait > 300) {
-                const uintptr_t fn = GotAt(0x4E8B330);
+                const uintptr_t fn = GotAt(0x4E980C0);
                 if (fn > 0x1000 && Readable(fn, 8)) { g_NickHooked = true; NickHook::InstallAtPtr(fn); }
             }
         }
@@ -2403,7 +2399,7 @@ namespace {
         static u64 offAt = 0; static u32 vh[16]; static int vn = -1;
         const u64 now = NowTick();
         if (g_VibReq || offAt) {
-            const uintptr_t aGet = GotAt(0x4E8E160), aInit = GotAt(0x4E8E180), aSend = GotAt(0x4E8E1C0), aSty = GotAt(0x4E8BA20);
+            const uintptr_t aGet = GotAt(0x4E9AEF0), aInit = GotAt(0x4E9AF10), aSend = GotAt(0x4E9AF50), aSty = GotAt(0x4E987B0);
             if (aGet > 0x1000 && aInit > 0x1000 && aSend > 0x1000 && aSty > 0x1000) {
                 using FnGet = int (*)(u32*, int, const u32&, u32); using FnInit = void (*)(const u32&); using FnSend = void (*)(const u32&, const float*); using FnSty = u32 (*)(const u32&);
                 if (vn < 0 && g_VibReq) {
@@ -2529,7 +2525,7 @@ void HidApply(u64 b, u8* out, s32 n) {
 }
 }
 namespace nvnhook { extern volatile u64 g_Presents; extern volatile u32 g_Flags; extern volatile int g_TexFmtPub; }
-/* ゲーム本体の毎フレーム更新 (main+0x3737640)。塗りリクエストと同じスレッドで動く。ここから描く。 */
+/* ゲーム本体の毎フレーム更新 (main+0x373EB70)。塗りリクエストと同じスレッドで動く。ここから描く。 */
 namespace {
 void FovApply() {
         { /* 視野の広さ: カメラの縦の画角 (追従先の +0x20、ふだんは 55.0) を、毎フレーム書く。やめたら 55.0 に戻す */
@@ -2569,10 +2565,10 @@ namespace {
         if (!g_StgListed) StgListDir(); /* 版 654: ステージの一覧 */
         { const int rq = g_ScnReq; if (rq >= 0) { g_ScnReq = -1; /* 版 652: シーン移動 (ゲームの毎フレーム処理の中で呼ぶ) */
             const uintptr_t mb = MainBase();
-            if (*reinterpret_cast<const u32*>(mb + 0x3d2fd80) != 0xA9BA7BFDu) g_ScnMsg = 3;
-            else { const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(mb + 0x605f358);
+            if (*reinterpret_cast<const u32*>(mb + 0x3d3c740) != 0xA9BA7BFDu) g_ScnMsg = 3;
+            else { const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(mb + 0x606e378);
                 if (!mgr || !Readable(mgr + 0x340, 0x10) || *reinterpret_cast<const u8*>(mgr + 0x34a)) g_ScnMsg = 2;
-                else { const char* nm = g_ScnReqName; using Fn = void (*)(uintptr_t, const char**, u32); reinterpret_cast<Fn>(mb + 0x3d2fd80)(mgr, &nm, 1u); g_ScnMsg = 1; { size_t L2 = 0; while (g_ScnReqName[L2] && L2 < 47) { g_ScnOwnName[L2] = g_ScnReqName[L2]; L2++; } g_ScnOwnName[L2] = 0; g_ScnOwn = false; g_ScnArmT = NowTick(); g_RivDone = false; g_RivMsg = 0; } } } } }
+                else { const char* nm = g_ScnReqName; using Fn = void (*)(uintptr_t, const char**, u32); reinterpret_cast<Fn>(mb + 0x3d3c740)(mgr, &nm, 1u); g_ScnMsg = 1; { size_t L2 = 0; while (g_ScnReqName[L2] && L2 < 47) { g_ScnOwnName[L2] = g_ScnReqName[L2]; L2++; } g_ScnOwnName[L2] = 0; g_ScnOwn = false; g_ScnArmT = NowTick(); g_RivDone = false; g_RivMsg = 0; } } } } }
     }
 }
 HOOK_DEFINE_TRAMPOLINE(FrameHook) {
@@ -2599,19 +2595,19 @@ HOOK_DEFINE_TRAMPOLINE(FrameHook) {
         return r;
     }
 };
-/* ===== フリーフライ (版 609〜): プレイヤーの毎フレーム処理 main+0x273D348 にフックして、その中で本体の座標を書く =====
+/* ===== フリーフライ (版 609〜): プレイヤーの毎フレーム処理 main+0x273D9A8 にフックして、その中で本体の座標を書く =====
    クラッシュ 3 回 (版 603/605/607) の本当の原因: 管理物 +0xD0 の並びの要素は「プレイヤー本体」ではなく「ハンドル」。
    要素 +0x10 はポインタ、+0x18 は ID。そこを座標だと思って書いていたので、ポインタの上半分が float (1.2 = 0x3f99999a) に
-   置き換わり、ゲームがそのポインタをたどった所 (main+0x12E8814: ldr w10,[x8,#0x88]) で落ちていた (どのスレッドかは偶然)。
-   ゲーム自身のたどり方 (例 main+0x1BAF48C〜0x1BAF57C):
-     管理物 = *(main+0x6048568)、自分の番号 = *(管理物+0xD730) (+0xD738 ではない)、人数 = *(管理物+0xC8)
+   置き換わり、ゲームがそのポインタをたどった所 (main+0x12E8B74: ldr w10,[x8,#0x88]) で落ちていた (どのスレッドかは偶然)。
+   ゲーム自身のたどり方 (例 main+0x1BAFACC〜0x1BAFBBC):
+     管理物 = *(main+0x6057568)、自分の番号 = *(管理物+0xDCD0) (+0xDCD8 ではない)、人数 = *(管理物+0xC8)
      要素 E = (*(管理物+0xD0))[番号]、ハンドル H = E+8
-     部品 = main+0x19ADD34(H, 0, 1)   … これが main+0x273D348 の引数 a1 と同じ種類の部品
+     部品 = main+0x19AE2E4(H, 0, 1)   … これが main+0x273D9A8 の引数 a1 と同じ種類の部品
      本体 = *(部品+0x108)、本体+0x10/+0x14/+0x18 = x / y(高さ) / z
    フックの中 (ゲームが自分のプレイヤーを処理しているそのスレッド・そのタイミング) で、元の処理の後に書く。 */
 namespace {
     bool CamDir3(float* o);
-    constexpr uintptr_t kOffBodyCalc = 0x273D348, kOffCompFromHandle = 0x19ADD34; constexpr bool kBfFly = true; constexpr uintptr_t kFfVt = 0x5C43440; constexpr u32 kFfOff = 0x338;
+    constexpr uintptr_t kOffBodyCalc = 0x273D9A8, kOffCompFromHandle = 0x19AE2E4; constexpr bool kBfFly = true; constexpr uintptr_t kFfVt = 0x5C52458; constexpr u32 kFfOff = 0x338;
     volatile u32 g_BfCalls = 0, g_BfSelf = 0, g_BfWrites = 0, g_BfRecs = 0; /* g_BfRecs: 最後に書けた位置の記録の数 (7 が満点) */ /* 調査用: 呼ばれた回数 / 自分だった回数 / 書いた回数 */
     float g_BfPos[3] = {}, g_BfBase = 0.0f; /* 止めている位置 / 飛び始めの高さ */
     volatile u64 g_BfLastSelfT = 0;        /* 最後に自分の処理を見た時刻 (しばらく来なければ、使えないとみなす) */
@@ -2620,7 +2616,7 @@ namespace {
         const uintptr_t mb = MainBase();
         const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(mb + g_OffPlayerMgrPtr);
         if (!mgr) return 0;
-        const s32 idx = *reinterpret_cast<const s32*>(mgr + 0xD730);
+        const s32 idx = *reinterpret_cast<const s32*>(mgr + 0xDCD0);
         const s32 cnt = *reinterpret_cast<const s32*>(mgr + 0xC8);
         if (idx < 0 || idx >= cnt) return 0;
         const uintptr_t arr = *reinterpret_cast<const uintptr_t*>(mgr + 0xD0);
@@ -2636,8 +2632,8 @@ namespace {
 }
 namespace {
     /* 版 611: 本体の中にある「位置の写し」を、フリーフライを ON にした瞬間に全部探して覚える。
-       610 の調査: S+0x8C.. のほかにも、本体+0x40〜0x84 に xyz の写しが 6 つ (main+0x2863B48〜)、本体+0xAA0 にも位置があり
-       毎フレーム移動量が足される (main+0x28AE2A4)。どれが本当の元か静的には決めきれないので、
+       610 の調査: S+0x8C.. のほかにも、本体+0x40〜0x84 に xyz の写しが 6 つ (main+0x28641D8〜)、本体+0xAA0 にも位置があり
+       毎フレーム移動量が足される (main+0x28AE944)。どれが本当の元か静的には決めきれないので、
        ON の瞬間に今の位置と x,y,z が 3 つとも一致する場所 (本体の先頭から 0x11F60 バイト以内) を全部覚えて、毎フレーム全部に書く。
        非正規化数 (ポインタの上半分など) は座標とみなさない。 */
     constexpr u32 kBfObjSize = 0x11F60, kBfMaxOff = 96;
@@ -2659,13 +2655,13 @@ HOOK_DEFINE_TRAMPOLINE(BodyCalcHook) {
         const u64 r = Orig(a1);
         if (dgb) PdLeave(dgb, 3, dgf);
         g_BfCalls++; ScnTick(); /* 版 653 */
-        if (g_CfWant && g_OffPlayerMgrPtr == 0x6048568 && BfSelfComp() == a1) { g_CfBody = *reinterpret_cast<const uintptr_t*>(a1 + 0x108); g_CfT = NowTick(); AsHookWrite();
+        if (g_CfWant && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) { g_CfBody = *reinterpret_cast<const uintptr_t*>(a1 + 0x108); g_CfT = NowTick(); AsHookWrite();
             const int ar = g_ArmorReq;
             if (ar >= 0) { g_ArmorReq = -1;
-                /* 版 624: プレイヤー本体 = *(カメラが追う物 + 0x11F38) (ゲームも main+0x28796AC でこうして取り出し、アーマーの処理に渡している)。
+                /* 版 624: プレイヤー本体 = *(カメラが追う物 + 0x11F38) (ゲームも main+0x2879D3C でこうして取り出し、アーマーの処理に渡している)。
                    本体 +0x29D0 がこの部品 (a1)、+0x29D8 がモデル側。ゲーム自身の演出の関数を呼ぶ:
-                     オン  → main+0x293D10C(本体, 0)  (ArmorMounting_0 + ArmorGet のアクション。xlink でエフェクトと音)
-                     オフ → main+0x293D210(本体, 0)  (ArmorBreak_0 のアクション。xlink でエフェクトと音)
+                     オン  → main+0x293D7DC(本体, 0)  (ArmorMounting_0 + ArmorGet のアクション。xlink でエフェクトと音)
+                     オフ → main+0x293D8E0(本体, 0)  (ArmorBreak_0 のアクション。xlink でエフェクトと音)
                    どちらもアニメーション / 演出を流すだけで、アーマーの状態は変えない */
                 const uintptr_t cb = g_CfBody; uintptr_t pl = 0;
                 if (cb && Readable(cb + 0x11F38, 8)) pl = *reinterpret_cast<const uintptr_t*>(cb + 0x11F38);
@@ -2673,12 +2669,12 @@ HOOK_DEFINE_TRAMPOLINE(BodyCalcHook) {
                 uintptr_t md = 0, am = 0; /* モデル側 (+0x29D8) と、その +0x2A0 (アーマーのモデル)。ゲームの関数はここを確かめずに読むので、無いときは呼ばない (落ちないように) */
                 if (pl && Readable(pl + 0x29D0, 16)) { md = *reinterpret_cast<const uintptr_t*>(pl + 0x29D8); if (md && Readable(md + 0x2A0, 8)) { am = *reinterpret_cast<const uintptr_t*>(md + 0x2A0); if (am && !Readable(am, 0x100)) am = 0; } if (md && !Readable(md, 0x208)) md = 0; if (md) { const uintptr_t m2 = *reinterpret_cast<const uintptr_t*>(md + 0x200); if (!m2 || !Readable(m2, 0x100)) md = 0; } } /* +0x200 (本体のモデル) も読まれる */
                 const bool ok = pl && md && am && *reinterpret_cast<const uintptr_t*>(pl + 0x29D0) == a1
-                    && *reinterpret_cast<const u32*>(mb + 0x293D10C) == 0xD10103FFu && *reinterpret_cast<const u32*>(mb + 0x293D210) == 0xD10143FFu;
-                if (ok) { using Fn = void (*)(uintptr_t, u32); reinterpret_cast<Fn>(mb + (ar ? 0x293D10C : 0x293D210))(pl, 0u); g_ArmorDone++; }
+                    && *reinterpret_cast<const u32*>(mb + 0x293D7DC) == 0xD10103FFu && *reinterpret_cast<const u32*>(mb + 0x293D8E0) == 0xD10143FFu;
+                if (ok) { using Fn = void (*)(uintptr_t, u32); reinterpret_cast<Fn>(mb + (ar ? 0x293D7DC : 0x293D8E0))(pl, 0u); g_ArmorDone++; }
                 else g_TogFxReq = ar ? 480 : 478; /* 呼べなかった: 今までどおりエフェクトだけ */
             }
         } /* 読むだけ (アドレスサーチの書き込みテスト中だけ、候補に書く) */
-        /* 版 618: フリーフライ。アドレスサーチの書き込みテストで効いた「vtable main+0x5C43440 の物の +0x338」(キャラの位置) に、
+        /* 版 618: フリーフライ。アドレスサーチの書き込みテストで効いた「vtable main+0x5C52458 の物の +0x338」(キャラの位置) に、
            ゲームのプレイヤー処理の中で毎フレーム書く。カメラが追う物 (a1+0x108) には書かない。 */
         return r; /* 版 629: フリーフライは CcUpdHook (物理の更新) で書く */
         if (BfSelfComp() != a1) return r; /* 自分以外のプレイヤー */
@@ -2706,9 +2702,9 @@ HOOK_DEFINE_TRAMPOLINE(BodyCalcHook) {
         return r;
     }
 };
-/* 版 612: 本体の外にある「位置の元」。main+0x2863AA0 の中で、毎フレーム S+0x8C.. (S = 本体+0x10) に 48 バイトがコピーされる:
-     経路 A (main+0x2864174): シングルトン *(main+0x5F1D7E0) の +0x4CC0 が立っているとき、main+0x2FE4E64(シングルトン, 種類, 番号) が返す所から。x0 = 元, x21 = S
-     経路 B (main+0x2864258): *(本体+0x8) の +0x809 が立っているとき、そのオブジェクト +0x28C から。x23 = そのオブジェクト, x21 = S
+/* 版 612: 本体の外にある「位置の元」。main+0x2864130 の中で、毎フレーム S+0x8C.. (S = 本体+0x10) に 48 バイトがコピーされる:
+     経路 A (main+0x2864804): シングルトン *(main+0x5F2C9D8) の +0x4CC0 が立っているとき、main+0x2FE5684(シングルトン, 種類, 番号) が返す所から。x0 = 元, x21 = S
+     経路 B (main+0x28648E8): *(本体+0x8) の +0x809 が立っているとき、そのオブジェクト +0x28C から。x23 = そのオブジェクト, x21 = S
    コピーの直前に割り込んで、自分の S のときだけ、元の xyz を固定位置に書き換える (元そのものを書き換えるので、次のフレームもそこから始まる)。 */
 namespace { volatile u32 g_BfHitA = 0, g_BfHitB = 0; }
 HOOK_DEFINE_INLINE(BfSrcAHook) {
@@ -2727,7 +2723,7 @@ HOOK_DEFINE_INLINE(BfSrcBHook) {
         g_BfHitB++;
     }
 };
-/* 版 613: 調べる用。プレイヤー部品の毎フレーム処理 (main+0x5D30170〜 の表に並ぶ 7 つ) の前後で、自分の位置
+/* 版 613: 調べる用。プレイヤー部品の毎フレーム処理 (main+0x5D3F188〜 の表に並ぶ 7 つ) の前後で、自分の位置
    (S+0x00 = 本体+0x10 と S+0x8C = 本体+0x9C) が変わったかを数える。どの処理の中で / どの処理の外で位置が動くかを知るため。
    番号: 0=273D25C 1=273D288 2=273D31C 3=273D348 4=273D5D4 5=273D804 6=273D81C 7=どれの外 */
 namespace {
@@ -2750,7 +2746,7 @@ HOOK_DEFINE_TRAMPOLINE(NAME) { \
 INK_PD_HOOK(PdHook0, 0) INK_PD_HOOK(PdHook1, 1) INK_PD_HOOK(PdHook2, 2) INK_PD_HOOK(PdHook4, 4) INK_PD_HOOK(PdHook5, 5) INK_PD_HOOK(PdHook6, 6)
 #undef INK_PD_HOOK
 /* 版 628: 調べる用。プレイヤーの物理は Havok の phive::CharacterController (hknpCharacterProxy)。
-   その 1 体ごとの更新 main+0x4A874A0 (ジョブから呼ばれる。x0 = 包み、*(x0+8) = CharacterController) にフックして、
+   その 1 体ごとの更新 main+0x4A94230 (ジョブから呼ばれる。x0 = 包み、*(x0+8) = CharacterController) にフックして、
    フリーフライ ON のときだけ、更新の後に CharacterController と、その +0x8 / +0x18 / +0x20 の先の物の中から、
    自分の足元の座標と同じ x,y,z が入っている場所を探して表示する (読むだけ。書かない) */
 namespace {
@@ -2768,19 +2764,19 @@ namespace {
 namespace {
     /* 版 629: 自分の CharacterController (物理)。628 の調べで、足元の座標と同じ x,y,z が
        CharacterController +0x5B0 / +0x5BC、*(+0x18) の先 +0x530、*(+0x20) の先 +0x40 に入っていた。
-       フリーフライとテレポートは、物理の更新 (main+0x4A874A0) の前と後に、この 4 か所へ書く */
+       フリーフライとテレポートは、物理の更新 (main+0x4A94230) の前と後に、この 4 か所へ書く */
     volatile u32 g_CcWr = 0;
     inline bool CcNear(const float* f, const volatile float* r, float hr) { const float a = f[0] - r[0], c = f[2] - r[2], b = f[1] - r[1]; return a > -hr && a < hr && c > -hr && c < hr && b > -3.0f && b < 3.0f; }
     bool CcBodyPos(uintptr_t cc, float* o); bool CcValid(uintptr_t cc);
     constexpr float g_CcDt = 1.0f / 60.0f; /* 版 636: 速度は 1 秒あたり (Havok の標準)。635 は歩いたときの動きから測っていたが、ゲームが速度を使わずに動かしているときに値がおかしくなり、操作が暴れることがあった */
     bool CcFnOk(uintptr_t cc, u32 slot, uintptr_t off) { const uintptr_t vt = *reinterpret_cast<const uintptr_t*>(cc); return *reinterpret_cast<const uintptr_t*>(vt + slot) == MainBase() + off; }
-    void CcSetPos(uintptr_t cc, const float* p) { /* ゲーム自身の「位置を設定する」(vtable +0xD8 = main+0x4A8DFC4)。ワープと同じなので、遠いときだけ使う */
+    void CcSetPos(uintptr_t cc, const float* p) { /* ゲーム自身の「位置を設定する」(vtable +0xD8 = main+0x4A9AD54)。ワープと同じなので、遠いときだけ使う */
         if (!CcFnOk(cc, 0xD8, kCcSetPos)) return;
         alignas(16) float v[4] = { p[0], p[1], p[2], 0.0f };
         reinterpret_cast<void (*)(uintptr_t, const float*)>(*reinterpret_cast<const uintptr_t*>(*reinterpret_cast<const uintptr_t*>(cc) + 0xD8))(cc, v); g_CcWr++;
     }
-    void CcSetVel(uintptr_t cc, const float* p) { /* ゲーム自身の「速度を設定する」(vtable +0x130 = main+0x4A8E2D8、剛体 +0x138) */
-        if (!CcFnOk(cc, 0x130, 0x4A8E2D8)) return;
+    void CcSetVel(uintptr_t cc, const float* p) { /* ゲーム自身の「速度を設定する」(vtable +0x130 = main+0x4A9B068、剛体 +0x138) */
+        if (!CcFnOk(cc, 0x130, 0x4A9B068)) return;
         alignas(16) float v[4] = { p[0], p[1], p[2], 0.0f };
         reinterpret_cast<void (*)(uintptr_t, const float*)>(*reinterpret_cast<const uintptr_t*>(*reinterpret_cast<const uintptr_t*>(cc) + 0x130))(cc, v);
     }
@@ -3436,7 +3432,7 @@ namespace {
     /* 塗り要求の先頭1バイト (+0x00) = プレイヤー番号 (0〜7)。実行側が 0xF0 バイト刻みのプレイヤー表を引いて色を決める (逆アセンブルで確認)。
        ステージの仕掛けの塗りは 9 などで、プレイヤーに結びつかず、敵の色になる。
        撃たずに自分の色で描くには、この番号を自分のものにすればよい。 */
-    constexpr uintptr_t kPlayerTableSlot = 0x5F1D698; /* main 先頭からのオフセット: 表の管理者を指す変数へのポインタ */
+    constexpr uintptr_t kPlayerTableSlot = 0x5F2C890; /* main 先頭からのオフセット: 表の管理者を指す変数へのポインタ */
     constexpr uintptr_t kPlayerStride    = 0xF0;
     constexpr uintptr_t kPlayerObjOff    = 0x298;
     constexpr int       kDefaultLocalIdx = 1;         /* 手がかりが何もないときの仮の番号 (この部屋で撃ったときの番号) */
@@ -4582,14 +4578,14 @@ namespace {
     }
     static void LookTickBody();
     /* エモート: L を押した瞬間に出す依頼を出す (メニューを開いていないとき) */
-    /* 試合の参加者の記録 (1 人 2600 バイトの輪っか: +2140 が勝利のエモート) を、選んだエモートに書き換える。表彰の場面は、ここから読んで各自のエモートを決める */
+    /* 試合の参加者の記録 (1 人 2672 バイトの輪っか (11.3.0 は 2600): +2140 が勝利のエモート) を、選んだエモートに書き換える。表彰の場面は、ここから読んで各自のエモートを決める */
     static void EmWriteRecs() {
-        const uintptr_t mb = MainBase(); uintptr_t p = 0; if (!Readable(mb + 0x5F351A0, 8)) return; p = *reinterpret_cast<const uintptr_t*>(mb + 0x5F351A0); if (p < 0x1000 || !Readable(p, 8)) return;
+        const uintptr_t mb = MainBase(); uintptr_t p = 0; if (!Readable(mb + 0x5F443F8, 8)) return; p = *reinterpret_cast<const uintptr_t*>(mb + 0x5F443F8); if (p < 0x1000 || !Readable(p, 8)) return;
         const uintptr_t inst = *reinterpret_cast<const uintptr_t*>(p); if (inst < 0x1000 || !Readable(inst + 208, 8)) return;
         const uintptr_t rg = *reinterpret_cast<const uintptr_t*>(inst + 208); if (rg < 0x1000 || !Readable(rg + 160, 24)) return;
         const uintptr_t data = *reinterpret_cast<const uintptr_t*>(rg + 160); const int cap = *reinterpret_cast<const int*>(rg + 168), head = *reinterpret_cast<const int*>(rg + 172), cnt = *reinterpret_cast<const int*>(rg + 176);
         if (data < 0x1000 || cap <= 0 || cap > 64 || cnt <= 0 || cnt > cap || head < 0 || head >= cap) return;
-        for (int i = 0; i < cnt; i++) { int k = head + i; if (k >= cap) k -= cap; const uintptr_t rec = data + 2600u * static_cast<uintptr_t>(k) + 2140; if (!Readable(rec, 4)) continue; *reinterpret_cast<volatile int*>(rec) = kEmId[g_EmSel % kEmN]; }
+        for (int i = 0; i < cnt; i++) { int k = head + i; if (k >= cap) k -= cap; const uintptr_t rec = data + 2672u * static_cast<uintptr_t>(k) + 2140; /* 12.0.0: 1 人ぶんが 2600 → 2672 バイト (+2140 は同じ) */ if (!Readable(rec, 4)) continue; *reinterpret_cast<volatile int*>(rec) = kEmId[g_EmSel % kEmN]; }
     }
     /* 自分のプレイヤーのデータに「エモートを出す」旗 (+67277) と番号 (+67280) を立てる。他の人に送られる値なら、向こうの画面にも出る */
     static void EmSetLocalFlag() {
@@ -5553,7 +5549,7 @@ namespace {
         const uintptr_t sdk = UpdSdk(); if (sdk && UpdMount(sdk)) UpdWrite(sdk, "inkd:/inkdraw/bin/writetest.txt", t, static_cast<u32>(L));
     }
     /* 版 618: フリーフライが ON で、キャラの位置を持つ物がまだ分からないとき、メモリから探す (1 秒に 1 回まで)。
-       vtable main+0x5C43440 が入っている 8 バイトで、その +0x338 の xyz がキャラ (カメラが追う位置) の近くにある物 */
+       vtable main+0x5C52458 が入っている 8 バイトで、その +0x338 の xyz がキャラ (カメラが追う位置) の近くにある物 */
     void SelfRootTick() { /* 版 625: 体の基準の位置を持つ物を探す / 確かめる (2 秒に 1 回) */
         static u64 next = 0; const u64 now = NowTick(); if (now < next) return; next = now + 38400000ull;
         float ref[3]; bool hr = false;
@@ -5663,7 +5659,7 @@ namespace {
         }
         if (!g_ModeOn || g_FlyQuiet || !g_BfHooked) { g_FfMsg = 0; return; }
         g_CfWant = true;
-        return; /* 版 628: 618 の「キャラ探し」(vtable main+0x5C43440、メモリ全体を探す) はやめた。あれは体の位置ではなく視点に合わせて回る点で、探している途中で落ちることもあった */
+        return; /* 版 628: 618 の「キャラ探し」(vtable main+0x5C52458、メモリ全体を探す) はやめた。あれは体の位置ではなく視点に合わせて回る点で、探している途中で落ちることもあった */
         if (g_FfObj) return;
         static u64 next = 0; const u64 now = NowTick(); if (now < next) return; next = now + 19200000ull;
         float c[3]; if (!CfPos(c)) { g_FfMsg = 1; return; }
@@ -5749,11 +5745,11 @@ namespace {
         }
     }
     /* ===== ハート: ゲームの「次に出るエフェクトを乗っ取る」方式 (版581〜582) は実戦でほぼ呼ばれず失敗だったので、
-       自分から直接「新しいエフェクトを作る」関数 (main+0xA70420) と「座標を書く」関数 (main+0xA52880) を呼ぶ方式に変更。
+       自分から直接「新しいエフェクトを作る」関数 (main+0xA70730) と「座標を書く」関数 (main+0xA52B90) を呼ぶ方式に変更。
        (アセンブリを直接読んで確かめた手順。IDA 疑似コードだけでは引数の並びが信用できなかったため)
 
        手順:
-       1) main+0x5F1EDD0 にある値を 2 回たどって (ポインタのポインタ)、+0x1258 で「エフェクト全体の管理者」を得る
+       1) main+0x5F2DFC8 にある値を 2 回たどって (ポインタのポインタ)、+0x1258 で「エフェクト全体の管理者」を得る
        2) その管理者 +0x3788 にあるロックを sub_4E8BF30 / sub_4E8BF40 で挟む (他の処理とぶつからないように)
        3) sub_A70420(管理者, 自分の入れ物, 0, 資材番号, 0, 0x100, 0x40, 入れ物+0xB0, 0, 0) で新しいエフェクトを作る
        4) 作れたら sub_A52A60(入れ物) で本体を得て、sub_A52880(本体, 64バイトの行列, 16バイトの予備, 0) で座標を書く
@@ -5767,18 +5763,18 @@ namespace {
        これが疑わしい動作の原因とみて、入れ物を余裕を持ったサイズに拡張した。
        また「資材番号 0」は本物の資材だが何に見えるかは分からない (イカロールの何かかもしれない) ので、
        左右で資材番号を選べるようにして、実際に目で見て確かめられるようにした。 */
-    constexpr uintptr_t kHeartMgrPtr = 0x5F1EDD0; constexpr uintptr_t kHeartMgrOff = 0x1258; constexpr uintptr_t kHeartLockOff = 0x3788;
-    constexpr uintptr_t kHeartAddrCreate = 0xA70420, kHeartAddrResolve = 0xA52A60, kHeartAddrEmit = 0xA52880, kHeartAddrLock = 0x4E8BF30, kHeartAddrUnlock = 0x4E8BF40;
-    constexpr uintptr_t kHeartAddrDestroy = 0xA70610; /* 「消す」(削除待ちキューに入れる) 関数。a1=管理者, a2=本体ポインタ。既に消えていれば何もしない */
+    constexpr uintptr_t kHeartMgrPtr = 0x5F2DFC8; constexpr uintptr_t kHeartMgrOff = 0x1258; constexpr uintptr_t kHeartLockOff = 0x3788;
+    constexpr uintptr_t kHeartAddrCreate = 0xA70730, kHeartAddrResolve = 0xA52D70, kHeartAddrEmit = 0xA52B90, kHeartAddrLock = 0x4E98CC0, kHeartAddrUnlock = 0x4E98CD0;
+    constexpr uintptr_t kHeartAddrDestroy = 0xA70920; /* 「消す」(削除待ちキューに入れる) 関数。a1=管理者, a2=本体ポインタ。既に消えていれば何もしない */
     u8 g_HeartHandle[512] = {}; /* エフェクトの「入れ物」(+0xB0 から 96 バイト使われるので余裕を持たせた) */
     u64 g_HeartAutoObj = 0; /* エフェクト追従用に一度だけ作ったオブジェクトの本体ポインタ (0 ならまだ作っていない) */
 
     /* 動画で確認したところ、毎フレーム「新しく作って」いたせいで歩いた跡にポツポツ置き去りになったり、
-       エフェクト自身の虹色アニメーションが毎回最初に戻ってしまっていた。本来の使い方 (main+0x48878D4 の
+       エフェクト自身の虹色アニメーションが毎回最初に戻ってしまっていた。本来の使い方 (main+0x4894664 の
        本来の役目がまさにこれだった) は「一度だけ作って、同じ物の座標を毎フレーム書き換える」。なので
        「作る」(HeartCreate) と「座標を書く」(HeartSetPos) を分け、最初の1回だけ作って、あとは同じ
        オブジェクトの座標を更新し続けるようにする (これで色のアニメーションも自然に進む)。 */
-    uintptr_t HeartMgr() { /* main+0x5F1EDD0 → 2 回たどって +0x1258 の「エフェクト全体の管理者」を得る (作る・消す 共通) */
+    uintptr_t HeartMgr() { /* main+0x5F2DFC8 → 2 回たどって +0x1258 の「エフェクト全体の管理者」を得る (作る・消す 共通) */
         const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start;
         const uintptr_t a1 = mb + kHeartMgrPtr;
         if (!Readable(a1, 8)) return 0;
@@ -5806,7 +5802,7 @@ namespace {
         const uintptr_t mgr = HeartMgr();
         if (!mgr) return 0;
         u8* h = hbuf ? hbuf : g_HeartHandle; std::memset(h, 0, hbuf ? hlen : sizeof(g_HeartHandle));
-        /* 実際の命令列 (main+0x48878D4) を確認した結果、a2 として渡すのは「入れ物」そのものではなく、
+        /* 実際の命令列 (main+0x4894664) を確認した結果、a2 として渡すのは「入れ物」そのものではなく、
            入れ物 +0x18 にある 16バイトの「ハンドル置き場」(オブジェクトへのポインタ＋世代番号)。
            sub_A70420 はここに結果を書き込み、その後 sub_A52880 を呼ぶ側はこの置き場のアドレスを
            sub_A52A60 に渡して本体ポインタへ解決する (置き場の中身を直接使うのではない)。 */
@@ -5857,7 +5853,7 @@ namespace {
            座標を書き換えるだけの方式は実機で不具合が出たため、前回と同じ「毎フレーム消して→その場でまた作る」
            方式に戻す (同時に2個以上存在することはない。消す→作るの順なので常に0か1個)。
            高さは足元より少し下げる */
-        /* 版 619: 選んだエフェクト (資材 g_FxRes・エミッタセット g_FxSel)。作る関数 main+0xA70420 の第 3 引数がエミッタセット番号、第 4 引数が資材番号
+        /* 版 619: 選んだエフェクト (資材 g_FxRes・エミッタセット g_FxSel)。作る関数 main+0xA70730 の第 3 引数がエミッタセット番号、第 4 引数が資材番号
            (資材 1 番の 0 番 = AmiiboInstallNpc = 今までの「アミーボ読み込みエフェクト」なので、この並びで合っている) */
         static u8 s_FxHandle[512]; static u64 s_FxObj = 0;
         g_CfWant = true; /* 版 620: エフェクトを出す場所 (カメラが追う位置 = 自分の足元) を、いつでも読めるようにしておく */
@@ -5892,9 +5888,9 @@ namespace {
         }
         if (g_HeartAutoObj) { HeartDestroy(g_HeartAutoObj); g_HeartAutoObj = 0; } /* 旧方式の追従は使わない */
     }
-    /* 足元の座標 (床の高さ): アドレスサーチの結果、vtable が main+0x5BF8770 の物の +0x18 に、床の高さぴったりの自分の座標が入っていた
+    /* 足元の座標 (床の高さ): アドレスサーチの結果、vtable が main+0x5C07780 の物の +0x18 に、床の高さぴったりの自分の座標が入っていた
        (3 回とも同じ場所で、ロードやステージを変えても変わらなかった)。カメラの追従先の真下 (1〜4 低い) にある物を選ぶ */
-    constexpr uintptr_t kFootVt = 0x5BF8770; constexpr uintptr_t kFootOff = 0x18;
+    constexpr uintptr_t kFootVt = 0x5C07780; constexpr uintptr_t kFootOff = 0x18;
     uintptr_t g_FootPos = 0;
     bool FootValid() {
         const uintptr_t fp = g_FootPos; if (!fp || !Readable(fp - kFootOff, 0x30)) return false;
@@ -5955,7 +5951,7 @@ namespace {
     /* バグフライ用: 体の座標の「元」を探す。アドレスサーチで足元の高さの座標が入っていた物 (vtable と、座標までの距離) を候補にして、
        浮くときに 1 組ずつ試しに書き、本当に足元の座標 (読むだけの写し) が上がった組を覚える。結果は SD の inkdraw/bin/flytest.txt に書く */
     struct FlyGrpDef { uintptr_t vt; u32 off; };
-    static const FlyGrpDef kFlyGrp[9] = { { 0x5BF8770, 0x18 }, { 0x5D30060, 0x10 }, { 0x5F07DB0, 0x154 }, { 0x60016A0, 0x10 }, { 0x5F16988, 0x48 }, { 0x5D3F020, 0x40 }, { 0x5E01DD8, 0x64 }, { 0x170C1FC, 0xA4 }, { 0x5F15CB8, 0xA4 } };
+    static const FlyGrpDef kFlyGrp[9] = { { 0x5C07780, 0x18 }, { 0x5D3F078, 0x10 }, { 0x5F16FA8, 0x154 }, { 0x60106A0, 0x10 }, { 0x5F25B80, 0x48 }, { 0x5D4E038, 0x40 }, { 0x5E10FD0, 0x64 }, { 0x170C78C, 0xA4 }, { 0x5F24EB0, 0xA4 } };
     constexpr int kFlyGrpN = 9, kFlyGrpMax = 8;
     static uintptr_t g_FgAddr[kFlyGrpN][kFlyGrpMax]; static int g_FgN[kFlyGrpN];
     volatile int g_FlyGroup = -1; static u32 g_FgMask = 0; /* 効いた組 (ビット) */ static int g_FgTest = -1, g_FgFrames = 0; static float g_FgY0 = 0.0f; static bool g_FgFound = false; static char g_FgLog[4096]; static int g_FgLogL = 0;
@@ -6057,14 +6053,14 @@ namespace {
        結果は SD の inkdraw/bin/flytest2.txt。バグフライの飛び方は変えない */
     struct Ft2Def { uintptr_t vt; int n; u16 off[8]; };
     static const Ft2Def kFt2[8] = {
-        { 0x5D30060, 7, { 0x10, 0x40, 0x4C, 0x58, 0x64, 0x70, 0x7C } },
-        { 0x5D31578, 4, { 0x118, 0x124, 0x148, 0x154 } },
-        { 0x5F07DB0, 1, { 0x154 } },
-        { 0x60016A0, 1, { 0x10 } },
-        { 0x5D3C428, 2, { 0x40, 0x70 } },
-        { 0x5D3F020, 1, { 0x40 } },
-        { 0x5BF8770, 1, { 0x18 } },
-        { 0x5E01DD8, 1, { 0x64 } },
+        { 0x5D3F078, 7, { 0x10, 0x40, 0x4C, 0x58, 0x64, 0x70, 0x7C } },
+        { 0x5D40590, 4, { 0x118, 0x124, 0x148, 0x154 } },
+        { 0x5F16FA8, 1, { 0x154 } },
+        { 0x60106A0, 1, { 0x10 } },
+        { 0x5D4B440, 2, { 0x40, 0x70 } },
+        { 0x5D4E038, 1, { 0x40 } },
+        { 0x5C07780, 1, { 0x18 } },
+        { 0x5E10FD0, 1, { 0x64 } },
     };
     constexpr int kFt2N = 8, kFt2Obj = 4;
     static uintptr_t g_Ft2Obj[kFt2N][kFt2Obj]; static int g_Ft2ObjN[kFt2N];
@@ -6130,9 +6126,9 @@ namespace {
             if (++g_Ft2F >= 60) { char b[96]; std::snprintf(b, sizeof(b), T("組%d: %.2f 上がった%s\n","Group %d: rose %.2f%s\n"), g_Ft2Grp, g_Ft2Max, g_Ft2Max > 1.0f ? T(" ← 効いた"," <- worked") : ""); Ft2Put(b); Ft2Save(); g_Ft2Grp = g_Ft2Grp + 1; g_Ft2F = 0; }
         }
     }
-    /* バルーンの box: バルーン座標ツールの結果、イカバルーンのところにだけ vtable main+0x5C1C998 の物があり、その +0x4C に床の高さの座標が入っていた。
+    /* バルーンの box: バルーン座標ツールの結果、イカバルーンのところにだけ vtable main+0x5C2B9A8 の物があり、その +0x4C に床の高さの座標が入っていた。
        この種類の物を全部探して覚える (10 秒ごとに探し直す。消えた物は使わない) */
-    constexpr uintptr_t kBalVt = 0x5C1C998; constexpr u32 kBalOff = 0x4C; constexpr int kBalMax = 64; /* 検知できるバルーンの数 (32 → 64) */
+    constexpr uintptr_t kBalVt = 0x5C2B9A8; constexpr u32 kBalOff = 0x4C; constexpr int kBalMax = 64; /* 検知できるバルーンの数 (32 → 64) */
     uintptr_t g_BalObj[kBalMax]; volatile int g_BalN = 0; u8 g_BalPool[kBalMax] = {};
     static void BalFind() {
         const uintptr_t vt = MainBase() + kBalVt; int n = 0; uintptr_t addr = 0;
@@ -6163,11 +6159,11 @@ namespace {
         { const u8 bs = *reinterpret_cast<const u8*>(ob + 0x250); if (bs == 1 || bs == 0) return false; } /* 1 = 割れている、0 = 使われていない物 (試合中に出ていた変なバルーン)。3 以外でも、当たった瞬間などは数える (前は 3 だけにして、たまに消えていた) */ /* +0x250 が 1 = 割れている (3 = ある)。割れている間は無いことにする */
         std::memcpy(o, reinterpret_cast<const void*>(ob + kBalOff), 12); return o[0] == o[0] && o[1] == o[1] && o[2] == o[2];
     }
-    /* 敵: ターゲット座標の結果、敵の足元 (床の高さ) の座標が、vtable main+0x5D30060 の物の +0x10 に入っていた (自分の体の組と同じ種類)。
+    /* 敵: ターゲット座標の結果、敵の足元 (床の高さ) の座標が、vtable main+0x5D3F078 の物の +0x10 に入っていた (自分の体の組と同じ種類)。
        この種類の物を全部探して覚える (自分は除く)。バルーンと同じく、1 フレームに 8MB ずつ少しずつ調べ、1 周したら 10 秒休む */
-    constexpr uintptr_t kEnVt = 0x5D30060; constexpr u32 kEnOff = 0x10; constexpr int kEnMax = 48; /* プレイヤーの体の組は、使っていない物も含めてたくさんあるので多めに (16 だと本物の敵が入らないことがあった) */
+    constexpr uintptr_t kEnVt = 0x5D3F078; constexpr u32 kEnOff = 0x10; constexpr int kEnMax = 48; /* プレイヤーの体の組は、使っていない物も含めてたくさんあるので多めに (16 だと本物の敵が入らないことがあった) */
     uintptr_t g_EnObj[kEnMax]; volatile int g_EnN = 0; static float g_EnFirst[kEnMax][3]; static u8 g_EnMoved[kEnMax], g_EnFirstOk[kEnMax], g_EnPool[kEnMax]; static float g_EnRef[kEnMax][3]; static u64 g_EnMoveT[kEnMax]; /* 見つけてから一度でも動いたか (動いたことのない物は、使っていない物のことがある) */ uintptr_t g_EnSelf = 0, g_EnCloseObj = 0, g_EnBase = 0; int g_EnCloseN = 0; /* g_EnSelf: 自分の体 (同じ種類の物) */
-    constexpr uintptr_t kRtVt = 0x5D34000;
+    constexpr uintptr_t kRtVt = 0x5D43018;
     bool RetPoint(float* A) { /* レティクルの点 (撃つ先) の x y z。銃口 (+0x8C) が自分のすぐ近くにあるときだけ */
         const uintptr_t ob = g_RtObj; if (!ob || !Readable(ob, 0xC4) || *reinterpret_cast<const uintptr_t*>(ob) != MainBase() + kRtVt) return false;
         const float* M = reinterpret_cast<const float*>(ob + 0x8C); float me[3]; if (!SelfPos(me)) return false;
@@ -6318,7 +6314,7 @@ namespace {
                 }
             }
         }
-        const bool lobby = g_OffPaintRequest == 0x371D1C0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x60F6528)) != 0; /* ロビー (メニューを開く条件と同じ) */
+        const bool lobby = g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const volatile u8*>(exl::util::modules::GetTargetOffset(0x61056D8)) != 0; /* ロビー (メニューを開く条件と同じ) */
         { /* 版 691: 試合に入ったら (ロードから 10 秒後)、エイムボットがオフでも敵を 1 回探しておく。全体を探すのに 8 秒ほどかかるので、先に済ませて「前に見つけた所のまわり」の手がかりを作る (オンにしたとき 1 秒以内で見つかる) */
             static u32 wg = 0xFFFFFFFFu; static bool warmed = false; const u64 wn = NowTick(); if (wg != g_LoadGen) { wg = g_LoadGen; warmed = false; }
             if (!warmed && !lobby && g_LoadT && wn - g_LoadT > 10ull * 19200000ull && !ScanPause()) { warmed = true; g_EnWantUntil = wn + 12ull * 19200000ull; g_EnScanNow = true; } }
@@ -6418,7 +6414,7 @@ namespace {
         if (CamValid() && Readable(g_CamPos - 0x40, 0x100)) { std::memcpy(out + ol, "INKCAM01", 8); ol += 8; const u64 ca = g_CamPos; std::memcpy(out + ol, &ca, 8); ol += 8; std::memcpy(out + ol, reinterpret_cast<const void*>(g_CamPos - 0x40), 0x100); ol += 0x100; } /* カメラの値 (目・追従先・画角など) */
         SdWriteAsync(fname, out, static_cast<u32>(ol));
     }
-    constexpr int kClMax = 128, kClCpMax = 256; constexpr uintptr_t kClVt = 0x5F07DB0; constexpr u32 kClPos = 0x154, kClPos2 = 0x194, kClSize = 0x200, kClTag = 0xE8D23A6Du; /* アサリ差分サーチの結果: 拾ったアサリの物。同じ形の物はプレイヤーなどにもあるので、+0x28 の値 (アサリだけ) で見分ける */
+    constexpr int kClMax = 128, kClCpMax = 256; constexpr uintptr_t kClVt = 0x5F16FA8; constexpr u32 kClPos = 0x154, kClPos2 = 0x194, kClSize = 0x200, kClTag = 0xE8D23A6Du; /* アサリ差分サーチの結果: 拾ったアサリの物。同じ形の物はプレイヤーなどにもあるので、+0x28 の値 (アサリだけ) で見分ける */
     static uintptr_t g_ClObj[kClMax]; static volatile int g_ClN = 0; static uintptr_t g_ClCp[kClCpMax]; static float g_ClCpDy[kClCpMax]; static u8 g_ClCpOwner[kClCpMax]; static volatile int g_ClCpN = 0;
     static volatile int g_ClState = 0, g_ClMsg = 0, g_ClGot = 0, g_ClAll = 0; static volatile u32 g_ClGen = 0, g_ClTok = 0; static u64 g_ClT = 0; static volatile bool g_ClReq = false; static float g_ClMe[3]; static float g_ClTgt[kClMax][3]; static bool g_ClUse[kClMax]; static u64 g_ClUntil = 0;
     /* g_ClState: 0 なし / 1 探し中 / 2 見つかった / 3 動かしている。g_ClMsg: 0 なし / 1 探し中 / 2 集めた / 3 自分の座標が分からない / 4 アサリがない / 5 ロードで中止 / 6 時間切れ / 7 アサリか分からない物が多い */
@@ -6542,12 +6538,12 @@ namespace {
         if (g_AsrMsg == 1) return; float me[3]; if (!SelfPos(me)) { g_AsrMsg = 3; return; }
         std::memcpy(g_AsrMe, me, 12); g_AsrGen = g_LoadGen; g_AsrNo = g_AsrNo + 1; g_AsrMsg = 1; if (!BgRequest(256u, nullptr)) g_AsrMsg = 3;
     }
-    /* アサリ詳細サーチ: アサリ集めで使っている印 (先頭が main+0x15F3B80) を持つ物を全部数え、近い順に 40 個まで、中身 (前 0x40 + 0x300 バイト) を SD の inkdraw/bin/asaridetail_1〜3.bin に書く。
+    /* アサリ詳細サーチ: アサリ集めで使っている印 (先頭が main+0x15F4110) を持つ物を全部数え、近い順に 40 個まで、中身 (前 0x40 + 0x300 バイト) を SD の inkdraw/bin/asaridetail_1〜3.bin に書く。
        アサリのあるステージ (落ちているアサリの横) と、ないステージの両方で取って見比べ、本物のアサリだけを見分ける値を探す */
     volatile int g_AdMsg = 0, g_AdAll = 0, g_AdN = 0, g_AdNo = 0; volatile u32 g_AdGen = 0; float g_AdMe[3]; /* 0 まだ / 1 探し中 / 2 保存した / 3 自分の座標が分からない / 4 ロードで中止 */
     void AdScanSync() { /* (2) 5 種類の候補それぞれ: 全部の数と座標 (64 個まで)、自分に近い 8 個の中身 (前 0x100 + 0x400 バイト) を書く */
         constexpr int kT = 5, kNear = 8, kPre = 0x100, kLen = 0x500, kPosMax = 64;
-        static const u32 kVtT[kT] = { 0x60016A0, 0x5F07DB0, 0x5F16988, 0x5ED6360, 0x469A340 }, kOfT[kT] = { 0x10, 0x154, 0x48, 0x60, 0x20 };
+        static const u32 kVtT[kT] = { 0x60106A0, 0x5F16FA8, 0x5F25B80, 0x5EE5558, 0x46A70D0 }, kOfT[kT] = { 0x10, 0x154, 0x48, 0x60, 0x20 };
         const u32 gen = g_AdGen; if (gen != g_LoadGen) { g_AdMsg = 4; return; }
         const uintptr_t mb = MainBase(); uintptr_t vts[kT]; for (int t = 0; t < kT; t++) vts[t] = mb + kVtT[t];
         static uintptr_t at[kT][kNear]; static float dd[kT][kNear]; static float ps[kT][kPosMax][3]; int nn[kT] = {}, all[kT] = {};
@@ -7175,21 +7171,21 @@ HOOK_DEFINE_TRAMPOLINE(PaintRequestHook) {
             static u64 lf = 0, lft = 0, lastLoad = ~0ull; static bool ever = false; const u64 nw0 = NowTick(); if (g_LoadT != lastLoad) { lastLoad = g_LoadT; ever = false; } if (g_CntFrame != lf) { lf = g_CntFrame; lft = nw0; ever = true; }
             /* 454: 毎フレームの更新が、ロードのあと 1 度も動いていない場面 (ロビー・いくつかのステージ) では、止まっているのがふつうなので確かめない。動いていた場面で止まったとき (ロード画面) だけ送らない */
             if ((ever && (g_FrameFallback || !lft || nw0 - lft > 3840000ull)) || (g_LoadT && nw0 - g_LoadT < 5ull * 19200000ull)) return; } /* 453: ロビーは毎フレームの更新が動かないのがふつうなので、この確かめはしない (ここで捨てていて、ロビーで何も塗られなかった) */
-        if (kBroadcast && g_OffPaintRequest == 0x371D1C0) {
-            /* ゲームの Paint_Request は、通信に送る関数 (0x371F940) が false を返すと、自分の画面にも塗らずに捨てる。
+        if (kBroadcast && g_OffPaintRequest == 0x37246F0) {
+            /* ゲームの Paint_Request は、通信に送る関数 (0x3726E70) が false を返すと、自分の画面にも塗らずに捨てる。
                通信の状態 (相手が受け取れない・順番待ち など) で false になる時があり、絵が出たり出なかったりする原因だった。
                そこで、通信への送信は同じようにしつつ、自分の画面への塗りは結果にかかわらず必ず行う。 */
             const uintptr_t mgr = ReadPaintMgr();
-            const uintptr_t st = MainBase() + 0x60F1550;
+            const uintptr_t st = MainBase() + 0x6100648;
             bool stOk = true;
             if (Readable(st, 8)) { const uintptr_t gs = *reinterpret_cast<const uintptr_t*>(st); if (gs && Readable(gs + 0xd0, 4) && *reinterpret_cast<const s32*>(gs + 0xd0) == 2) stOk = false; }
             if (mgr && stOk && Readable(mgr + 0x2d8, 0x18)) {
                 const uintptr_t q = *reinterpret_cast<const uintptr_t*>(mgr + 0x2d8), net = *reinterpret_cast<const uintptr_t*>(mgr + 0x2e8);
                 if (q && net) {
                     using SendFn = u64 (*)(void*, void*); using ExecFn = u64 (*)(u64);
-                    const u64 r = reinterpret_cast<SendFn>(MainBase() + 0x371F940)(reinterpret_cast<void*>(net), req);
+                    const u64 r = reinterpret_cast<SendFn>(MainBase() + 0x3726E70)(reinterpret_cast<void*>(net), req);
                     if (r & 1u) g_DgNetTrue++; else g_DgNetFalse++;
-                    reinterpret_cast<ExecFn>(MainBase() + 0x371D320)(reinterpret_cast<u64>(req));
+                    reinterpret_cast<ExecFn>(MainBase() + 0x3724850)(reinterpret_cast<u64>(req));
                     return;
                 }
             }
@@ -8354,8 +8350,8 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
         if (!g_ModeOn) { g_Hover = false; g_LaunchPend = false; g_LaunchLeft = 0; g_WarpHold = 0; g_FlyFast = false; FlyGrpHoverOff(); return; }
         g_FlyFast = false;
         if (g_BfHooked && !g_FlyQuiet) return; /* 版 609〜: フリーフライは BodyCalcHook (ゲームのプレイヤー処理の中) で書く。従来の書き込みはしない */
-        /* 本体アドレス (body+0x10) への直接書き込みは、3回とも同じ場所 ([28c4287a]+0x12e8814,
-           LR+0x12e87f0) でクラッシュした: 1回目は y だけ、2回目は x,y,z を別々に、3回目は 16 バイト
+        /* 本体アドレス (body+0x10) への直接書き込みは、3回とも同じ場所 ([28c4287a]+0x12e8b74,
+           LR+0x12e8b50) でクラッシュした: 1回目は y だけ、2回目は x,y,z を別々に、3回目は 16 バイト
            まとめて 1 回の書き込みに変えても同じ。しかも 3 回目は、書いているスレッド (MainThread)
            ではなく別スレッド (ModuleSystemWorker1) の側で落ちていた。
            → これは「書き方 (バイト数・まとめ方)」の問題ではなく、このアドレスをゲーム側の複数スレッドが
@@ -8537,7 +8533,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
         }
     }
     /* リスポーン (試し): 自分の spl::PlayerDamage を見つけて、体力 (+0x88、満タンで 1000) を 0 にする。
-       プレイヤーの表 [自分の番号] の +0x298 がプレイヤー本体。その中に PlayerDamage へのポインタがある (vtable = main+0x5D32218)。 */
+       プレイヤーの表 [自分の番号] の +0x298 がプレイヤー本体。その中に PlayerDamage へのポインタがある (vtable = main+0x5D41230)。 */
     static uintptr_t FindOwnDamage() {
         /* 1) 自分のプレイヤー本体 (表の [自分の番号] +0x298) */
         uintptr_t player = 0;
@@ -8550,7 +8546,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
         }
         {
             /* 1.5) プレイヤー本体の中に PlayerDamage へのポインタがあれば、メモリ全体を探さずにそれを使う (固まる・落ちるのを避ける) */
-            const uintptr_t vt0 = MainBase() + 0x5D32218;
+            const uintptr_t vt0 = MainBase() + 0x5D41230;
             const uintptr_t tb = PlayerTableBase();
             uintptr_t foundD[10] = {}; uintptr_t anyD = 0; int nanyD = 0;
             if (tb) for (int idx = 0; idx < 10; idx++) {
@@ -8570,8 +8566,8 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
             if (!g_HaveIdx && g_RespIdx >= 0 && g_RespIdx < 10 && foundD[g_RespIdx]) return foundD[g_RespIdx]; /* 自分の番号が分からないときは、メニューで選んだ番号を使う */
             if (nanyD == 1) return anyD;
         }
-        /* 2) メモリ全体から PlayerDamage (先頭が vtable = main+0x5D32218) を探す。プレイヤーの人数分ある */
-        const uintptr_t vt = MainBase() + 0x5D32218;
+        /* 2) メモリ全体から PlayerDamage (先頭が vtable = main+0x5D41230) を探す。プレイヤーの人数分ある */
+        const uintptr_t vt = MainBase() + 0x5D41230;
         uintptr_t cands[16]; int nc = 0;
         uintptr_t addr = 0;
         for (int guard = 0; guard < 8192 && nc < 16; guard++) {
@@ -8639,7 +8635,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
             { static u64 lastRq = 0; const u64 nw = NowTick(); if (lastRq != 0 && nw - lastRq < 192000000ull) { g_RespIdx = (g_RespIdx + 1) % 8; g_DamageObj = 0; } lastRq = nw; } /* 10 秒以内にもう一度押したら、別の候補に変える (死ななかった = 自分ではなかった) */
             /* 前に見つけたものがまだ生きていれば、そのまま使う (メモリ全体の探索は固まるので、最初の 1 回だけ) */
             {
-                const uintptr_t vt = MainBase() + 0x5D32218;
+                const uintptr_t vt = MainBase() + 0x5D41230;
                 const uintptr_t o = g_DamageObj;
                 if (!(o && Readable(o, 0x100) && *reinterpret_cast<const u64*>(o) == vt && *reinterpret_cast<const u64*>(o + 8) == vt + 0x110)) g_DamageObj = FindOwnDamage();
             }
@@ -8666,7 +8662,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
         }
         if (g_ReqEnKill && go) {
             g_ReqEnKill = false; g_EnDmgN = 0; g_EnKillN = 0; g_EnKillNear = 0; g_EnKillT = NowTick(); g_EnKillDa = -1; g_EnKillDb = 0;
-            const uintptr_t vt0 = MainBase() + 0x5D32218, tb = PlayerTableBase();
+            const uintptr_t vt0 = MainBase() + 0x5D41230, tb = PlayerTableBase();
             if (!g_HaveIdx) { const int fi = FindLocalIdx(); if (fi >= 0) { g_LocalIdx = fi; g_HaveIdx = true; } }
             auto isDmg = [&](uintptr_t o) { return o && Readable(o, 0x100) && *reinterpret_cast<const u64*>(o) == vt0 && *reinterpret_cast<const u64*>(o + 8) == vt0 + 0x110; };
             uintptr_t ownD = g_DamageObj; if (!isDmg(ownD)) { ownD = FindOwnDamage(); g_DamageObj = ownD; }
@@ -8716,7 +8712,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
             g_EnKillN = g_EnDmgN; g_EnKillFrames = g_EnDmgN > 0 ? 90 : 0;
         }
         if (g_EnKillFrames > 0) {
-            const uintptr_t vt0 = MainBase() + 0x5D32218;
+            const uintptr_t vt0 = MainBase() + 0x5D41230;
             for (int k = 0; k < g_EnDmgN; k++) { const uintptr_t d = g_EnDmg[k]; if (Readable(d, 0x100) && *reinterpret_cast<const u64*>(d) == vt0) *reinterpret_cast<s32*>(d + 0x88) = -1000; }
             g_EnKillFrames--;
         }
@@ -8786,7 +8782,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
        ゲーム自身の Paint_PaintSimple は、物の種類が決まった範囲のものしか出さないので、ステージによって塗れない所が出た。
        ここでは種類で選ばず、塗れる物(表の各要素)をすべて対象にする。待ち行列がいっぱいのときは、次のフレームに続きをやる。 */
     static void FillAllObjects(bool erase) {
-        if (g_OffPaintRequest != 0x371D1C0) return; /* 11.3.0 以外では呼ばない */
+        if (g_OffPaintRequest != 0x37246F0) return; /* 11.3.0 以外では呼ばない */
         int idx = g_HaveIdx ? g_LocalIdx : FindLocalIdx();
         if (idx >= 0) { g_LocalIdx = idx; g_HaveIdx = true; }
         int team = idx >= 0 ? (idx >> 2) : 0;
@@ -8808,13 +8804,13 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
         g_FillSeen = cnt;
         using InitFn = void (*)(void*, int, int);
         using PushFn = void (*)(void*, void*);
-        const auto initFn = reinterpret_cast<InitFn>(MainBase() + 0x371CE50);
-        const auto pushFn = reinterpret_cast<PushFn>(MainBase() + 0x36EAA2C);
+        const auto initFn = reinterpret_cast<InitFn>(MainBase() + 0x3724380);
+        const auto pushFn = reinterpret_cast<PushFn>(MainBase() + 0x36F1F5C);
         /* 通信であふれて他の人が落ちないように、1 つずつゆっくり (約 0.1 秒に 1 つ) 出す */
         const u64 nowT = NowTick();
         if (nowT < g_FillNextT) return;
         using SendFn = u64 (*)(void*, void*);
-        const auto sendFn = reinterpret_cast<SendFn>(MainBase() + 0x371F940); /* Paint_Request が flag=1 のときに呼ぶ、通信へ送る関数 */
+        const auto sendFn = reinterpret_cast<SendFn>(MainBase() + 0x3726E70); /* Paint_Request が flag=1 のときに呼ぶ、通信へ送る関数 */
         const uintptr_t net = Readable(mgr + 0x2e8, 8) ? *reinterpret_cast<const uintptr_t*>(mgr + 0x2e8) : 0;
         int budget = 1;
         while (g_FillCur < cnt && budget > 0) {
@@ -9182,7 +9178,7 @@ static constexpr TTpl kTplEx[20] = { { kTs0, 51, 963 }, { kTs1, 53, 1082 }, { kT
                 void* q = *reinterpret_cast<void**>(mgr + 0x2d8);
                 if (q) {
                     using PushFn = void (*)(void*, PaintRequest*);
-                    reinterpret_cast<PushFn>(exl::util::modules::GetTargetOffset(0x36EAA2C))(q, req);
+                    reinterpret_cast<PushFn>(exl::util::modules::GetTargetOffset(0x36F1F5C))(q, req);
                     g_FillPushed++;
                 }
             }
@@ -9547,9 +9543,9 @@ namespace nvnhook {
         if (g_BlinkOn) want = ((g_Presents / 3) & 1) != 0;
         (void)want; (void)cur; return; /* 0285DE90 は MarkHookA/B が持っている。ピコピコは MarkHookB の中で切り替える (直接書き換えると、フックの命令を見て自動でオフになっていた) */
         exl::patch::RandomAccessPatcher rp;
-        const u32 now = rp.Read<u32>(0x285DE90);
+        const u32 now = rp.Read<u32>(0x285E520);
         if (now != 0x2A1F03E0u && now != 0x52800020u) { g_BlinkOn = false; return; } /* 違うバージョンなら触らない */
-        rp.Write<u32>(0x285DE90, want ? 0x52800020u : 0x2A1F03E0u);
+        rp.Write<u32>(0x285E520, want ? 0x52800020u : 0x2A1F03E0u);
     }
     using SetIntervalFn = void (*)(void*, int);
     SetIntervalFn g_OrigWinInterval = nullptr, g_OrigBldInterval = nullptr;
@@ -11981,7 +11977,7 @@ HOOK_DEFINE_TRAMPOLINE(NvnBootstrapHook) {
         return r;
     }
 };
-/* ---- 武器: ゲームが武器データ (Params.pack の bgyml) を項目ごとに読み込む関数 (main+0x48BFD30) に割り込み、読み込んだ値に、つまみの倍率をかける ----
+/* ---- 武器: ゲームが武器データ (Params.pack の bgyml) を項目ごとに読み込む関数 (main+0x48CCAC0) に割り込み、読み込んだ値に、つまみの倍率をかける ----
    引数: x0 = 読み込み役 (+8 に、いま読んでいるまとまりの場所)、x1 = 項目の情報 (+0 名前、+0x10 「読めた」印の場所、+0x28 書き込み先を持つ物)。
    「どの武器の、どの項目か」は、項目名と、読んだ値と、まとまり全体の hash (wpdict) で決める。 */
 namespace {
@@ -12088,7 +12084,7 @@ HOOK_DEFINE_TRAMPOLINE(EmoteSelHook) {
         /* 自分だけでなく、その場にいる全員に同じエモートをさせる (自分の画面の中だけ) */
         int k = -1; for (int i = 0; i < 16; i++) if (pr[i] == static_cast<uintptr_t>(a1)) { k = i; break; }
         if (k < 0) { for (int i = 0; i < 16; i++) if (!pr[i]) { k = i; break; } if (k < 0) return r; pr[k] = static_cast<uintptr_t>(a1);
-            using Fn = s64 (*)(s64, u32, u32); const s64 ok = reinterpret_cast<Fn>(MainBase() + 0x282C010)(a1, static_cast<u32>(kEmId[g_EmSel % kEmN]), 0x20u); pok[k] = (ok & 1) != 0; if (!pok[k]) g_EmSt = 3; else g_EmSt = 2; }
+            using Fn = s64 (*)(s64, u32, u32); const s64 ok = reinterpret_cast<Fn>(MainBase() + 0x282C670)(a1, static_cast<u32>(kEmId[g_EmSel % kEmN]), 0x20u); pok[k] = (ok & 1) != 0; if (!pok[k]) g_EmSt = 3; else g_EmSt = 2; }
         if (!pok[k]) return r;
         g_EmFire = g_EmFire + 1; return 324;
     }
@@ -12174,15 +12170,16 @@ extern "C" void exl_main(void* x0, void* x1) {
     exl::hook::Initialize();
 
     /* ゲームのバージョンが合うときだけ、フックを入れる。 */
-    if (SelectVersion())
+    const bool verOk = SelectVersion(); /* tmt: 12.0.0 (6cbb1669) と分かったときだけ、ゲーム本体にフックを入れる */
+    if (verOk)
         { PaintRequestHook::InstallAtOffset(g_OffPaintRequest); PaintRequestHook::InstallDrive(); }
     InstallHid();
     { const unsigned long a = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcNS0_6UserIdE"); if (a) SsMountA::InstallAtPtr(a); /* 版 700 */
       const unsigned long b = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcNS_3ncm13ApplicationIdENS0_6UserIdE"); if (b) SsMountB::InstallAtPtr(b);
       const unsigned long c = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcRKNS_7account3UidE"); if (c) SsMountC::InstallAtPtr(c);
       const unsigned long e = UpdLookup("_ZN2nn2fs13MountSaveDataEPKcNS_13ApplicationIdERKNS_7account3UidE"); if (e) SsMountD::InstallAtPtr(e); }
-    { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start; if (*reinterpret_cast<const u32*>(mb + 0x2823258) == 0xD101C3FFu) EmoteSelHook::InstallAtOffset(0x2823258); }
-    { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start; if (*reinterpret_cast<const u32*>(mb + 0x48BFD30) == 0xA9BD7BFDu) { WpVisitHook::InstallAtOffset(0x48BFD30); g_WpHkOn = true; } } /* 武器データの読み込みに割り込む (入口の命令が合うときだけ) */
+    if (verOk) { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start; if (*reinterpret_cast<const u32*>(mb + 0x28238B8) == 0xD101C3FFu) EmoteSelHook::InstallAtOffset(0x28238B8); }
+    if (verOk) { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start; if (*reinterpret_cast<const u32*>(mb + 0x48CCAC0) == 0xA9BD7BFDu) { WpVisitHook::InstallAtOffset(0x48CCAC0); g_WpHkOn = true; } } /* 武器データの読み込みに割り込む (入口の命令が合うときだけ) */
     /* ハート: 版583からは既存関数を乗っ取らず、自分からエフェクト生成関数を直接呼ぶ方式なので、ここでのフック設置は不要 */
     { const unsigned long a = UpdLookup("_ZN2nn3hid22GetSixAxisSensorStatesEPNS0_18SixAxisSensorStateEiRKNS0_19SixAxisSensorHandleE"); if (a) SixAxisHook::InstallAtPtr(a); } /* ジャイロ */
     { const unsigned long a = UpdLookup("_ZN2nn2fs8OpenFileEPNS0_10FileHandleEPKci"); if (a) FsOpenHook::InstallAtPtr(a); /* 版 650: ステージ差し替え */
@@ -12192,36 +12189,36 @@ extern "C" void exl_main(void* x0, void* x1) {
       g_DirClose = reinterpret_cast<DirCloseFn>(UpdLookup("_ZN2nn2fs14CloseDirectoryENS0_15DirectoryHandleE")); }
     if (exl::util::HasModule(exl::util::ModuleIndex::Sdk)) {
         const uintptr_t sdk = exl::util::GetModuleInfo(exl::util::ModuleIndex::Sdk).m_Total.m_Start;
-        if (*reinterpret_cast<const u32*>(sdk + 0x503F60) == 0xA9BE7BFD) /* nvnBootstrapLoader (SDK 574284B4) */
-            NvnBootstrapHook::InstallAtPtr(sdk + 0x503F60);
+        if (*reinterpret_cast<const u32*>(sdk + 0x504480) == 0xA9BE7BFD) /* nvnBootstrapLoader (SDK 6A0A2600 / 12.0.0) */
+            NvnBootstrapHook::InstallAtPtr(sdk + 0x504480);
     }
-    if (INKDRAW_HIDDRAW && g_OffPaintRequest == 0x371D1C0) {
+    if (INKDRAW_HIDDRAW && verOk && g_OffPaintRequest == 0x37246F0) {
         const uintptr_t mainBase = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start;
-        if (*reinterpret_cast<const u32*>(mainBase + 0x3737640) == 0xA9BA7BFD)
-            FrameHook::InstallAtOffset(0x3737640);
-        /* 版 614: 609〜613 で書いていた「本体」(a1+0x108、vtable main+0x5D30060、0x12470 バイト) はキャラクターではなく
+        if (*reinterpret_cast<const u32*>(mainBase + 0x373EB70) == 0xA9BA7BFD)
+            FrameHook::InstallAtOffset(0x373EB70);
+        /* 版 614: 609〜613 で書いていた「本体」(a1+0x108、vtable main+0x5D3F078、0x12470 バイト) はキャラクターではなく
            カメラが追う物 (広場の ZR ズーム視点など) だった。書くとカメラだけ動き、ズーム視点の操作が反転することもあったので、
            新方式のフックは入れない (kBfEnable = false)。従来の動き (版 608 と同じ) に戻す。調べた内容はこのファイルのコメントに残す。 */
         constexpr bool kBfEnable = false;
-        if (!kBfEnable && g_OffPlayerMgrPtr == 0x6048568 && *reinterpret_cast<const u32*>(mainBase + kOffBodyCalc) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mainBase + kOffCompFromHandle) == 0xB9401008u)
+        if (!kBfEnable && g_OffPlayerMgrPtr == 0x6057568 && *reinterpret_cast<const u32*>(mainBase + kOffBodyCalc) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mainBase + kOffCompFromHandle) == 0xB9401008u)
             { BodyCalcHook::InstallAtOffset(kOffBodyCalc); g_BfHooked = true; }
-        if (*reinterpret_cast<const u32*>(mainBase + 0x4A874A0) == 0xD10343FFu) CcUpdHook::InstallAtOffset(0x4A874A0); /* 版 628: CharacterController の更新 (調べる用) */ /* 版 618: フリーフライも。 版 615: アドレスサーチの基準 (カメラが追う位置) を読むためだけに入れる。g_BfHooked は false のまま */
-        if (kBfEnable && g_OffPlayerMgrPtr == 0x6048568 && *reinterpret_cast<const u32*>(mainBase + kOffBodyCalc) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mainBase + kOffCompFromHandle) == 0xB9401008u)
+        if (*reinterpret_cast<const u32*>(mainBase + 0x4A94230) == 0xD10343FFu) CcUpdHook::InstallAtOffset(0x4A94230); /* 版 628: CharacterController の更新 (調べる用) */ /* 版 618: フリーフライも。 版 615: アドレスサーチの基準 (カメラが追う位置) を読むためだけに入れる。g_BfHooked は false のまま */
+        if (kBfEnable && g_OffPlayerMgrPtr == 0x6057568 && *reinterpret_cast<const u32*>(mainBase + kOffBodyCalc) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mainBase + kOffCompFromHandle) == 0xB9401008u)
             { BodyCalcHook::InstallAtOffset(kOffBodyCalc); g_BfHooked = true;
-              if (*reinterpret_cast<const u32*>(mainBase + 0x2864174) == 0xA9402009u) BfSrcAHook::InstallAtOffset(0x2864174); /* ldp x9, x8, [x0] */
-              if (*reinterpret_cast<const u32*>(mainBase + 0x2864258) == 0xF808CD48u) BfSrcBHook::InstallAtOffset(0x2864258); /* str x8, [x10, #0x8c]! */
+              if (*reinterpret_cast<const u32*>(mainBase + 0x2864804) == 0xA9402009u) BfSrcAHook::InstallAtOffset(0x2864804); /* ldp x9, x8, [x0] */
+              if (*reinterpret_cast<const u32*>(mainBase + 0x28648E8) == 0xF808CD48u) BfSrcBHook::InstallAtOffset(0x28648E8); /* str x8, [x10, #0x8c]! */
               /* 版 645: 調べる用のフックは入れない */
               /* 版 645: 調べる用のフックは入れない */
               /* 版 645: 調べる用のフックは入れない */
               /* 版 645: 調べる用のフックは入れない */
               /* 版 645: 調べる用のフックは入れない */
               /* 版 645: 調べる用のフックは入れない */ } /* フリーフライ: プレイヤーの毎フレーム処理 (stp x29,x30,[sp,#-0x60]! / ldr w8,[x0,#0x10]) */
-        if (*reinterpret_cast<const u32*>(mainBase + 0x28595E0) == 0xAA0603F3) /* mov x19, x6 (11.3.0) */
-            X6Hook::InstallAtOffset(0x28595E0);
-        if (*reinterpret_cast<const u32*>(mainBase + 0x4D8D220) == 0x1E220020) GspHook::InstallAtOffset(0x4D8D220); /* scvtf s0, w1 */
+        if (*reinterpret_cast<const u32*>(mainBase + 0x2859C70) == 0xAA0603F3) /* mov x19, x6 (12.0.0 でも同じ) */
+            X6Hook::InstallAtOffset(0x2859C70);
+        if (*reinterpret_cast<const u32*>(mainBase + 0x4D99FB0) == 0x1E220020) GspHook::InstallAtOffset(0x4D99FB0); /* scvtf s0, w1 */
         /* 版 645: HSpdHook (何もしない) は入れない */ /* fmul s8, s8, s0 */
-        if (*reinterpret_cast<const u32*>(mainBase + 0x2845E40) == 0xAA1C03E0u) SpdHook::InstallAtOffset(0x2845E40); /* mov x0, x28 (移動速度の表) */
-        if (*reinterpret_cast<const u32*>(mainBase + 0x285DE90) == 0x2A1F03E0) { MarkHookA::InstallAtOffset(0x285DE90); MarkHookB::InstallAtOffset(0x285DE94); }
+        if (*reinterpret_cast<const u32*>(mainBase + 0x28464A0) == 0xAA1C03E0u) SpdHook::InstallAtOffset(0x28464A0); /* mov x0, x28 (移動速度の表) */
+        if (*reinterpret_cast<const u32*>(mainBase + 0x285E520) == 0x2A1F03E0) { MarkHookA::InstallAtOffset(0x285E520); MarkHookB::InstallAtOffset(0x285E524); }
         /* ノックバック記録・ノックバック強化は削除済み: ここにあったフック設置は外した */
     }
 }

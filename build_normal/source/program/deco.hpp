@@ -73,7 +73,7 @@ inline void DecoLeaf(Cv& v, float bx, float by, float angDeg, float ln, float wd
     auto P = [&](float u, float w, float& ox, float& oy) { ox = bx + u * ca - w * sa; oy = by + u * sa + w * ca; };
     float x0, y0, xl, yl, xr, yr, xm, ym, xt, yt; P(0, 0, x0, y0); P(u1, w1, xl, yl); P(u1 + ofs, -w2, xr, yr); P(u1 * 0.8f, 0, xm, ym); P(ln, ofs * 0.6f, xt, yt);
     const int pat = static_cast<int>(DecoRnd(seed * 3 + 9) * 6.0f); /* 白黒の割り振り 6 通り (全部白・全部黒にはならない) */
-    static const unsigned char K[6] = { 0xE, 0xD, 0xB, 0x7, 0xF, 0xE }; /* 黒が多め (白が大きなかたまりにならないように) */ const unsigned m = K[pat];
+    static const unsigned char K[6] = { 0xF, 0xF, 0xF, 0xF, 0xF, 0xF }; /* 黒が多め (白が大きなかたまりにならないように) */ const unsigned m = K[pat];
     DecoFacet(v, x0, y0, xl, yl, xm, ym, (m & 1) != 0); DecoFacet(v, xm, ym, xl, yl, xt, yt, (m & 2) != 0);
     DecoFacet(v, x0, y0, xr, yr, xm, ym, (m & 4) != 0); DecoFacet(v, xm, ym, xr, yr, xt, yt, (m & 8) != 0);
 }

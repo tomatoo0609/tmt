@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 139; /* tmt 1.1.29 (ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 140; /* tmt 1.1.30 (起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -4785,6 +4785,10 @@ namespace {
             else if (!learned) { g_GaSt = 3; if (++pn > 600) pn = 0; /* 効かない (モーション操作がオフ?): ときどき測り直す */ }
             else {
                 float Tt[3]; const int sv = g_LookSlot; g_LookSlot = 6; const bool okT = LookTarget(Tt); g_LookSlot = sv;
+                if (okT) { static float sm[3] = {}; static bool smOk = false; static u64 smT = 0; /* 敵の位置の小さな飛びをならす (ざらざら・かくかく対策)。大きく飛んだ (別の敵) ときはそのまま */
+                    const float sx = Tt[0] - sm[0], sy = Tt[1] - sm[1], sz = Tt[2] - sm[2];
+                    if (!smOk || now - smT > 960000ull || sx * sx + sy * sy + sz * sz > 9.0f) { sm[0] = Tt[0]; sm[1] = Tt[1]; sm[2] = Tt[2]; smOk = true; } else { sm[0] += sx * 0.5f; sm[1] += sy * 0.5f; sm[2] += sz * 0.5f; }
+                    smT = now; Tt[0] = sm[0]; Tt[1] = sm[1]; Tt[2] = sm[2]; }
                 float Lb[3]; const uintptr_t cpl = g_CamPos; const bool okL = cpl && CamValid() && Readable(cpl, 12); if (okL) std::memcpy(Lb, reinterpret_cast<const void*>(cpl), 12);
                 if (!okT || !okL || (g_LookAHold && !(g_BtnNow & 1ull))) g_GaSt = 5;
                 else {
@@ -4793,7 +4797,7 @@ namespace {
                     g_AimNowD = hd; const float dyy = (Tt[1] - kLiveHeight + 0.9f - 0.1f * (AimUnitsFor(hd) + static_cast<float>(g_AimTune))) - Lb[1]; /* tmt: 距離ごとの高さ曲線 (v771) */
                     if (hd < 0.5f) g_GaSt = 5;
                     else { g_GaSt = 2; have = true; ey = LookWrap(LookAtan2(dz, dx) - yaw); { float cr = LookAtan2(0.80f, hd) - LookAtan2(0.80f, 3.4f); if (hd > 3.4f) cr = 0.0f; if (cr > 25.0f) cr = 25.0f; ep = LookAtan2(dyy, hd) + cr - pit; /* tmt: 遠い側は曲線にまかせる (v771) */ } /* 448: 近いほど上へ (3.4 でちょうど)。遠いほうは少しだけ下へ */ /* 447: 3.4 のときがちょうどいい。近いと足元・遠いと頭に行くので、狙う高さを 0.4 上げ、そのぶんの角度 (3.4 での値) を引く。高低差は角度の計算に入っている */
-                        { static float pe = 0.0f; static int bad = 0; const float er = (ey < 0 ? -ey : ey) + (ep < 0 ? -ep : ep); if (er > pe + 0.3f && er > 3.0f) bad++; else if (er < pe) bad = 0; pe = er; if (bad >= 25) { bad = 0; g_GaSt = 6; g_GaPRst = g_GaPRst + 1; } } /* ずれが広がり続けたら (効きが違う): やめて測り直す */
+                        { static float pe = 0.0f; static int bad = 0; const float er = (ey < 0 ? -ey : ey) + (ep < 0 ? -ep : ep); if (er > pe + 0.3f && er > 3.0f) bad++; else if (er < pe) bad = 0; pe = er; if (bad >= 25 && !(g_BtnNow & (1ull << 9))) { bad = 0; g_GaSt = 6; g_GaPRst = g_GaPRst + 1; } } /* ずれが広がり続けたら (効きが違う): やめて測り直す */
                         const float f = 0.25f / dtS; /* 遅れがあるので 1 フレームに詰めるのはずれの 15% (大きいと行き過ぎて左右にゆれる) */ const float* G0 = g_GaG[0]; const float* G1 = g_GaG[1];
                         { /* 左右: 角速度を足す。3 軸のうち効きの大きい軸にかたよらせて配る (最小の角速度) */
                             float m = 100.0f; for (int a = 0; a < 3; a++) m += G0[a] * G0[a]; /* 版 684: 3 度以上ずれた (次の相手に変わった) ときは、1 フレームで向く。まだ視点に出ていない直前 2 回ぶんの命令を引いて、行き過ぎを防ぐ */
@@ -4810,8 +4814,8 @@ namespace {
                               if (grow >= 10) { grow = 0; kG = 0.45f; thY = f1Y = f2Y = 0.0f; for (int i = 0; i < 16; i++) hbY[i] = 0.0f; g_GaYReset = true; } }
                             static float rEst = 1.0f, SA = 0.0f, SP = 0.0f, lastF2 = 0.0f; static int nS = 0; if (g_GaYReset) { g_GaYReset = false; lastF2 = f2Y; SA = SP = 0.0f; nS = 0; } /* tmt: 指令した量と実際に回った量を比べて、効きを合わせる */
                             { const float pd = f2Y - lastF2; lastF2 = f2Y;
-                              if (okd && (pd > 0.4f || pd < -0.4f)) { const float sg = pd > 0.0f ? 1.0f : -1.0f; SA += dY * sg; SP += pd * sg;
-                                if (++nS >= 8) { float r = SP > 0.5f ? SA / SP : 1.0f; if (r < 0.3f) r = 0.3f; if (r > 1.6f) r = 1.6f; rEst *= 0.65f + 0.35f * r; if (rEst < 0.25f) rEst = 0.25f; if (rEst > 2.0f) rEst = 2.0f; SA = SP = 0.0f; nS = 0; } } }
+                              if (okd && !(g_BtnNow & (1ull << 9)) && (pd > 0.4f || pd < -0.4f)) { const float sg = pd > 0.0f ? 1.0f : -1.0f; SA += dY * sg; SP += pd * sg;
+                                if (++nS >= 8) { float r = SP > 0.5f ? SA / SP : 1.0f; if (r < 0.3f) r = 0.3f; if (r > 1.6f) r = 1.6f; rEst *= 0.65f + 0.35f * r; if (rEst < 0.8f) rEst = 0.8f; if (rEst > 1.25f) rEst = 1.25f; /* 1.1.30: 範囲をせまく (効きの見積もりがずれて、近づくとき減速・チャージ中に暴れていた) */ SA = SP = 0.0f; nS = 0; } } }
                             const float eyM = ey - (thY - f2Y);
                             { static float pEyM = 0.0f; static int flipN = 0; const float aE = eyM < 0 ? -eyM : eyM, aP = pEyM < 0 ? -pEyM : pEyM; /* 行き過ぎて左右にゆれる (向きが交互に変わる) のを見つけたら、強さを下げて止める */
                               if (eyM * pEyM < 0.0f && aE > 0.25f && aP > 0.25f) flipN += 2; else if (flipN > 0) flipN--;
@@ -10703,7 +10707,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         SplashBuild();
         static u64 extT = 0; const int us = g_UpdState; const bool upd = (us == 2 || (g_SplUpd && us >= 1 && us <= 8) || (g_SplUpd && g_UpdManual)) && !g_SplashLeaveT; const u64 nw = NowTick();
         if (upd && !extT) extT = nw; if (!upd) extT = 0;
-        static int su = 0; if (upd) su = (us == 0 && g_UpdManual) ? 1 : us; /* 消えていく間は、最後に出していた中身のまま */
+        static int su = 0; if (upd) su = (us == 0 && g_UpdManual) ? 1 : us; const int ss = upd ? su : (g_UpdAutoPhase == 1 ? 1 : (g_UpdAutoPhase == 2 && g_UpdNew > 0 && g_UpdNew <= static_cast<u32>(kInkVer) ? 6 : 0)); /* 板に出す状態 (0 = 何も出さない。前は 0 のとき「失敗」が出ていた) */ /* 消えていく間は、最後に出していた中身のまま */
         float ex = 0.0f; if (g_SplMan) ex = 1.0f; else if (extT) { float q = static_cast<float>(nw - extT) / 7680000.0f; if (q > 1.0f) q = 1.0f; ex = 1.0f - (1.0f - q) * (1.0f - q) * (1.0f - q); } /* 0.4 秒でのびる */
         const int BW = 820, BH0 = 160, EH = 0 * static_cast<int>(100.0f * ex), BH = BH0 + EH, /* 板は固定の高さ (アップデートの表示も、この中に入れる) */ PAD = kSplPad; /* PAD: 板の外 (葉が板の外へはみ出す所) */
         g_SplBW = BW + 2 * PAD; g_SplBH = BH + 2 * PAD; g_SplR = 28;
@@ -10765,11 +10769,11 @@ constexpr unsigned char kIconA[6][32*32] = {
                     }
                 };
                 static int curSt = -1, oldSt = -1; static u64 swT = 0; /* 中身が切りかわった時刻 */
-                if (su != curSt) { oldSt = curSt; curSt = su; swT = nw; }
+                if (ss != curSt) { oldSt = curSt; curSt = ss; swT = nw; }
                 float pr = oldSt < 0 ? 1.0f : static_cast<float>(nw - swT) / 5760000.0f; if (pr > 1.0f) pr = 1.0f; /* 0.3 秒 */
                 const float e = 1.0f - (1.0f - pr) * (1.0f - pr) * (1.0f - pr); constexpr int kSl = 14;
-                if (pr < 1.0f) drawSt(oldSt, 1.0f - e, -static_cast<int>(kSl * e)); /* 古い文字: 上へ消える */
-                drawSt(curSt, e, static_cast<int>(kSl * (1.0f - e))); /* 新しい文字: 下から出てくる */
+                if (pr < 1.0f && oldSt > 0) drawSt(oldSt, 1.0f - e, -static_cast<int>(kSl * e)); /* 古い文字: 上へ消える */
+                if (curSt > 0) drawSt(curSt, e, static_cast<int>(kSl * (1.0f - e))); /* 新しい文字: 下から出てくる */
             }
         }
         if (g_SplPt) { const Spr st { g_SplPt, kStrW, kStrH }, sb { g_SplPb, kSblW, kSblH }; SprBlit(v, st, BW - kStrCx, -kStrCy); SprBlit(v, sb, -kSblCx, BH - kSblCy); } /* 右上と左下: 枠の外へ付く枝と葉 (いちばん手前) */

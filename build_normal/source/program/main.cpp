@@ -346,10 +346,10 @@ namespace {
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
     volatile bool g_NewsSkip = true; volatile u32 g_NewsHits = 0; /* 広場のニュースを飛ばす (既定 ON) */
     constexpr int kTplN = 30; constexpr int kDynGaAim = 344, kDynGyRec = 345, kDynRst1 = 347, kDynRst2 = 348, kDynRst3 = 349, kDynRstBtn = 350, kDynRst4 = 351, kDynRst5 = 352, kDynPchMaster = 354, kDynEmpty = 355; constexpr int kDynFlow = 265; constexpr int kDynText = 266, kDynName = 267, kDynYg = 268, kDynImgSz = 271, kDynMark = 272, kDynAuto = 273, kDynFlk = 274, kDynWall = 275, kDynRuler = 276, kDynNameRnd = 277, kDynCrash = 278, kDynInkSz = 279, kDynHSpd = 280, kDynSpdV = 281, kDynTrail = 282, kDynLogClr = 283, kDynWarp = 303, kDynTrW = 305, kDynTrP = 306, kDynMenuCol = 307, kDynImgRot = 309, kDynResv = 310, kDynCamScan = 311, kDynUpd = 312, kDynAddr = 313, kDynFt2 = 314, kDynBl = 315, kDynTg = 316, kDynGcBal = 320, kDynGcEn = 321, kDynGcLkBal = 322, kDynGcLkEn = 323, kDynGcRange = 324, kDynGcCirc = 325, kDynGcA = 326, kDynGcCircOn = 327, kDynGcLine = 328, kDynGcLead = 329, kDynGcAim = 330, kDynGcTgt = 331, kDynRt = 317, kDynZr = 318, kDynFov = 319, kDynGcWarp = 332, kDynBalSum = 333, kDynReset = 334, kDynDth = 335, kDynTeam = 336, kDynAsari = 337, kDynClam = 338, kDynAsrDet = 339, kDynAsrDiff = 340, kDynLkRec = 341, kDynEnInk = 342, kDynKbRec = 343, kDynGaAimX = 346, kDynPch = 400, kDynPchMsg = 464; volatile bool g_BalSumReq = false; volatile u64 g_BalSumUntil = 0; volatile int g_BalSumMsg = 0, g_BalSumN = 0; /* バルーン召喚: 1 探し中 2 呼んだ 3 バルーンがない */ void TextKeyboard(); void ExtraTick(); bool ReadLive(float* out);
-    constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynFlySync = 509; /* tmt 1.1.5: 浮遊を見せる (スライド同期) */ volatile uintptr_t g_MnvObj = 0; volatile u64 g_MnvVt = 0; volatile u32 g_MnvGen = 0; volatile bool g_MnvHooked = false; volatile int g_FsLv = 0; /* 0 OFF / 1 0.2 秒 / 2 0.5 秒 / 3 1 秒 */ volatile bool g_FsPulse = false; volatile u32 g_FsSent = 0, g_FsHit = 0; u64 g_FsNext = 0; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
+    constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynFlySync = 509; /* tmt 1.1.5: 浮遊を見せる (スライド同期) */ volatile uintptr_t g_MnvObj = 0; volatile u64 g_MnvVt = 0; volatile u32 g_MnvGen = 0; volatile bool g_MnvHooked = false; volatile int g_FsLv = 0; /* 0 OFF / 1 毎フレーム (状態の位置を差し替え、スライドなし) / 2 スライド 0.5 秒 / 3 スライド 1 秒 */ volatile bool g_StHooked = false; volatile bool g_FsPulse = false; volatile u32 g_FsSent = 0, g_FsHit = 0; u64 g_FsNext = 0; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 115; /* tmt 1.1.5 (浮遊を見せる: スライドのイベントでフリーフライの座標を送る) */
+    constexpr int kInkVer = 116; /* tmt 1.1.6 (浮遊を見せる: 毎フレーム、ふだんの状態の位置を差し替える) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -2802,6 +2802,17 @@ namespace {
    本物のスライドで self を覚え、フリーフライ中は一定間隔でこの関数を自分で呼び、
    送る直前の位置をフリーフライの座標に差し替える → ほかの人の画面でもその場所に出る。 */
 constexpr uintptr_t kOffMnvSlide = 0x2ABE090, kOffMnvSlidePos = 0x2ABE2B8;
+/* tmt 1.1.6: 毎フレームの方式。ふだんの状態 spl::PlayerNetState (番号 586) も +32 に位置 (17 ビット × 3、±256) を持ち、
+   毎フレーム main+0x27FD070 で書き出して送る (読むのは main+0x27FDB50 で +32 へ)。書き出しの最初の
+   main+0x27FD090: ldr s0,[x0,#32] の前に、+32〜+40 をフリーフライの座標に差し替える (スライドの動きは出ない) */
+constexpr uintptr_t kOffStWritePos = 0x27FD090;
+HOOK_DEFINE_INLINE(StWritePosHook) {
+    static void Callback(exl::hook::InlineCtx* ctx) {
+        if (g_FsLv != 1 || !g_ModeOn || !g_BfHover || g_FlyQuiet) return;
+        const uintptr_t st = ctx->X[0]; if (st < 0x0000000800000000ull || st >= 0x0000008000000000ull) return;
+        float* p = reinterpret_cast<float*>(st + 32); p[0] = g_BfPos[0]; p[1] = g_BfPos[1]; p[2] = g_BfPos[2]; g_FsHit++;
+    }
+};
 HOOK_DEFINE_TRAMPOLINE(MnvSlideHook) {
     static u64 Callback(uintptr_t self, const float* dir) {
         if (!g_FsPulse && self) { g_MnvObj = self; g_MnvVt = *reinterpret_cast<const u64*>(self); g_MnvGen = g_LoadGen; } /* 本物のスライドで覚える */
@@ -2817,9 +2828,9 @@ HOOK_DEFINE_INLINE(MnvSlidePosHook) {
     }
 };
 void FsPulse() { /* プレイヤーの毎フレーム処理 (ゲームのスレッド) からだけ呼ぶ */
-    const int lv = g_FsLv; if (lv <= 0 || !g_MnvHooked) return;
+    const int lv = g_FsLv; if (lv < 2 || !g_MnvHooked) return;
     const u64 now = NowTick(); if (now < g_FsNext) return;
-    static const u64 kIv[4] = { 0, 3840000ull, 9600000ull, 19200000ull }; /* 19.2MHz: 0.2 / 0.5 / 1 秒 */
+    static const u64 kIv[4] = { 0, 0, 9600000ull, 19200000ull }; /* 19.2MHz: 0.5 / 1 秒 */
     g_FsNext = now + kIv[lv & 3];
     const uintptr_t o = g_MnvObj;
     if (!o || g_MnvGen != g_LoadGen || !Readable(o, 0x480) || *reinterpret_cast<const u64*>(o) != g_MnvVt) return; /* ロードした / 武器が変わった */
@@ -2835,7 +2846,7 @@ HOOK_DEFINE_TRAMPOLINE(BodyCalcHook) {
         if (dgb) PdLeave(dgb, 3, dgf);
         g_BfCalls++; ScnTick(); /* 版 653 */
         EnHkNote(a1); /* tmt: 敵の即検出 */
-        if (g_FsLv > 0 && g_ModeOn && g_BfHover && !g_FlyQuiet && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) FsPulse(); /* tmt 1.1.5: 浮遊を見せる */
+        if (g_FsLv >= 2 && g_ModeOn && g_BfHover && !g_FlyQuiet && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) FsPulse(); /* tmt 1.1.5: 浮遊を見せる */
         if (g_CfWant && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) { g_CfBody = *reinterpret_cast<const uintptr_t*>(a1 + 0x108); g_CfT = NowTick(); AsHookWrite();
             const int ar = g_ArmorReq;
             if (ar >= 0) { g_ArmorReq = -1;
@@ -11044,9 +11055,9 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynUiGpu) { nm = T("GPUで半透明 (試験)", "GPU Transparency (Test)"); st = -1; const int sp = g_GxStepPub; if (!g_GxOn) std::snprintf(vb, sizeof(vb), "OFF"); else if (sp > 0) std::snprintf(vb, sizeof(vb), "%s %d: %d/%d/%d/%d", T("失敗", "Fail"), sp, static_cast<int>(g_GxDbgPub[0]), static_cast<int>(g_GxDbgPub[1]), static_cast<int>(g_GxDbgPub[2]), static_cast<int>(g_GxDbgPub[3])); else std::snprintf(vb, sizeof(vb), "%s %d/10 [%d/%d/%d/%d]", g_GxOn >= 10 ? "GPU" : T("段階", "Stage"), static_cast<int>(g_GxOn), static_cast<int>(g_GxDbgPub[0]), static_cast<int>(g_GxDbgPub[1]), static_cast<int>(g_GxDbgPub[2]), static_cast<int>(g_GxDbgPub[3])); }
                 else if (i == kDynUiOpa) { nm = T("メニューの濃さ", "Menu Opacity"); st = -1; std::snprintf(vb, sizeof(vb), "%d%%", static_cast<int>(g_UiOpa)); }
                 else if (i == kDynFlyBFwd) { nm = T("Bで前に浮く (フリーフライ)", "B: Float Forward (Free Fly)"); st = g_FlyBFwd ? 1 : 0; }
-                else if (i == kDynFlySync) { nm = T("浮遊を見せる (スライド同期)", "Show Float (Slide Sync)"); st = -1; static const char* const kFsJa[] = { "OFF", "0.2秒", "0.5秒", "1秒" }; static const char* const kFsEn[] = { "OFF", "0.2s", "0.5s", "1s" };
-                    if (!g_MnvHooked) std::snprintf(vb, sizeof(vb), "%s", T("使えない", "N/A"));
-                    else if (g_FsLv > 0 && (!g_MnvObj || g_MnvGen != g_LoadGen)) std::snprintf(vb, sizeof(vb), "%s %s", kEn ? kFsEn[g_FsLv & 3] : kFsJa[g_FsLv & 3], T("(1回スライドして)", "(slide once)"));
+                else if (i == kDynFlySync) { nm = T("浮遊を見せる (スライド同期)", "Show Float (Slide Sync)"); st = -1; static const char* const kFsJa[] = { "OFF", "毎フレーム", "スライド0.5秒", "スライド1秒" }; static const char* const kFsEn[] = { "OFF", "Every frame", "Slide 0.5s", "Slide 1s" };
+                    if ((g_FsLv == 1 && !g_StHooked) || (g_FsLv >= 2 && !g_MnvHooked)) std::snprintf(vb, sizeof(vb), "%s %s", kEn ? kFsEn[g_FsLv & 3] : kFsJa[g_FsLv & 3], T("使えない", "N/A"));
+                    else if (g_FsLv >= 2 && (!g_MnvObj || g_MnvGen != g_LoadGen)) std::snprintf(vb, sizeof(vb), "%s %s", kEn ? kFsEn[g_FsLv & 3] : kFsJa[g_FsLv & 3], T("(1回スライドして)", "(slide once)"));
                     else if (g_FsLv > 0) std::snprintf(vb, sizeof(vb), "%s %u", kEn ? kFsEn[g_FsLv & 3] : kFsJa[g_FsLv & 3], static_cast<unsigned>(g_FsHit));
                     else std::snprintf(vb, sizeof(vb), "OFF"); }
                 else if (i == kDynFlySpd) { nm = T("フリーフライの速さ", "Free Fly Speed"); st = -1; std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_FlySpd)); }
@@ -12577,7 +12588,8 @@ extern "C" void exl_main(void* x0, void* x1) {
         if (!kBfEnable && g_OffPlayerMgrPtr == 0x6057568 && *reinterpret_cast<const u32*>(mainBase + kOffBodyCalc) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mainBase + kOffCompFromHandle) == 0xB9401008u)
             { BodyCalcHook::InstallAtOffset(kOffBodyCalc); g_BfHooked = true; }
         if (*reinterpret_cast<const u32*>(mainBase + 0x4A94230) == 0xD10343FFu) CcUpdHook::InstallAtOffset(0x4A94230);
-        if (g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const u32*>(mainBase + kOffMnvSlide) == 0xD10583FFu && *reinterpret_cast<const u32*>(mainBase + kOffMnvSlidePos) == 0xF845C3EAu) { MnvSlideHook::InstallAtOffset(kOffMnvSlide); MnvSlidePosHook::InstallAtOffset(kOffMnvSlidePos); g_MnvHooked = true; } /* tmt 1.1.5: スライド同期 (12.0.0 だけ) */ /* 版 628: CharacterController の更新 (調べる用) */ /* 版 618: フリーフライも。 版 615: アドレスサーチの基準 (カメラが追う位置) を読むためだけに入れる。g_BfHooked は false のまま */
+        if (g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const u32*>(mainBase + kOffMnvSlide) == 0xD10583FFu && *reinterpret_cast<const u32*>(mainBase + kOffMnvSlidePos) == 0xF845C3EAu) { MnvSlideHook::InstallAtOffset(kOffMnvSlide); MnvSlidePosHook::InstallAtOffset(kOffMnvSlidePos); g_MnvHooked = true; } /* tmt 1.1.5: スライド同期 (12.0.0 だけ) */
+        if (g_OffPaintRequest == 0x37246F0 && *reinterpret_cast<const u32*>(mainBase + 0x27FD070) == 0xD10203FFu && *reinterpret_cast<const u32*>(mainBase + kOffStWritePos) == 0xBD402000u) { StWritePosHook::InstallAtOffset(kOffStWritePos); g_StHooked = true; } /* tmt 1.1.6: 毎フレーム */ /* 版 628: CharacterController の更新 (調べる用) */ /* 版 618: フリーフライも。 版 615: アドレスサーチの基準 (カメラが追う位置) を読むためだけに入れる。g_BfHooked は false のまま */
         if (kBfEnable && g_OffPlayerMgrPtr == 0x6057568 && *reinterpret_cast<const u32*>(mainBase + kOffBodyCalc) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mainBase + kOffCompFromHandle) == 0xB9401008u)
             { BodyCalcHook::InstallAtOffset(kOffBodyCalc); g_BfHooked = true;
               if (*reinterpret_cast<const u32*>(mainBase + 0x2864804) == 0xA9402009u) BfSrcAHook::InstallAtOffset(0x2864804); /* ldp x9, x8, [x0] */

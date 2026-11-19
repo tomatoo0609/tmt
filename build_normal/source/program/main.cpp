@@ -323,14 +323,14 @@ namespace {
     /* カテゴリ: 0 プレイヤー / 1 塗り / 2 ツール / 3 設定。g_Cat = -1 のときは、カテゴリの一覧を出す。 */
     constexpr int kDynGsp = 260; constexpr int kDynUzu = 270, kDynEmo = 280, kUzuN = 14, kUzuPer = 220; constexpr int kDyn = 200; /* 200〜: 文字で描く行 (ジャンプスケア) */
     volatile bool g_FlowOn = false; int g_FlowN = 0; uintptr_t g_FlowObj[8]; float g_FlowOrig[8][14]; volatile int g_FlowMode = 2; volatile u64 g_FlowUntil = 0; /* 0 表示のみ / 1 GUI を切り替えた後の 5 秒だけ、加点を 1000 に / 2 加点を 1000 のまま */ int g_FlowPasses = 0, g_FlowHits = 0, g_FlowRej = 0; u32 g_FlowRejV[4] = {}; /* イカフロー: GUI を切り替えた後の 5 秒だけ加点を大きくして、ゲーム自身のイカフローを出す */
-    constexpr int kDynAimCurve = 520, kDynAimTune = 521, kDynAimNow = 522, kDynNewsSkip = 523; /* tmt: v771 の項目 */
+    constexpr int kDynAimCurve = 520, kDynAimTune = 521, kDynAimNow = 522, kDynNewsSkip = 523, kDynGameKb = 524; /* tmt: v771 の項目 */
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
     volatile bool g_NewsSkip = true; volatile u32 g_NewsHits = 0; /* 広場のニュースを飛ばす (既定 ON) */
     constexpr int kTplN = 30; constexpr int kDynGaAim = 344, kDynGyRec = 345, kDynRst1 = 347, kDynRst2 = 348, kDynRst3 = 349, kDynRstBtn = 350, kDynRst4 = 351, kDynRst5 = 352, kDynPchMaster = 354, kDynEmpty = 355; constexpr int kDynFlow = 265; constexpr int kDynText = 266, kDynName = 267, kDynYg = 268, kDynImgSz = 271, kDynMark = 272, kDynAuto = 273, kDynFlk = 274, kDynWall = 275, kDynRuler = 276, kDynNameRnd = 277, kDynCrash = 278, kDynInkSz = 279, kDynHSpd = 280, kDynSpdV = 281, kDynTrail = 282, kDynLogClr = 283, kDynWarp = 303, kDynTrW = 305, kDynTrP = 306, kDynMenuCol = 307, kDynImgRot = 309, kDynResv = 310, kDynCamScan = 311, kDynUpd = 312, kDynAddr = 313, kDynFt2 = 314, kDynBl = 315, kDynTg = 316, kDynGcBal = 320, kDynGcEn = 321, kDynGcLkBal = 322, kDynGcLkEn = 323, kDynGcRange = 324, kDynGcCirc = 325, kDynGcA = 326, kDynGcCircOn = 327, kDynGcLine = 328, kDynGcLead = 329, kDynGcAim = 330, kDynGcTgt = 331, kDynRt = 317, kDynZr = 318, kDynFov = 319, kDynGcWarp = 332, kDynBalSum = 333, kDynReset = 334, kDynDth = 335, kDynTeam = 336, kDynAsari = 337, kDynClam = 338, kDynAsrDet = 339, kDynAsrDiff = 340, kDynLkRec = 341, kDynEnInk = 342, kDynKbRec = 343, kDynGaAimX = 346, kDynPch = 400, kDynPchMsg = 464; volatile bool g_BalSumReq = false; volatile u64 g_BalSumUntil = 0; volatile int g_BalSumMsg = 0, g_BalSumN = 0; /* バルーン召喚: 1 探し中 2 呼んだ 3 バルーンがない */ void TextKeyboard(); void ExtraTick(); bool ReadLive(float* out);
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 102; /* tmt 1.0.2 (Inkdraw の番号とは別に 100 から) */
+    constexpr int kInkVer = 103; /* tmt 1.0.3 (Inkdraw の番号とは別に 100 から) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -359,7 +359,7 @@ namespace {
     const char* const kScnJa[kScnN] = { "広場", "ロビー", "ローカルロビー", "試し撃ち場", "バイトロビー", "ショップ" };
     volatile int g_ScnSel = 0, g_ScnReq = -1, g_ScnMsg = 0; char g_ScnReqName[48] = {}; /* 版 654: 行き先の名前 (g_ScnReq >= 0 のとき有効) */
     volatile int g_SgSel[3] = {}; volatile bool g_BotOn = false; volatile int g_GxDbgPub[4] = {}; volatile bool g_NetBlk = false; void NetBlkSet(bool on); void DnsTestStart(); volatile int g_DnsState = 0, g_DnsBlk = 0, g_DnsUnb = 0, g_DnsUnr = 0; volatile int g_DnsIdx = 0; volatile signed char g_DnsRes[35] = {}; /* 0 まだ / 1 blocked / 2 unblocked / 3 unresolved */
-    static const char* const kDnsHost[35] = { "nintendo.com", "nintendo.net", "nintendo.jp", "nintendo.co.jp", "nintendo.co.uk", "nintendo-europe.com", "nintendowifi.net", "nintendo.es", "nintendo.co.kr", "nintendo.tw", "nintendo.com.hk", "nintendo.com.au", "nintendo.co.nz", "nintendo.at", "nintendo.be", "nintendods.cz", "nintendo.dk", "nintendo.de", "nintendo.fi", "nintendo.fr", "nintendo.gr", "nintendo.hu", "nintendo.it", "nintendo.nl", "nintendo.no", "nintendo.pt", "nintendo.ru", "nintendo.co.za", "nintendo.se", "nintendo.ch", "nintendo.pl", "nintendoswitch.com", "nintendoswitch.com.cn", "nintendoswitch.cn", "sun.hac.lp1.d4c.nintendo.net" }; /* 版 681: 90DNS テスト (0 = まだ / 1 = 実行中 / 2 = 終わり / 3 = つながっていない) */ volatile bool g_GxActPub = false; volatile int g_GxStepPub = 0; volatile int g_GxOn = 0; /* 0 切 / 1〜3 GPU (範囲の渡し方を変えて試す) */ /* 版 656: バトルステージの bot を動かす (タコゾネス風) */ /* バトル / サーモンラン / その他 で選んでいる番号 */
+    static const char* const kDnsHost[35] = { "nintendo.com", "nintendo.net", "nintendo.jp", "nintendo.co.jp", "nintendo.co.uk", "nintendo-europe.com", "nintendowifi.net", "nintendo.es", "nintendo.co.kr", "nintendo.tw", "nintendo.com.hk", "nintendo.com.au", "nintendo.co.nz", "nintendo.at", "nintendo.be", "nintendods.cz", "nintendo.dk", "nintendo.de", "nintendo.fi", "nintendo.fr", "nintendo.gr", "nintendo.hu", "nintendo.it", "nintendo.nl", "nintendo.no", "nintendo.pt", "nintendo.ru", "nintendo.co.za", "nintendo.se", "nintendo.ch", "nintendo.pl", "nintendoswitch.com", "nintendoswitch.com.cn", "nintendoswitch.cn", "sun.hac.lp1.d4c.nintendo.net" }; /* 版 681: 90DNS テスト (0 = まだ / 1 = 実行中 / 2 = 終わり / 3 = つながっていない) */ volatile bool g_GxActPub = false; volatile int g_GxStepPub = 0; volatile int g_GxOn = 10; /* tmt: GPU で半透明を標準に (CPU で読み戻すと背景が 1 フレーム以上遅れる)。準備できないときは自動で CPU に戻る */ /* 0 切 / 1〜3 GPU (範囲の渡し方を変えて試す) */ /* 版 656: バトルステージの bot を動かす (タコゾネス風) */ /* バトル / サーモンラン / その他 で選んでいる番号 */
     volatile bool g_ScnOwn = false; volatile u64 g_ScnArmT = 0; char g_ScnOwnName[48] = {}; /* 版 663: 自分で移動したシーン (メニューから) だけで足す */ volatile int g_RivN = 0, g_RivMsg = 0, g_RivSeen = 0, g_RivAct = 0, g_RivErr = 0; volatile bool g_RivDone = false;
     void ScnGo(const char* n) { size_t L = 0; while (n[L] && L < 47) { g_ScnReqName[L] = n[L]; L++; } g_ScnReqName[L] = 0; g_ScnMsg = 0; g_ScnReq = 1; }
     volatile bool g_StgOn = false;
@@ -397,7 +397,7 @@ namespace {
     volatile bool g_MacroOn = false; volatile int g_MacroBtn = 0, g_MacroIv = 120;
     constexpr int kCatCount = 13; constexpr int kCatRst = 8; constexpr int kCatUlt = 12; constexpr int kTopCount = 11; /* 版 692: 最強チートはメニューから外した (日本版も英語版と同じ並び) */ /* 最上位に出すカテゴリの数 (サーチは外したので kCatCount より 1 少ない) */
     constexpr short kCatItems[kCatCount][16] = { /* メニューを整理: 設定はメニューのことだけ、数値を調べる物はまとめた。アップデートを確認はいちばん下の 1 つだけ */
-        { kDynFreeFly, kDynFlySpd, kDynTpSave, kDynTpX, kDynTpGo, kDynHop, kDynHopSpd, kDynCurl, kDynCurlSpd, kDynFov, kDynName, kDynFlow, kDynLight, kDynHeartAuto, -1, -1 } /* 版 634: 終わりの印 (-1) が無くて、0 番の項目 (pchtxt) が 3 つ出ていた */ /* プレイヤー (ノックバック強化・リスポーンは削除) */,
+        { kDynFreeFly, kDynFlySpd, kDynTpSave, kDynTpX, kDynTpGo, kDynHop, kDynHopSpd, kDynCurl, kDynCurlSpd, kDynFov, kDynName, kDynGameKb, kDynFlow, kDynLight, kDynHeartAuto, -1 } /* 版 634: 終わりの印 (-1) が無くて、0 番の項目 (pchtxt) が 3 つ出ていた */ /* プレイヤー (ノックバック強化・リスポーンは削除) */,
         { kItDraw, kItImage, kItFill2, kItErase, kDynUzu, kDynText, kDynImgSz, kDynInkSz, kDynImgRot, kDynResv, kDynTrail, kDynTrW, kDynTrP, kDynEnInk, -1, -1 } /* 塗り */,
         { kDynZr, kItFreeCam, kDynMacroOn, kDynMacroBtn, kDynMacroIv, kDynAddr, kDynNewsSkip, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* ツール (版 615: アドレスサーチをここに) */,
         { kItScale, kItPos, kDynUiOpa, kDynReset, kDynLkRec, kDynUpd, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* 設定 (メニューのこと) */,
@@ -601,6 +601,7 @@ namespace {
 
     /* ===== 文字を絵に反映: Switch のキーボードで文字を入れ、その文字をインクの絵にする ===== */
     volatile int g_InkSz = 2; volatile int g_ImgK = 4; volatile bool g_YgOn = false; volatile int g_YgMulIdx = 2, g_YgCalls = 0, g_YgStepCalls = 0; volatile uintptr_t g_YgSelf = 0; volatile u32 g_YgState = 0; volatile float g_YgDist = 0.0f, g_YgSpd = 0.0f; float g_YgOut[9] = {};
+    volatile bool g_GameKbFree = true; volatile u32 g_GameKbHits = 0;
     volatile int g_OwnKb = 0; /* tmt: 自分のキーボードを出している間 (ゲームのキーボードのフックで触らない) */
     void NameSave(); void NameLoadOnce(); /* tmt: 名前を SD に覚える (起動直後からゲームに偽の名前を返す) */
     void NameLive(const char* cur, const char* nw); char g_RealNick[40] = {}; char g_NameCur[40] = {}; volatile bool g_CrashArm = false; u64 g_CrashArmT = 0; volatile bool g_NameRnd = false; volatile int g_NameRndIv = 1; u64 g_NameRndT = 0; u32 g_NameRndLast = 99; volatile bool g_NameOn = false; volatile int g_KbTarget = 0, g_VibReq = 0; char g_NameU8[40] = {}; volatile bool g_NickHooked = false;
@@ -1220,6 +1221,7 @@ namespace {
         if (it == kDynAimCurve) { int c = g_AimCurveSel % 9; if (act) c = (c + 1) % 9; g_AimCurveSel = c; int v = g_AimCurveY[c]; if (lf && v > -50) v--; if (rt && v < 50) v++; g_AimCurveY[c] = v; return; } /* tmt: L で点を選ぶ、左右で値 */
         if (it == kDynAimTune) { int v = g_AimTune; if (lf && v > -50) v--; if (rt && v < 50) v++; if (act) v = 0; g_AimTune = v; return; }
         if (it == kDynAimNow) return;
+        if (it == kDynGameKb) { if (act || lf || rt) g_GameKbFree = !g_GameKbFree; return; }
         if (it == kDynNewsSkip) { if (act || lf || rt) g_NewsSkip = !g_NewsSkip; return; }
         if (it == kDynGcLead) { if (lf && g_LeadLv > 0) g_LeadLv = g_LeadLv - 1; if (rt && g_LeadLv < 20) g_LeadLv = g_LeadLv + 1; if (act) g_LeadLv = g_LeadLv ? 0 : 10; return; } /* 偏差射撃: 左右で強さ、L で なし ⇔ 10 */
         if (it == kDynGcCircOn) { if (act) g_CircOn = !g_CircOn; return; } /* 円: 出す / 出さない (出さないときは、円の中かどうかを見ない) */
@@ -1588,6 +1590,7 @@ namespace {
         *reinterpret_cast<u64*>(g_KbArg + 0x528) = reinterpret_cast<u64>(kbCheck);
         *reinterpret_cast<u64*>(g_KbArg + 0x530) = tcSz;
         static char ini[100]; std::memcpy(ini, dst, g_KbTarget ? sizeof(g_NameU8) : sizeof(ini)); ini[99] = 0;
+        *reinterpret_cast<u32*>(g_KbArg + 0x3b8) = 1; g_KbArg[0x3bc] = 1; /* tmt: 改行も使える */
         reinterpret_cast<FnInit8>(aIni)(g_KbArg, ini);
         KbStr out { kbStr, stSz };
         g_OwnKb = 1; const u32 rc = reinterpret_cast<FnShow>(aShow)(&out, g_KbArg); g_OwnKb = 0;
@@ -4586,6 +4589,7 @@ namespace {
         g_GaLogLast = now; GaRec& r = g_GaLog.r[g_GaLog.n++]; r.t = static_cast<float>(now - g_GaLogT0) / 19200000.0f; r.ep = ep; r.pit = pit; r.th = th; r.w = w; r.f2 = f2; r.epp = epp; r.Tv = Tv; r.hd = hd; r.dyy = dyy;
         if (g_GaLog.n >= static_cast<u32>(kGaRecMax)) GaLogFlush();
     }
+    static bool g_GaYReset = false;
     static void GaTick() {
         static u64 lastT = 0; static bool was = false, haveP = false, vset = false; static float py = 0.0f, pp = 0.0f; static int pn = 0; static bool learned = false, pitchOk = false;
         static float Wp[3] = {}, Wvp = 0.0f, SU = 0.0f, SD = 0.0f, Wh[4] = {};
@@ -4630,20 +4634,24 @@ namespace {
                             /* tmt: 左右も上下と同じ「まだ視点に出ていない命令」の内部モデル (むだ時間 48ms + 2 段の遅れ 29ms) を持ち、残りのずれを 1 フレームで 100% 詰める */
                             static float thY = 0.0f, f1Y = 0.0f, f2Y = 0.0f, hbY[16]; static u64 lastY = 0; static u32 rsY = 0xFFFFFFFFu;
                             if (rsY != g_GaPRst) { rsY = g_GaPRst; lastY = 0; }
-                            if (lastY == 0 || now - lastY > 2000000ull) { thY = f1Y = f2Y = 0.0f; for (int i = 0; i < 16; i++) hbY[i] = 0.0f; }
+                            if (lastY == 0 || now - lastY > 2000000ull) { thY = f1Y = f2Y = 0.0f; g_GaYReset = true; for (int i = 0; i < 16; i++) hbY[i] = 0.0f; }
                             lastY = now;
                             { float dd = 0.0484f / dtS; if (dd < 1.0f) dd = 1.0f; if (dd > 14.0f) dd = 14.0f; const int di = static_cast<int>(dd); const float fr = dd - static_cast<float>(di); const float thd = hbY[di - 1] * (1.0f - fr) + hbY[di] * fr; const float al = dtS / (0.029f + dtS); f1Y += (thd - f1Y) * al; f2Y += (f1Y - f2Y) * al; }
                             
-                            static float kG = 0.8f, pe2 = 0.0f; static int grow = 0; /* 発散の見張り: ずれが広がり続けたら強さを下げ、内部モデルを捨てる */
-                            { const float ae = ey < 0 ? -ey : ey; if (ae > pe2 + 0.5f && ae > 4.0f) grow++; else if (ae < pe2) { grow = 0; if (kG < 0.8f) kG += 0.02f; } pe2 = ae;
-                              if (grow >= 6) { grow = 0; kG = 0.35f; thY = f1Y = f2Y = 0.0f; for (int i = 0; i < 16; i++) hbY[i] = 0.0f; } }
+                            static float kG = 0.85f, pe2 = 0.0f; static int grow = 0; /* 発散の見張り: ずれが広がり続けたら強さを下げ、内部モデルを捨てる */
+                            { const float ae = ey < 0 ? -ey : ey; if (ae > pe2 + 0.5f && ae > 4.0f) grow++; else if (ae < pe2) { grow = 0; if (kG < 0.85f) kG += 0.05f; } pe2 = ae;
+                              if (grow >= 10) { grow = 0; kG = 0.45f; thY = f1Y = f2Y = 0.0f; for (int i = 0; i < 16; i++) hbY[i] = 0.0f; g_GaYReset = true; } }
+                            static float rEst = 1.0f, SA = 0.0f, SP = 0.0f, lastF2 = 0.0f; static int nS = 0; if (g_GaYReset) { g_GaYReset = false; lastF2 = f2Y; SA = SP = 0.0f; nS = 0; } /* tmt: 指令した量と実際に回った量を比べて、効きを合わせる */
+                            { const float pd = f2Y - lastF2; lastF2 = f2Y;
+                              if (okd && (pd > 0.4f || pd < -0.4f)) { const float sg = pd > 0.0f ? 1.0f : -1.0f; SA += dY * sg; SP += pd * sg;
+                                if (++nS >= 8) { float r = SP > 0.5f ? SA / SP : 1.0f; if (r < 0.3f) r = 0.3f; if (r > 1.6f) r = 1.6f; rEst *= 0.65f + 0.35f * r; if (rEst < 0.25f) rEst = 0.25f; if (rEst > 2.0f) rEst = 2.0f; SA = SP = 0.0f; nS = 0; } } }
                             const float eyM = ey - (thY - f2Y);
-                            float ry = eyM * kG / dtS; const float rcap = 5400.0f; if (ry > rcap) ry = rcap; if (ry < -rcap) ry = -rcap; const float v = ry / m;
+                            float ry = eyM * kG / dtS; const float rcap = 5400.0f; if (ry > rcap) ry = rcap; if (ry < -rcap) ry = -rcap; const float v = ry / (m * rEst);
                             const float wcap = 4.8f; /* ジャイロの上限 (約 5 回転/秒) を超えない (超えると効かない分を内部モデルが数え違えて遅れる) */
                             float done = 0.0f;
                             for (int a = 0; a < 3; a++) { float w = G0[a] * v; if (w > wcap) w = wcap; if (w < -wcap) w = -wcap; if (eyM < 0.03f && eyM > -0.03f) w = 0.0f; W[a] = w; done += G0[a] * w; }
-                            thY += done * dtS; for (int i = 15; i > 0; i--) hbY[i] = hbY[i - 1]; hbY[0] = thY;
-                            if (f2Y > 3600.0f || f2Y < -3600.0f) { const float b0 = f2Y; thY -= b0; f1Y -= b0; f2Y = 0.0f; for (int i = 0; i < 16; i++) hbY[i] -= b0; } }
+                            thY += done * rEst * dtS; for (int i = 15; i > 0; i--) hbY[i] = hbY[i - 1]; hbY[0] = thY;
+                            if (f2Y > 3600.0f || f2Y < -3600.0f) { const float b0 = f2Y; lastF2 -= b0; thY -= b0; f1Y -= b0; f2Y = 0.0f; for (int i = 0; i < 16; i++) hbY[i] -= b0; } }
                         if (pitchOk) { /* 上下: 本物のジャイロを止めて、効きの大きい軸だけ動かす */
                             int ap = 0; for (int a = 1; a < 3; a++) if (G1[a] * G1[a] > G1[ap] * G1[ap]) ap = a;
                             /* 546: 上下は「向きのずらし量 th」→(むだ時間 約 48ms)→(2 段の遅れ 約 29ms ずつ)→視点。実機ログで測った値を内部モデルに使い、まだ視点に出ていない分 (th - 遅れ後の th) を引いた「残りのずれ」で合わせる。標的が急に切り替わった時は標的の速さをリセット */
@@ -10586,6 +10594,10 @@ constexpr unsigned char kIconA[6][32*32] = {
     static int PchMenuW() { static int lastCat = -1; if (g_Cat >= 0) lastCat = g_Cat; if (lastCat == kWpCat) return 280; /* 武器のページは、横幅を狭く (縦長) */ if (lastCat != kPchCat || g_GrpN <= 0) return 400;
         int m = 0; for (int k = 0; k < g_GrpN && k < 64; k++) { const int w = U8W(g_Grp[k].name); if (w > m) m = w; }
         const int need = 56 + m + 90; return need < 400 ? 400 : (need > 600 ? 600 : need); }
+    static void SwFadeRow(Cv& v, int x, int y, int w, int h, Col bg, Col ac) { /* 左 22% → 右 0% のミント */
+        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1), k = 0.22f * (1.0f - t) * (1.0f - t); SwRect(v, x + i, y, 1, h, MixC(bg, ac, k)); } }
+    static void SwTopLine(Cv& v, int x, int y, int w, Col bg) { /* パネルの上の細いミントの線 (右へ消える) */
+        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1); SwRect(v, x + i, y, 1, 2, MixC(Col { 0.56f, 0.84f, 0.78f }, bg, t * t)); } }
     static void SwNeonLine(Cv& v, int x, int y, int w) { /* tmt: シアン → マゼンタの細い線 */
         for (int i = 0; i < w; i++) { const float t = w > 1 ? static_cast<float>(i) / static_cast<float>(w - 1) : 0.0f;
             (void)t; SwRect(v, x + i, y, 1, 1, Col { 0.17f, 0.175f, 0.19f }); } /* tmt v2: 細い灰色の線 */
@@ -10698,7 +10710,8 @@ constexpr unsigned char kIconA[6][32*32] = {
             g_AnimBusy = (aY != tgt) || g_SlideBusy;
             if (selJ >= 0 && selJ < cnt) {
                 const int yy = static_cast<int>(aY);
-                SwRRect(v, x0 + 6, yy + 1, MW - 12, rowH - 2, 2.0f, side ? Col { 0.10f, 0.105f, 0.115f } : selBg);
+                if (side) SwRRect(v, x0 + 6, yy + 1, MW - 12, rowH - 2, 2.0f, Col { 0.10f, 0.105f, 0.115f });
+                else SwFadeRow(v, x0 + 6, yy + 1, MW - 12, rowH - 2, panel, Col { 0.56f, 0.84f, 0.78f }); /* tmt: ミントが左から右へ消えていく帯 */
                 if (!side) SwRect(v, x0 + 6, yy + 10, 2, rowH - 20, Col { 0.56f, 0.84f, 0.78f }); /* tmt: 左に細い線 1 本 */
             }
         }
@@ -10799,6 +10812,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynAimCurve) { const int c = g_AimCurveSel % 9; static char cn[40]; std::snprintf(cn, sizeof(cn), T("狙い高さ %dm", "Aim Curve %dm"), 1 + 3 * c); nm = cn; st = -1; std::snprintf(vb, sizeof(vb), "< %d >", static_cast<int>(g_AimCurveY[c])); }
                 else if (i == kDynAimTune) { nm = T("全体の調整 (+下 -上)", "Aim Tune (+dn -up)"); st = -1; std::snprintf(vb, sizeof(vb), "< %d >", static_cast<int>(g_AimTune)); }
                 else if (i == kDynAimNow) { nm = T("今", "now"); st = -1; const float d = g_AimNowD; std::snprintf(vb, sizeof(vb), "%.1fm -> %.1f", static_cast<double>(d), static_cast<double>(AimUnitsFor(d) + static_cast<float>(g_AimTune))); }
+                else if (i == kDynGameKb) { nm = T("ゲームのキーボードを自由入力に", "Free game keyboard"); st = g_GameKbFree ? 1 : 0; if (g_GameKbHits) std::snprintf(vb, sizeof(vb), T("%u回", "%ux"), static_cast<unsigned>(g_GameKbHits)); }
                 else if (i == kDynNewsSkip) { nm = T("広場のニュースを飛ばす", "Skip plaza news"); st = g_NewsSkip ? 1 : 0; }
                 else if (i == kDynGcLead) { nm = T("偏差射撃", "Lead Aim"); st = -1; if (g_LeadLv) std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_LeadLv)); else std::snprintf(vb, sizeof(vb), "OFF"); }
                 else if (i == kDynGcCircOn) { nm = T("円", "Circle"); st = g_CircOn ? 1 : 0; }
@@ -11221,7 +11235,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 const float tri = ph < 0.5f ? ph * 2.0f : (1.0f - ph) * 2.0f;
                 const float gl = 0.55f + 0.45f * tri;
                 (void)gl; SwRRect(v, bx, y0, MW, MHc, 3.0f, border); /* ふち: グレー、太さ 2 */
-                SwRRect(v, bx + 2, y0 + 2, MW - 4, MHc - 4, 2.0f, panel);
+                SwRRect(v, bx + 2, y0 + 2, MW - 4, MHc - 4, 2.0f, panel); SwTopLine(v, bx + 2, y0 + 2, MW - 4, panel);
                 static const menu_text::Str* const kCatLB[5] = { &menu_text::kL_CAT0, &menu_text::kL_CAT1, &menu_text::kL_CAT2, &menu_text::kL_CAT3, &menu_text::kL_CAT6 };
                 SwU8(v, kCatName[dCat], bx + 18, y0 + 14, 240, dCat == kCatUlt ? Col { 1.0f, 0.25f, 0.25f } : whiteG); /* メニューの名前: 2 つ目も 3 つ目も同じ高さ・白 */
                 drawRows(dCat, bx, g_Cat >= 0 ? g_MenuSel : -1, g_Cat >= 0);
@@ -11238,7 +11252,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         { PRect pr { x0, y0, MWt, MHt, 3 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
         if (mA < 8) g_FadeBusy = true; g_FuncMenuA = mA;
         SwRRect(v, x0, y0, MWt, MHt, 3.0f, Col { 0.17f, 0.175f, 0.19f }); /* ふち: グレー、太さ 2 (中の色となじむように) */
-        SwRRect(v, x0 + 2, y0 + 2, MWt - 4, MHt - 4, 2.0f, panel);
+        SwRRect(v, x0 + 2, y0 + 2, MWt - 4, MHt - 4, 2.0f, panel); SwTopLine(v, x0 + 2, y0 + 2, MWt - 4, panel);
         {
             /* タイトル: 光らせずに白い文字だけ。左に細い縦の線、右に小さくバージョン (白い枠に合わせて、すっきり) */
             const float tsc = 0.62f; const int tx = x0 + 18, ty2 = y0 + 17; /* 左の縦線はなし */
@@ -11647,7 +11661,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (SplashOn()) mix(static_cast<u32>((NowTick() - g_SplashT0) / 320000ull)); mix(SplashOn() ? 1u : 0u);
         if (HudWanted()) { mix(static_cast<u32>(NowTick() / 1920000ull)); for (int k = 0; k < 4; k++) { float a, dd; if (HudRel(k, &a, &dd)) { mix(static_cast<u32>(static_cast<int>(a) + 1000)); mix(static_cast<u32>(dd)); } } mix(g_CamFOk ? 1u : 0u); mix(g_CdOff >= 0 ? 1u : 0u); mix(LiveValid() ? 1u : 0u); } /* 方位計: 1 秒に 10 回まで描き直す */
         mix(static_cast<u32>(g_DsSc * 1000.0f)); mix((g_RstDoneT && NowTick() - g_RstDoneT < 3ull * 19200000ull) ? 1u : 0u); mix((g_SetRstT && NowTick() - g_SetRstT < 3ull * 19200000ull) ? 1u : 0u); mix(static_cast<u32>(g_RstDoneT >> 10)); mix(static_cast<u32>(g_SetRstT >> 10)); mix(g_DtStep); mix(g_DtSample); mix(g_WpType); mix(g_WpSel); mix(static_cast<u32>(g_PanQ)); if (g_MenuOpen && g_Cat == kWpCat) { const int wc = WpCur(); mix(static_cast<u32>(g_WxN)); mix(static_cast<u32>(g_WxPG)); mix(static_cast<u32>(g_WxPN)); mix(static_cast<u32>(g_SelCur)); mix(static_cast<u32>(g_SelScroll)); mix(static_cast<u32>(g_MenuSel)); for (int k = 0; k < 5; k++) mix(static_cast<u32>(g_WxKd[wc][k])); for (int p = wxd::kWPF[wc]; p < wxd::kWPF[wc + 1]; p++) mix(static_cast<u32>(g_WxPd[p])); } mix(g_WpScanSt); mix(g_WpTgN); mix(g_WpScanMB >> 10); mix(g_WpBad > 0 ? 1u : 0u);  mix((g_WpRstT && NowTick() - g_WpRstT < 3ull * 19200000ull) ? 1u : 0u); mix(static_cast<u32>(g_WpRstT >> 10)); mix((g_WpRstAllT && NowTick() - g_WpRstAllT < 3ull * 19200000ull) ? 1u : 0u); mix(static_cast<u32>(g_WpRstAllT >> 10)); mix(g_RstMsg && NowTick() - g_RstT < 57600000ull ? 1u : 0u); mix(g_FadeBusy ? static_cast<u32>(NowTick() / 192000ull) : 0u); mix(FuncVis() ? 1u : 0u); mix(g_MenuSel); mix(g_LightOn); mix(g_HopOn); mix(static_cast<u32>(g_HopSpd)); mix(static_cast<u32>(g_FlySpd)); mix(static_cast<u32>(g_UiOpa)); mix(g_CurlOn); mix(g_StgOn); mix(static_cast<u32>(g_ScnSel)); mix(static_cast<u32>(g_SgSel[0])); mix(static_cast<u32>(g_SgSel[1])); mix(static_cast<u32>(g_SgSel[2])); mix(g_BotOn); mix(static_cast<u32>(g_RivN)); mix(static_cast<u32>(g_RivMsg)); mix(static_cast<u32>(g_RivSeen)); mix(static_cast<u32>(g_RivAct)); mix(static_cast<u32>(g_ScnMsg)); mix(static_cast<u32>(g_ScnReq + 1)); mix(static_cast<u32>(g_StgDst)); mix(static_cast<u32>(g_StgN)); mix(static_cast<u32>(g_StgSwaps)); for (const char* q = g_StgSrc; *q; q++) mix(static_cast<u8>(*q)); for (const char* q = g_StgLast; *q; q++) mix(static_cast<u8>(*q)); mix(static_cast<u32>(g_CurlSpd)); mix(static_cast<u32>(g_TpAxis)); mix(static_cast<u32>(g_TpDest)); mix(static_cast<u32>(g_TpMsg)); mix(g_TpHave); for (int q = 0; q < 3; q++) { mix(static_cast<u32>(static_cast<int>(g_TpPos[q]))); mix(g_TpMemOk[q]); } mix(static_cast<u32>(g_FollowSel)); mix(g_ModeOn); mix(g_PatchEnabled); mix(g_DrawEnabled); mix(g_PchPanel); mix(g_PchSel); mix(g_PchScroll);
-        mix(static_cast<u32>(g_AimCurveSel)); mix(static_cast<u32>(g_AimTune)); for (int q = 0; q < 9; q++) mix(static_cast<u32>(g_AimCurveY[q])); mix(g_NewsSkip ? 1u : 0u); if (g_MenuOpen && g_Cat == 6) mix(static_cast<u32>(g_AimNowD * 10.0f));
+        mix(static_cast<u32>(g_AimCurveSel)); mix(static_cast<u32>(g_AimTune)); for (int q = 0; q < 9; q++) mix(static_cast<u32>(g_AimCurveY[q])); mix(g_NewsSkip ? 1u : 0u); mix(g_GameKbFree ? 1u : 0u); mix(g_GameKbHits); if (g_MenuOpen && g_Cat == 6) mix(static_cast<u32>(g_AimNowD * 10.0f));
         mix(g_NetBlk ? 1u : 0u); mix(g_DnsState); mix(g_DnsBlk); mix(g_DnsUnb); mix(g_DnsUnr); mix(g_DnsIdx); if (g_MenuOpen && (g_Cat == kCatUlt || (g_Cat < 0 && kTopOrder[g_MenuSel % kTopCount] == kCatUlt))) mix(static_cast<u32>(NowTick() / 3840000ull)); /* 版 680: 文字化けの文字を 0.2 秒ごとに描き直す */ mix(g_TextOn); mix(g_NameOn); mix(g_CrashArm && NowTick() - g_CrashArmT < 3ull * 19200000ull ? 1u : 0u); mix(g_NameRnd); mix(g_NameRndIv); mix(g_NickHooked); for (const char* q = g_NameU8; *q; q++) mix(static_cast<u8>(*q)); mix(g_TextK); mix(g_TextMsg); for (const char* q = g_TextU8; *q; q++) mix(static_cast<u8>(*q)); mix(g_UiMove); mix(g_MenuOpen); mix(g_Cat); mix(g_TrkStage); mix(g_Jump); mix(g_FuncOn); { char b[24][64]; const int n = BuildFuncList(b); for (int i = 0; i < n; i++) for (const char* q = b[i]; *q; q++) mix(static_cast<u8>(*q)); } mix(g_FillPushed); mix(g_FillSeen); for (int q = 0; q < 24; q++) mix(static_cast<u32>(g_Fx[q])); mix(g_Force60); mix(g_Gsp); mix(g_GspCalls); mix(g_GspIdx); mix(g_ScareOn); mix(g_ScareInt); mix(g_ScareN); mix(static_cast<u32>(g_IntervalGame)); mix(g_Bunny); mix(g_BunnyMode); mix(g_LaunchNw); mix(g_EmoteOn); mix(g_EmoFire); mix(g_SelPanel); mix(g_SelCur); mix(g_SelScroll); mix(g_ImgSel); mix(g_UzuStyle); mix(static_cast<u32>(g_FlyWalkD)); mix(g_LcState); if (g_AnimBusy) mix(static_cast<u32>(NowTick() / 480000ull)); if (g_MenuOpen && g_UiScale == 100) mix(static_cast<u32>(NowTick() / 1920000ull)); /* 光るふち: 1秒に10回 (透明のときは枠を別に描くので不要) */ mix(g_MenuSel); mix(g_HaveTmpl); mix(g_LaunchLeft > 0); mix(g_LaunchPend); mix(g_WarpOn); mix(g_WarpHas[0]); mix(g_WarpHas[1]); mix(g_WarpHas[2]); mix(g_WarpHas[3]); mix(g_WarpMark); mix(g_BoxOn ? 1u : 0u); mix(g_BalOn ? 1u : 0u); mix(static_cast<u32>(g_BalN)); mix(static_cast<u32>(g_GyroRange)); mix(static_cast<u32>(g_GaSt)); mix(g_AimTFound ? 1u : 0u); mix(g_AimTLock ? 1u : 0u); mix(g_GaLog.n / 10u); mix(g_GaLogHold ? 1u : 0u); mix(g_GaOn ? 1u : 0u); mix(static_cast<u32>(g_LookRange)); mix(g_LookActive ? 1u : 0u); mix(static_cast<u32>(g_LookWhy)); mix(g_LookOn); mix(g_LookMsg); mix(static_cast<u32>(g_ScanStep)); mix(static_cast<u32>(g_ScanMsg)); mix(static_cast<u32>(g_UpdState)); mix(static_cast<u32>(g_AsStep)); mix(static_cast<u32>(g_Ft2Step)); mix(static_cast<u32>(g_UpdState)); mix(static_cast<u32>(g_UpdSel)); mix(g_EnOn ? 1u : 0u); mix(static_cast<u32>(g_CircR)); mix(g_CircOn ? 1u : 0u); mix(g_LineOn ? 1u : 0u); mix(static_cast<u32>(g_LeadLv)); mix(static_cast<u32>(g_AimTgt)); mix(static_cast<u32>(g_Fx[4])); mix(static_cast<u32>(g_FovLv)); mix(static_cast<u32>(g_FovSel)); mix(static_cast<u32>(g_FovN)); mix(static_cast<u32>(g_EnWarpMsg)); mix(static_cast<u32>(g_WarpMsg)); mix(g_WarpReq ? 1u : 0u); mix(static_cast<u32>(g_WarpHold > 0)); mix(g_LookAHold ? 1u : 0u); mix(static_cast<u32>(g_LookRange)); mix(static_cast<u32>(g_LookSlot)); mix(static_cast<u32>(g_EnN)); mix(static_cast<u32>(g_Ft2Grp)); mix(g_Ft2Wait ? 1u : 0u); mix(static_cast<u32>(g_AsSample)); mix(static_cast<u32>(g_AsN)); mix(static_cast<u32>(g_UpdSel)); mix(static_cast<u32>(g_UpdGot / 16384u)); mix(static_cast<u32>(g_UpdMsg)); mix(static_cast<u32>(g_ScanRel)); mix(static_cast<u32>(g_LookSlot)); mix(g_ImgRot); mix(g_ResvHave); mix(g_ResvMsg); mix(g_ResvReq); mix(g_WarpMsg); mix(g_WarpHold > 0 || g_WarpHoldL > 0); mix(g_WarpReq || g_WarpSaveReq); mix(g_TrW); mix(g_TrP); mix(g_MenuCol); mix(g_MemPanel); mix(g_MemSel); mix(g_MemType); mix(static_cast<u32>(g_MemBase)); mix(static_cast<u32>(g_MemBase >> 32)); if (g_MemPanel) mix(static_cast<u32>(NowTick() / 3200000ull)); /* メモリサーチ中は 1 秒に 6 回描き直す */ mix(g_BlinkOn); mix(g_Genki); mix(g_CleanSel); mix(g_DrawTeam); mix(g_FreeCam); mix(g_RespawnState); mix(static_cast<u32>(g_RespIdx)); mix(g_ImgK); mix(g_InkSz); mix(static_cast<u32>(g_LogClrState)); mix(g_HSpd); mix(g_HState); mix(g_HCalls / 16u); mix(g_Trail ? 1u : 0u); mix(static_cast<u32>(g_TrailWhy)); mix(static_cast<u32>(g_TrailN / 8)); mix(static_cast<u32>(g_SpdMul * 100.0f)); mix(g_SpdObj != 0); mix(static_cast<u32>(g_SpdGrp)); mix(g_Flk ? 1u : 0u); mix(g_Wall ? 1u : 0u); mix(g_Ruler ? 1u : 0u); mix(g_CamFOk ? 1u : 0u); mix(g_UiScale); mix(g_AnimBusy ? 1u : 0u); mix(g_SlideBusy ? 1u : 0u); mix(W); mix(H);
         for (int i = 0; i < g_GrpN; i++) mix(g_Grp[i].on ? 1u : 0u);
         if (hsh == g_SwHash && g_ScaleRough && NowTick() - g_ScaleT >= 1920000ull) { g_ScaleRough = false; g_SwHash = hsh ^ 1u; } /* 止まったら、きれいな計算で 1 回描き直す */
@@ -12273,7 +12287,7 @@ namespace {
 /* tmt: ゲームが出すキーボード (nn::swkbd::ShowKeyboard)。名前の入力 (ユーザー名の設定・最大 10〜32 文字) だけ、
    ふつうのキーボード (かな漢字変換・文字の制限なし・改行あり) に変えて出す。番号 (最小 = 最大) や長い文章のときは触らない。
    出てきた文字は、全角の英数字・記号・空白を半角に直す */
-namespace { volatile bool g_GameKbFree = true; volatile u32 g_GameKbHits = 0;
+namespace { 
     static void KbHalfU8(char* p, size_t cap) { size_t i = 0, o = 0;
         while (i < cap && p[i]) { const u8 a = static_cast<u8>(p[i]);
             if (a == 0xEF && i + 2 < cap && (static_cast<u8>(p[i + 1]) == 0xBC || static_cast<u8>(p[i + 1]) == 0xBD)) { const u32 c = 0xF000u | ((static_cast<u8>(p[i + 1]) & 0x3Fu) << 6) | (static_cast<u8>(p[i + 2]) & 0x3Fu); if (c >= 0xFF01 && c <= 0xFF5E) { p[o++] = static_cast<char>(c - 0xFEE0); i += 3; continue; } }

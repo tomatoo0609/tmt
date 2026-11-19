@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 130; /* tmt 1.1.20 (スプラッシュに白黒ローポリの鳥と葉の装飾) */
+    constexpr int kInkVer = 131; /* tmt 1.1.21 (メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -10112,88 +10112,7 @@ namespace nvnhook {
     }
 
     /* ---- CPU 側の描画 (色は RGBA8: R が下位バイト) ---- */
-    struct Cv { u32* px; int w, h, ox, oy; }; /* ox,oy: 画面上の左上 */
-    inline u32 Pack(Col k, float a = 1.0f) {
-        auto b = [](float v) { int i = static_cast<int>(v * 255.0f + 0.5f); return static_cast<u32>(i < 0 ? 0 : (i > 255 ? 255 : i)); };
-        return b(k.r) | (b(k.g) << 8) | (b(k.b) << 16) | (b(a) << 24);
-    }
-    inline void Blend(Cv& v, int x, int y, Col k, float a) {
-        x -= v.ox; y -= v.oy;
-        if (x < 0 || y < 0 || x >= v.w || y >= v.h || a <= 0.0f) return;
-        u32& d = v.px[y * v.w + x];
-        if (a >= 1.0f) { d = Pack(k); return; }
-        const float dr = static_cast<float>(d & 255) / 255.0f, dg = static_cast<float>((d >> 8) & 255) / 255.0f, db = static_cast<float>((d >> 16) & 255) / 255.0f;
-        d = Pack(Col { dr + (k.r - dr) * a, dg + (k.g - dg) * a, db + (k.b - db) * a });
-    }
-    /* tmt 1.1.20: 起動スプラッシュの飾り (白黒のローポリ鳥 + 葉)。塗り三角・太線・葉の輪郭 */
-    inline void SplTri(Cv& v, float ax, float ay, float bx, float by, float cx, float cy, Col k, float a) {
-        int minx = static_cast<int>(ax < bx ? (ax < cx ? ax : cx) : (bx < cx ? bx : cx)) - 1;
-        int maxx = static_cast<int>(ax > bx ? (ax > cx ? ax : cx) : (bx > cx ? bx : cx)) + 2;
-        int miny = static_cast<int>(ay < by ? (ay < cy ? ay : cy) : (by < cy ? by : cy)) - 1;
-        int maxy = static_cast<int>(ay > by ? (ay > cy ? ay : cy) : (by > cy ? by : cy)) + 2;
-        if (minx < 0) minx = 0; if (miny < 0) miny = 0; if (maxx > v.w) maxx = v.w; if (maxy > v.h) maxy = v.h;
-        const float area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay); if (area > -0.001f && area < 0.001f) return;
-        const bool pos = area > 0.0f;
-        for (int y = miny; y < maxy; y++) for (int x = minx; x < maxx; x++) {
-            int cov = 0;
-            for (int sy = 0; sy < 2; sy++) for (int sx = 0; sx < 2; sx++) {
-                const float px = static_cast<float>(x) + (sx ? 0.75f : 0.25f), py = static_cast<float>(y) + (sy ? 0.75f : 0.25f);
-                const float e0 = (bx - ax) * (py - ay) - (by - ay) * (px - ax);
-                const float e1 = (cx - bx) * (py - by) - (cy - by) * (px - bx);
-                const float e2 = (ax - cx) * (py - cy) - (ay - cy) * (px - cx);
-                if (pos ? (e0 >= 0 && e1 >= 0 && e2 >= 0) : (e0 <= 0 && e1 <= 0 && e2 <= 0)) cov++;
-            }
-            if (cov) Blend(v, x, y, k, a * static_cast<float>(cov) * 0.25f);
-        }
-    }
-    inline void SplSeg(Cv& v, float x0, float y0, float x1, float y1, float t, Col k, float a) {
-        const float dx = x1 - x0, dy = y1 - y0; float L = __builtin_sqrtf(dx * dx + dy * dy); if (L < 0.01f) L = 0.01f;
-        const float nx = -dy / L * t * 0.5f, ny = dx / L * t * 0.5f;
-        SplTri(v, x0 + nx, y0 + ny, x0 - nx, y0 - ny, x1 - nx, y1 - ny, k, a);
-        SplTri(v, x0 + nx, y0 + ny, x1 - nx, y1 - ny, x1 + nx, y1 + ny, k, a);
-    }
-    inline void SplLeaf(Cv& v, float cx, float cy, float ln, float angDeg, Col k) {
-        const float a = angDeg * 3.1415927f / 180.0f, ca = __builtin_cosf(a), sa = __builtin_sinf(a);
-        const float tx = cx + ln * ca, ty = cy + ln * sa; float px = cx, py = cy, qx = cx, qy = cy; bool have = false;
-        for (int i = 0; i <= 14; i++) { const float u = static_cast<float>(i) / 14.0f;
-            const float bx = cx + (tx - cx) * u, by = cy + (ty - cy) * u; const float wd = __builtin_sinf(3.1415927f * u) * ln * 0.22f;
-            const float lx = bx - wd * sa, lyy = by + wd * ca, rx = bx + wd * sa, ry = by - wd * ca;
-            if (have) { SplSeg(v, px, py, lx, lyy, 1.4f, k, 1.0f); SplSeg(v, qx, qy, rx, ry, 1.4f, k, 1.0f); }
-            px = lx; py = lyy; qx = rx; qy = ry; have = true;
-        }
-        SplSeg(v, cx, cy, tx, ty, 1.0f, k, 0.6f); /* 葉脈 */
-    }
-    void SplBird(Cv& v, int BW) {
-        const Col ink { 0.10f, 0.11f, 0.14f };
-        const float cx = static_cast<float>(BW) - 210.0f, cy = 100.0f;
-        /* 面: ax,ay,bx,by,cx,cy,fill(1=黒塗り) 。cx 基準 */
-        static const float F[12][7] = {
-            {-96,-6, -60,2, -30,-14, 0}, {-60,2, -30,-14, -34,16, 1}, {-60,2, -34,16, -10,34, 0},
-            {-30,-14, -34,16, -6,-10, 0}, {-6,-10, 34,-26, -30,-14, 0}, {-6,-10, 34,-26, 54,-72, 1},
-            {34,-26, 54,-72, 76,-40, 0}, {-18,6, -44,20, -10,34, 0}, {-18,6, -44,20, -78,54, 0},
-            {-44,20, -78,54, -54,40, 1}, {-10,34, 10,20, 58,8, 0}, {10,20, 58,8, 70,40, 1},
-        };
-        for (int i = 0; i < 12; i++) {
-            const float ax = cx + F[i][0], ay = cy + F[i][1], bx = cx + F[i][2], by = cy + F[i][3], ccx = cx + F[i][4], ccy = cy + F[i][5];
-            if (F[i][6] > 0.5f) SplTri(v, ax, ay, bx, by, ccx, ccy, ink, 1.0f);
-            SplSeg(v, ax, ay, bx, by, 1.6f, ink, 1.0f); SplSeg(v, bx, by, ccx, ccy, 1.6f, ink, 1.0f); SplSeg(v, ccx, ccy, ax, ay, 1.6f, ink, 1.0f);
-        }
-        SplSeg(v, cx - 96, cy - 6, cx - 120, cy - 10, 1.6f, ink, 1.0f); /* くちばし */
-        SplSeg(v, cx - 60, cy + 2, cx - 120, cy - 10, 1.0f, ink, 0.7f);
-        /* 砕片 (輪郭の三角) */
-        static const float FR[5][6] = {
-            {92,-70, 112,-60, 98,-48}, {126,-52, 146,-46, 132,-34}, {150,-78, 166,-70, 156,-58},
-            {112,-24, 130,-20, 120,-8}, {176,-54, 190,-50, 182,-40} };
-        for (int i = 0; i < 5; i++) { const float ax = cx + FR[i][0], ay = cy + FR[i][1], bx = cx + FR[i][2], by = cy + FR[i][3], ccx = cx + FR[i][4], ccy = cy + FR[i][5];
-            SplSeg(v, ax, ay, bx, by, 1.3f, ink, 1.0f); SplSeg(v, bx, by, ccx, ccy, 1.3f, ink, 1.0f); SplSeg(v, ccx, ccy, ax, ay, 1.3f, ink, 1.0f); }
-        /* 細かな点が右へ散る */
-        static const short SP[18][3] = { {86,-36,1},{104,-18,1},{120,-2,1},{140,-62,1},{150,-20,2},{162,-4,1},{170,-44,1},{182,-66,2},{132,10,1},{112,28,1},{156,24,1},{178,-24,1},{190,-8,1},{168,12,2},{144,-40,1},{100,8,1},{188,-34,1},{174,-56,1} };
-        for (int i = 0; i < 18; i++) { const int r = SP[i][2]; const int px = static_cast<int>(cx) + SP[i][0], py = static_cast<int>(cy) + SP[i][1];
-            for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++) if (dx * dx + dy * dy <= r * r) Blend(v, px + dx, py + dy, ink, 1.0f); }
-        /* 葉: 右上と左下 (縁ぎわ) */
-        SplLeaf(v, static_cast<float>(BW) - 26, 16, 44, 128, ink); SplLeaf(v, static_cast<float>(BW) - 12, 30, 30, 158, ink);
-        SplLeaf(v, 30, 182, 44, -58, ink); SplLeaf(v, 14, 170, 30, -28, ink);
-    }
+    #include "deco.hpp" /* Cv / Pack / Blend (ストレートアルファ) と、ローポリの鳥・葉・バラ */
     char g_FlyStb[40];
     const char* FlyStatus(char* o) {
         if (g_TrkStage == 3) return T("準備OK","Ready");
@@ -10240,6 +10159,13 @@ namespace nvnhook {
         for (int i = 0; i < n; i++) { const uint16_t* q = runs + i * 4; const float a = q[3] / 3.0f; for (int k = 0; k < q[2]; k++) Blend(v, x + q[1] + k, y + q[0], fg, a); }
     }
     void SwStr(Cv& v, const menu_text::Str& st, int x, int y, Col fg) { SwRuns16(v, st.runs, st.n, x, y, fg); }
+    /* tmt 1.1.21: メニューを白基調に。暗い板用に書いてある色を、白い板用に写す (灰色は反転、色つきは濃くして白地で読める色に) */
+    static inline Col WC(float r, float g, float b) {
+        const float mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        if (mx < 0.34f || mx - mn < 0.10f) { const float l = (r + g + b) * (1.0f / 3.0f); return Col { 0.985f - 0.90f * l, 0.988f - 0.90f * l, 0.995f - 0.90f * l }; } /* 灰色: 明るさを反転 (ほんの少し青みの白へ) */
+        return Col { r * 0.60f, g * 0.60f, b * 0.60f };
+    }
+    constexpr Col kAcc { 0.12f, 0.50f, 0.58f }; /* 白に合う深い青緑 (つまみ・強調) */
     static Col MixC(Col a, Col b, float t) { return Col { a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t }; }
     /* 472: スイッチのアニメーション: つまみが動いて、色がなめらかに変わる (行ごとに状態を覚える。最初に見たときは動かさない) */
     struct SwAn { int key; float from, to; u64 t0; bool on; };
@@ -10261,11 +10187,11 @@ namespace nvnhook {
         }
         const float ep = p * p * (3.0f - 2.0f * p);
         (void)off; (void)ac; (void)knob; /* tmt 1.0.8: リングのつまみ。OFF = 左の灰色のリング / ON = 右へ動いてミントの点が入る */
-        const Col onC { 0.56f, 0.84f, 0.78f }, offC { 0.42f, 0.43f, 0.47f };
+        const Col onC = kAcc, offC { 0.66f, 0.68f, 0.73f };
         const float x0 = static_cast<float>(rx - 34), x1 = static_cast<float>(rx - 8), kx = x0 + (x1 - x0) * ep, fy = static_cast<float>(cy) + 0.5f;
-        SwRRect(v, rx - 40, cy - 1, 38, 2, 1.0f, Col { 0.22f, 0.23f, 0.26f });
-        if (ep > 0.0f) SwRRect(v, rx - 40, cy - 1, static_cast<int>(kx - (rx - 40)), 2, 1.0f, MixC(Col { 0.22f, 0.23f, 0.26f }, onC, ep));
-        SwDisc(v, kx, fy, 8.0f, Col { 0.06f, 0.065f, 0.075f }, 1.0f); SwRing(v, kx, fy, 7.0f, 2.0f, MixC(offC, onC, ep));
+        SwRRect(v, rx - 40, cy - 1, 38, 2, 1.0f, Col { 0.84f, 0.86f, 0.90f });
+        if (ep > 0.0f) SwRRect(v, rx - 40, cy - 1, static_cast<int>(kx - (rx - 40)), 2, 1.0f, MixC(Col { 0.84f, 0.86f, 0.90f }, onC, ep));
+        SwDisc(v, kx, fy, 8.0f, Col { 1.0f, 1.0f, 1.0f }, 1.0f); SwRing(v, kx, fy, 7.0f, 2.0f, MixC(offC, onC, ep));
         if (ep > 0.05f) SwDisc(v, kx, fy, 3.5f * ep, onC, 1.0f);
     }
     void SwSwitchOld(Cv& v, int rx, int cy, bool on, Col ac, Col off, Col knob) { SwRRect(v, rx - 38, cy - 9, 38, 18, 9.0f, on ? ac : off); const int kx = on ? rx - 38 + 21 : rx - 38 + 3; SwRRect(v, kx, cy - 7, 14, 14, 7.0f, knob); }
@@ -10430,17 +10356,19 @@ namespace nvnhook {
         for (int yy = y0; yy < y1; yy++) for (int xx = x0; xx < x1; xx++) { const float dx = xx + 0.5f - cx, dy = yy + 0.5f - cy, d = __builtin_sqrtf(dx * dx + dy * dy); float a = th * 0.5f + 0.5f - (d > r ? d - r : r - d); if (a <= 0.0f) continue; if (a > 1.0f) a = 1.0f; Blend(v, xx, yy, c, a); }
     }
     void SwBar(Cv& v, int x, int y, int w, float t, bool center, Col fill) {
-        (void)fill; const Col acc { 0.56f, 0.84f, 0.78f }, track { 0.22f, 0.23f, 0.26f };
+        (void)fill; const Col acc = kAcc, track { 0.84f, 0.86f, 0.90f };
         if (t < -1.0f) t = -1.0f; if (t > 1.0f) t = 1.0f;
         const int cy = y + 2; SwRRect(v, x, cy - 1, w, 2, 1.0f, track);
         float kx;
-        if (center) { const int mid = x + w / 2; SwRect(v, mid, cy - 4, 1, 9, Col { 0.36f, 0.37f, 0.40f }); const int len = static_cast<int>((w / 2) * (t < 0 ? -t : t) + 0.5f);
+        if (center) { const int mid = x + w / 2; SwRect(v, mid, cy - 4, 1, 9, Col { 0.66f, 0.68f, 0.73f }); const int len = static_cast<int>((w / 2) * (t < 0 ? -t : t) + 0.5f);
             if (len > 0) SwRRect(v, t < 0 ? mid - len : mid, cy - 1, len, 2, 1.0f, acc); kx = static_cast<float>(t < 0 ? mid - len : mid + len); }
         else { const int len = static_cast<int>(w * t + 0.5f); if (len > 0) SwRRect(v, x, cy - 1, len, 2, 1.0f, acc); kx = static_cast<float>(x + len); }
-        SwDisc(v, kx, cy + 0.5f, 7.0f, Col { 0.06f, 0.065f, 0.075f }, 1.0f); SwRing(v, kx, cy + 0.5f, 6.0f, 2.0f, acc); SwDisc(v, kx, cy + 0.5f, 2.5f, Col { 1.0f, 1.0f, 1.0f }, 1.0f); /* つまみ: リング + 白い点 */
+        SwDisc(v, kx, cy + 0.5f, 7.0f, Col { 1.0f, 1.0f, 1.0f }, 1.0f); SwRing(v, kx, cy + 0.5f, 6.0f, 2.0f, acc); SwDisc(v, kx, cy + 0.5f, 2.5f, acc, 1.0f); /* つまみ: リング + 白い点 */
     }
     /* メニュー全体を CPU で描く (大きさ 100% の座標)。描いた範囲の大きさを返す。 */
-    u32 g_Base[1000 * 640];                               /* 100% で描く作業場 */
+    u32 g_Base[1100 * 900];                               /* 100% で描く作業場 (飾りの余白ぶん広げた) */
+    constexpr int kMDL = 34, kMDT = 62, kMDR = 66, kMDB = 38; /* メニューのまわりの余白: 鳥は右上、バラは左下から、板の外へはみ出す */
+    struct DRect { int x, y, w, h; }; DRect g_BaseDeco[4]; int g_BaseDecoN = 0; DRect g_SwDeco[4]; int g_SwDecoN = 0; /* 飾りの範囲 (切り抜いて写す) */
     int g_BaseW = 0, g_BaseH = 0;
     PRect g_BaseRects[6]; int g_BaseRectN = 0;
     int PanelH(int mh) { return mh > 520 ? mh : 520; } /* パッチの一覧は、メニューより縦に長くする */
@@ -10492,7 +10420,7 @@ namespace nvnhook {
     }
     void SwDrawFunc(Cv& v, int x, int y, int& outW, int& outH) {
         /* メニューと同じ見た目: 暗い板 + グレーのふち (太さ 2)、上にタイトルと線。行は「名前 : 値」を、名前は左 (白)、値は右 (グレー) にそろえる */
-        const Col panel { 0.055f, 0.057f, 0.064f }, frame { 0.17f, 0.175f, 0.19f }, line { 0.56f, 0.84f, 0.78f }, white { 0.95f, 0.95f, 0.96f }, dim { 0.50f, 0.52f, 0.56f }; /* tmt */
+        const Col panel { 0.978f, 0.982f, 0.990f }, frame { 0.80f, 0.82f, 0.87f }, line = kAcc, white { 0.11f, 0.12f, 0.16f }, dim { 0.47f, 0.49f, 0.55f }; /* tmt 1.1.21: 白基調 */
         static char lb[24][64]; static int ln = 0; static int kind = 0; /* 消えていく間は、最後の中身のまま */
         if (g_FuncOn) { ln = BuildFuncList(lb); kind = (g_Fx[18] || g_Fx[19] || g_Fx[20] || g_Fx[21] || NowTick() < g_FillDiagUntil) ? 1 : 0; }
         const int n = ln, W = 300, head = 46, row = 30, H = head + row * (n ? n : 1) + 8;
@@ -10704,8 +10632,10 @@ constexpr unsigned char kIconA[6][32*32] = {
     struct SplSg { float x0, y0, x1, y1, cum, len; };
     static SplSg g_SplSg[7][64]; static int g_SplSgN[7]; static float g_SplTot[7];
     static int g_SplPW[7], g_SplPH[7]; static bool g_SplBuilt = false;
-    static u32 g_SplBase[900 * 430]; static int g_SplBW = 0, g_SplBH = 0;
-    static int g_SplX = 0, g_SplY = 0, g_SplW = 0, g_SplH = 0, g_SplR = 0; static size_t g_SplOff = 0; static bool g_SplOn = false;
+    constexpr int kSplPad = 64; /* 起動の表示の絵は、板のまわりに 64 画素の余白 (葉がはみ出す) */
+    static u32 g_SplBase[960 * 480]; static int g_SplBW = 0, g_SplBH = 0;
+    static u32 g_SplPa[520 * 200], g_SplPt[260 * 170], g_SplPb[260 * 170]; static bool g_SplArtBuilt = false; /* 飾りの小さな絵 (一度だけ描く) */
+    static int g_SplX = 0, g_SplY = 0, g_SplW = 0, g_SplH = 0, g_SplR = 0, g_SplPd = 0; static size_t g_SplOff = 0; static bool g_SplOn = false;
     static void SplashBuild() {
         if (g_SplBuilt) return; g_SplBuilt = true;
         static const int kW[7] = { 92, 66, 66, 78, 76, 15, 66 }, kH[7] = { 112, 76, 76, 112, 76, 112, 76 };
@@ -10765,10 +10695,10 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (upd && !extT) extT = nw; if (!upd) extT = 0;
         static int su = 0; if (upd) su = (us == 0 && g_UpdManual) ? 1 : us; /* 消えていく間は、最後に出していた中身のまま */
         float ex = 0.0f; if (g_SplMan) ex = 1.0f; else if (extT) { float q = static_cast<float>(nw - extT) / 7680000.0f; if (q > 1.0f) q = 1.0f; ex = 1.0f - (1.0f - q) * (1.0f - q) * (1.0f - q); } /* 0.4 秒でのびる */
-        const int BW = 820, BH0 = 200, EH = static_cast<int>(100.0f * ex), BH = BH0 + EH;
-        g_SplBW = BW; g_SplBH = BH; g_SplR = 28;
-        Cv v { g_SplBase, BW, BH, 0, 0 };
-        for (int k = 0; k < BW * BH; k++) g_SplBase[k] = 0;
+        const int BW = 820, BH0 = 200, EH = static_cast<int>(100.0f * ex), BH = BH0 + EH, PAD = kSplPad; /* PAD: 板の外 (葉が板の外へはみ出す所) */
+        g_SplBW = BW + 2 * PAD; g_SplBH = BH + 2 * PAD; g_SplR = 28;
+        Cv v { g_SplBase, BW + 2 * PAD, BH + 2 * PAD, -PAD, -PAD }; /* 描く座標は板の左上が (0,0) */
+        for (int k = 0; k < (BW + 2 * PAD) * (BH + 2 * PAD); k++) g_SplBase[k] = 0x00FFFFFFu; /* 透明 (色は白) */
         const Col edge { 0.955f, 0.965f, 0.980f }, white { 0.10f, 0.11f, 0.14f }, dimc { 0.46f, 0.48f, 0.53f }; /* tmt 1.1.18: 白基調 (板=白, 文字=黒, バージョン=灰) */
         SwRRect(v, 0, 0, BW, BH, 28.0f, edge);
         for (int y = 2; y < BH - 2; y++) { /* 上から下へ、ほんの少し明るくなる */
@@ -10779,7 +10709,8 @@ constexpr unsigned char kIconA[6][32*32] = {
             SwRect(v, in, y, BW - 2 * in, 1, cc);
         }
         for (int y = 2; y < BH0 - 2; y++) for (int x = BW / 2; x < BW - 30; x++) { const float d = static_cast<float>(x - BW + 120 + y) / 260.0f; if (d < 0.0f || d > 1.0f) continue; const float a = (1.0f - d) * d * 0.22f; Blend(v, x, y, Col { 0.39f, 0.40f, 0.95f }, a); }
-        SplBird(v, BW); /* tmt 1.1.20: ローポリの鳥 + 葉 (白黒) */
+        if (!g_SplArtBuilt) { g_SplArtBuilt = true; Spr sa { g_SplPa, kSaW, kSaH }, st { g_SplPt, kStrW, kStrH }, sb { g_SplPb, kSblW, kSblH }; DecoSplashArt(sa, BW); DecoSplashTR(st); DecoSplashBL(sb); } /* 一度だけ描いて、あとは貼る */
+        { const Spr sa { g_SplPa, kSaW, kSaH }; const int clip[5] = { 2, 2, BW - 4, BH - 4, 26 }; SprBlit(v, sa, kSaX, 0, clip); } /* tmt 1.1.21: 淡いローポリの下地 + 鳥 (板の中) */
         /* ロゴ「Inkdraw」+ すぐ右にバージョン (枠なし)。読み込みのバーは板の下の方に置き、アップデートの文字が出るときは、その区切りの線になる */
         const menu_text::Str& T = menu_text::kTITLEBIG;
         const int tx = 64, ly = BH0 - 32, ty = (ly - T.h) / 2; /* ロゴの上の余白と、ロゴからバーまでの余白を同じに */
@@ -10830,13 +10761,14 @@ constexpr unsigned char kIconA[6][32*32] = {
                 drawSt(curSt, e, static_cast<int>(kSl * (1.0f - e))); /* 新しい文字: 下から出てくる */
             }
         }
+        { const Spr st { g_SplPt, kStrW, kStrH }, sb { g_SplPb, kSblW, kSblH }; SprBlit(v, st, BW - kStrCx, -kStrCy); SprBlit(v, sb, -kSblCx, BH - kSblCy); } /* 右上と左下: 枠の外へ付く枝と葉 (いちばん手前) */
     }
     /* 2 つ目のメニューの幅: pchtxt を開いているときは、いちばん長いパッチの名前が全部入る幅 (最大 600) */
     static int PchMenuW() { static int lastCat = -1; if (g_Cat >= 0) lastCat = g_Cat; if (lastCat == kWpCat) return 280; /* 武器のページは、横幅を狭く (縦長) */ if (lastCat != kPchCat || g_GrpN <= 0) return 336;
         int m = 0; for (int k = 0; k < g_GrpN && k < 64; k++) { const int w = U8W(g_Grp[k].name); if (w > m) m = w; }
         const int need = 56 + m + 90; return need < 336 ? 336 : (need > 600 ? 600 : need); }
     static void SymRowDraw(Cv& v, int i, int xl, int rx, int y, int rowH, bool sel) { /* tmt: ゲームの記号を絵で出す */
-        const Col gc = sel ? Col { 1.0f, 1.0f, 1.0f } : Col { 0.86f, 0.87f, 0.90f }, dc { 0.45f, 0.46f, 0.50f };
+        const Col gc = sel ? WC(1.0f, 1.0f, 1.0f) : WC(0.86f, 0.87f, 0.90f), dc = WC(0.45f, 0.46f, 0.50f);
         const int gy = y + (rowH - 26) / 2;
         if (i == kDynSym) { const int k = g_SymSel % sym_glyphs::kN; const menu_text::Str& g = sym_glyphs::kGlyph[k]; const int gx = rx - 22 - g.w;
             for (int q = 0; q < 4; q++) { SwRect(v, rx - 6 - q, y + rowH / 2 - 4 + q, 2, 1, dc); SwRect(v, rx - 6 - q, y + rowH / 2 + 4 - q, 2, 1, dc); SwRect(v, gx - 12 + q, y + rowH / 2 - 4 + q, 2, 1, dc); SwRect(v, gx - 12 + q, y + rowH / 2 + 4 - q, 2, 1, dc); } /* < > */
@@ -10847,16 +10779,16 @@ constexpr unsigned char kIconA[6][32*32] = {
             SwStr(v, g, x, gy, gc); x += g.w + 3; }
     }
     static void SwFadeRow(Cv& v, int x, int y, int w, int h, Col bg, Col ac) { /* 左 22% → 右 0% のミント */
-        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1), k = 0.22f * (1.0f - t) * (1.0f - t); SwRect(v, x + i, y, 1, h, MixC(bg, ac, k)); } }
+        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1), k = 0.16f * (1.0f - t) * (1.0f - t); SwRect(v, x + i, y, 1, h, MixC(bg, ac, k)); } }
     static void SwTopLine(Cv& v, int x, int y, int w, Col bg) { /* パネルの上の細いミントの線 (右へ消える) */
         const Col hc = HueCol(static_cast<float>((NowTick() / 96000ull) % 600ull) / 600.0f, 0.60f, 1.0f); /* tmt: 3 秒で 1 周 */
         for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1); SwRect(v, x + i, y, 1, 2, MixC(hc, bg, t * t)); } }
     static void SwNeonLine(Cv& v, int x, int y, int w) { /* tmt: シアン → マゼンタの細い線 */
         for (int i = 0; i < w; i++) { const float t = w > 1 ? static_cast<float>(i) / static_cast<float>(w - 1) : 0.0f;
-            (void)t; SwRect(v, x + i, y, 1, 1, Col { 0.17f, 0.175f, 0.19f }); } /* tmt v2: 細い灰色の線 */
+            (void)t; SwRect(v, x + i, y, 1, 1, Col { 0.80f, 0.82f, 0.87f }); } /* tmt v2: 細い灰色の線 (白基調: 薄い灰) */
     }
     void SwDrawMenu(int, int) {
-        std::memset(g_HoleRow, 0, sizeof(g_HoleRow));
+        std::memset(g_HoleRow, 0, sizeof(g_HoleRow)); g_BaseDecoN = 0;
         g_FadeBusy = false;
         if (!g_MenuOpen && !MenuClosing() && !FuncVis()) { g_BaseW = 0; g_BaseH = 0; g_BaseRectN = 0; return; } /* 起動の表示だけのとき (メニューの絵は無し) */
         if (!g_MenuOpen && !MenuClosing()) {
@@ -10872,13 +10804,13 @@ constexpr unsigned char kIconA[6][32*32] = {
         }
         /* デザイン 14「アイス」: 青みの暗いパネル + 氷色のアクセント + 丸いピル */
                 /* ドック: 白黒 + 光るふち (1分間に100色) */
-        const Col panel { 0.055f, 0.057f, 0.064f }, border { 0.17f, 0.175f, 0.19f }, whiteG { 0.95f, 0.95f, 0.96f }, accent { 0.56f, 0.84f, 0.78f }, good { 0.56f, 0.84f, 0.78f }; /* tmt: 平らな黒鉛色 (半透明) + 控えめなミント 1 色 */ /* 版 645: 灰色の軽い色 */
-        const Col dimG { 0.50f, 0.52f, 0.56f }, selBg { 0.115f, 0.12f, 0.135f }, ink { 1.0f, 1.0f, 1.0f }; /* 選択: 少し明るい帯 + 白い文字 */
+        const Col panel { 0.978f, 0.982f, 0.990f }, border { 0.80f, 0.82f, 0.87f }, whiteG { 0.11f, 0.12f, 0.16f }, accent = kAcc, good = kAcc; /* tmt 1.1.21: 白基調 (文字は藍墨、強調は深い青緑) */ /* tmt: 平らな黒鉛色 (半透明) + 控えめなミント 1 色 */ /* 版 645: 灰色の軽い色 */
+        const Col dimG { 0.47f, 0.49f, 0.55f }, selBg { 0.90f, 0.93f, 0.97f }, ink { 0.04f, 0.05f, 0.09f }; /* 選択: 少し明るい帯 + 白い文字 */
         const Col white = whiteG, dim = dimG;
         const int glowStep = static_cast<int>((NowTick() / 11520000ull) % 100ull); /* 0.6 秒ごとに 1 色 */
         static const float kMcH[6] = { 0.0f, 0.52f, 0.78f, 0.36f, 0.92f, 0.08f }; /* メニューの色: 虹 / 水色 / 紫 / 緑 / ピンク / オレンジ */
         const Col glowC = g_MenuCol % 6 == 0 ? HueCol(glowStep / 100.0f, 0.80f, 1.0f) : HueCol(kMcH[g_MenuCol % 6], 0.80f, 1.0f);
-        const int M = 4, MW = PchMenuW(), MWt = [] { const int a = 48 + U8W(T("プレイヤー","Player")) + 14, b = 18 + static_cast<int>(static_cast<float>(menu_text::kTITLE.w) * 0.62f) + 10 + U8W("Ver.0.0.0") + 10; return a > b ? a : b; }(), /* 中身ぴったりの幅 */ MWc0 = MW, rowH = 50, head = 50, foot = 5, RW = 0, RG = 0, /* MWt: メインメニューの幅 (右の余白をけずった縦長)。MW: 2 個目のメニュー。foot: 下の余白 */ ty = (rowH - font_glyphs::kLineH) / 2;
+        const int M = 4, DL = kMDL, DT = kMDT, DR = kMDR, DB = kMDB, MW = PchMenuW(), MWt = [] { const int a = 48 + U8W(T("プレイヤー","Player")) + 14, b = 18 + static_cast<int>(static_cast<float>(menu_text::kTITLE.w) * 0.62f) + 10 + U8W("Ver.0.0.0") + 10; return a > b ? a : b; }(), /* 中身ぴったりの幅 */ MWc0 = MW, rowC = 50, rowT = 34, head = 50, foot = 5, RW = 0, RG = 0, /* MWt: メインメニューの幅 (右の余白をけずった縦長)。MW: 2 個目のメニュー。foot: 下の余白 */ tyC = (rowC - font_glyphs::kLineH) / 2; (void)tyC; /* rowC: 2 つ目以降のメニューの行の高さ / rowT: 最上位のメニューの行の高さ (つめた) */
         const int cnt = PageCount();
         static int prevCat = -1; static int catLast = -1; static u64 catBackT = 0;
         {
@@ -10891,7 +10823,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         const int dCat = g_Cat >= 0 ? g_Cat : (retract ? catLast : -1);
         int cntB = 0; if (dCat >= 0) { cntB = CatCount(dCat); if (dCat == kPchCat && cntB > kPchVis) cntB = kPchVis; if (dCat == kWpCat && cntB > kWpVis) cntB = kWpVis; } /* pchtxt は 12 行ずつ (多いときは、選ぶ行について動く) */
         const int cntM = cnt > cntB ? cnt : cntB;
-        const int MHt = head + rowH * kTopCount + foot, MHc = head + rowH * (cntB > 0 ? cntB : 1) + foot + (dCat == kPchCat ? 10 : 0); /* 枠の高さは、中の行の数ぴったり (下に余白を作らない) */
+        const int MHt = head + rowT * kTopCount + foot, MHc = head + rowC * (cntB > 0 ? cntB : 1) + foot + (dCat == kPchCat ? 10 : 0); /* 枠の高さは、中の行の数ぴったり (下に余白を作らない) */
         const int MH = dCat < 0 ? MHt : (MHt > MHc ? MHt : MHc), RH = MH; (void)cntM; (void)RH;
         static int lastPW = 360; if (g_PchPanel || g_MemPanel || g_SelPanel != 0) lastPW = (g_SelPanel == 13) ? 300 : 360; const int PW = lastPW, gap = 10;
         static float tabP = 0.0f; static u64 tabT = 0; /* 467: 位置を選ぶときの説明の札 (メニューの下からにゅっと出て、決めたら戻る) */
@@ -10908,12 +10840,12 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (side) { const int pr2 = g_MemPanel ? 26 : (g_SelPanel == 13 ? 38 : 34), nrow = g_MemPanel ? kMemRows : SelCount(); const int cap = PanelH(MH), hh = g_SelPanel == 13 ? head + pr2 * (nrow > 0 ? nrow : 1) + foot : head + pr2 * (nrow > 0 ? nrow : 1) + foot + (g_MemPanel ? 4 : 0); sideH = hh > cap ? cap : hh; }
         const int sideHV = side ? sideH : snapH;
         const bool fvis = FuncVis(); const bool wide = side || fvis;
-        g_BaseW = M * 2 + RW + RG + MWt + (dCat >= 0 ? MW + gap : 0) + (sideV ? gap + PW : (fvis ? gap + 300 : 0));
-        g_BaseH = M * 2 + (sideV ? (sideHV > RH ? sideHV : RH) : (fvis ? (RH > 40 + 26 * 16 + 10 ? RH : 40 + 26 * 16 + 10) : RH)) + tabVis;
-        if (tabP > 0.0f && g_BaseW < M * 2 + 12 + tabW) g_BaseW = M * 2 + 12 + tabW;
+        g_BaseW = M * 2 + DL + DR + RW + RG + MWt + (dCat >= 0 ? MW + gap : 0) + (sideV ? gap + PW : (fvis ? gap + 300 : 0));
+        g_BaseH = M * 2 + DT + DB + (sideV ? (sideHV > RH ? sideHV : RH) : (fvis ? (RH > 40 + 26 * 16 + 10 ? RH : 40 + 26 * 16 + 10) : RH)) + tabVis;
+        if (tabP > 0.0f && g_BaseW < M * 2 + DL + DR + 12 + tabW) g_BaseW = M * 2 + DL + DR + 12 + tabW;
         (void)wide;
         Cv v { g_Base, g_BaseW, g_BaseH, 0, 0 };
-        for (int i = 0; i < g_BaseW * g_BaseH; i++) g_Base[i] = 0;
+        for (int i = 0; i < g_BaseW * g_BaseH; i++) g_Base[i] = 0x00FFFFFFu; /* 透明 (色は白) */
         const u64 nowS = NowTick();
         int xo = 0; int mA = 8; /* mA: メニュー全体のフェード */
         {
@@ -10930,7 +10862,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 g_SlideBusy = pcl < 1.0f;
             }
         }
-        const int x0 = M + RW + RG + xo, y0 = M, rx0 = M;
+        const int x0 = M + DL + RW + RG + xo, y0 = M + DT, rx0 = M;
         g_BaseRectN = 0;
         if (fvis && !sideV) { const int R = MWt + gap + (dCat >= 0 ? MW + gap : 0); int fw, fh; SwDrawFunc(v, x0 + R + FuncSlideX(R), y0, fw, fh); } /* ステータス: 先に描いて、メニューの板をその上に重ねる (メニューの後ろから出てくる) */
         /* 英語版: menu_text.hpp の事前焼き込みビットマップ (日本語のみ) の代わりに表示する英語ラベル。未到達の項目 ("" のもの) は先に別経路で処理される */
@@ -10939,6 +10871,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         const int states[kMenuItems] = { g_KnockOn ? 1 : 0, (g_Jump & 1) ? 1 : 0, (g_Jump & 2) ? 1 : 0, -1, -1, -1, -1, -1, -1, g_BlinkOn ? 1 : 0, g_PatchEnabled ? 1 : 0, -1, -1, -1, -1, g_Bunny ? 1 : 0, -1, g_EmoteOn ? 1 : 0, -1, (g_Fx[0] ? 1 : 0), (g_Fx[1] ? 1 : 0), (g_Fx[2] ? 1 : 0), (g_Fx[3] ? 1 : 0), (g_Fx[4] ? 1 : 0), (g_Fx[5] ? 1 : 0), (g_Fx[6] ? 1 : 0), (g_Fx[7] ? 1 : 0), (g_Fx[8] ? 1 : 0), (g_Fx[9] ? 1 : 0), (g_Fx[10] ? 1 : 0), (g_Fx[11] ? 1 : 0), (g_Fx[12] ? 1 : 0), -1, -1, (g_Fx[15] ? 1 : 0), (g_Fx[16] ? 1 : 0), (g_Fx[17] ? 1 : 0), (g_Fx[18] ? 1 : 0), (g_Fx[19] ? 1 : 0), (g_Fx[20] ? 1 : 0), (g_Fx[21] ? 1 : 0), -1, g_Force60 ? 1 : 0, -1 };
         auto drawRows = [&](int pageCat, int x0, int selJ, bool active) {
         const int MW = pageCat < 0 ? MWt : MWc0; /* メインメニューだけ細い */
+        const int rowH = pageCat < 0 ? rowT : rowC, ty = (rowH - font_glyphs::kLineH) / 2; /* 最上位だけ行をつめる */
         int cnt = 0; if (pageCat < 0) cnt = kTopCount; else cnt = CatCount(pageCat);
         int pOff = 0; /* pchtxt の一覧: 多いときは 12 行ぶんの窓を、選んでいる行のまわりに出す */
         const int visN = pageCat == kWpCat ? kWpVis : kPchVis;
@@ -10946,12 +10879,12 @@ constexpr unsigned char kIconA[6][32*32] = {
             const int total = cnt; static int pKeep = 0, pKeepCat = -99; if (pKeepCat != pageCat) { pKeepCat = pageCat; pKeep = 0; } if (active) { if (selJ < pKeep) pKeep = selJ; if (selJ >= pKeep + visN) pKeep = selJ - visN + 1; } if (pKeep > total - visN) pKeep = total - visN; if (pKeep < 0) pKeep = 0; pOff = pKeep; /* 普通の選び方: 端に来たときだけ一覧が動く */
             selJ -= pOff; cnt = visN;
             const int trackH = rowH * visN, thumbH = (trackH * visN / total) < 16 ? 16 : (trackH * visN / total), thumbY = (trackH - thumbH) * pOff / (total - visN);
-            SwRRect(v, x0 + MW - 5, y0 + head + thumbY, 3, thumbH, 1.5f, Col { 0.00f, 0.55f, 0.70f });
+            SwRRect(v, x0 + MW - 5, y0 + head + thumbY, 3, thumbH, 1.5f, WC(0.00f, 0.55f, 0.70f));
         }
         SwNeonLine(v, x0 + 12, y0 + head - 6, MW - 24);
         const int gapPx = (pageCat == kPchCat && pOff == 0) ? 10 : 0; /* pchtxt: 有効化の下に線を入れる隙間 (選択の帯にかぶらない) */
         static float barY = -1.0f; if (!active) barY = -1.0f;
-        if (!active) { if (selJ >= 0 && selJ < cnt) SwRRect(v, x0 + 6, y0 + head + rowH * selJ + (selJ >= 1 ? gapPx : 0) + 1, MW - 12, rowH - 2, 8.0f, Col { 0.10f, 0.105f, 0.115f }); }
+        if (!active) { if (selJ >= 0 && selJ < cnt) SwRRect(v, x0 + 6, y0 + head + rowH * selJ + (selJ >= 1 ? gapPx : 0) + 1, MW - 12, rowH - 2, 8.0f, WC(0.10f, 0.105f, 0.115f)); }
         else {
             /* 選択の帯は、前の位置から今の位置へなめらかに滑らせる (時間で動く) */
             static float aY = -1.0f; static u64 aT = 0; static int aCat = -99; static int aSel = -1;
@@ -10963,34 +10896,34 @@ constexpr unsigned char kIconA[6][32*32] = {
             g_AnimBusy = (aY != tgt) || g_SlideBusy;
             if (selJ >= 0 && selJ < cnt) {
                 const int yy = static_cast<int>(aY);
-                if (side) SwRRect(v, x0 + 6, yy + 1, MW - 12, rowH - 2, 8.0f, Col { 0.10f, 0.105f, 0.115f });
-                else SwFadeRow(v, x0 + 6, yy + 1, MW - 12, rowH - 2, panel, Col { 0.56f, 0.84f, 0.78f }); /* tmt: ミントが左から右へ消えていく帯 */
-                if (!side) SwRect(v, x0 + 6, yy + 10, 2, rowH - 20, Col { 0.56f, 0.84f, 0.78f }); /* tmt: 左に細い線 1 本 */
+                if (side) SwRRect(v, x0 + 6, yy + 1, MW - 12, rowH - 2, 8.0f, WC(0.10f, 0.105f, 0.115f));
+                else SwFadeRow(v, x0 + 6, yy + 1, MW - 12, rowH - 2, panel, accent); /* tmt: 青緑が左から右へ消えていく帯 */
+                if (!side) SwRect(v, x0 + 6, yy + 10, 2, rowH - 20, accent); /* tmt: 左に細い線 1 本 */
             }
         }
         for (int j = 0; j < cnt; j++) {
             const int i = pageCat < 0 ? (j >= kTopCount ? kDynUpd : 100 + kTopOrder[(j) % kTopCount]) : CatItem(pageCat, j + pOff);
             const int y = y0 + head + rowH * j + (j >= 1 ? gapPx : 0);
             /* 区切り線は使わない (元の見た目に戻した) */
-            if (i == kDynPchMaster) SwRect(v, x0 + 14, y + rowH + gapPx / 2, MW - 28, 1, Col { 0.20f, 0.21f, 0.23f }); /* 区切りの線 */
+            if (i == kDynPchMaster) SwRect(v, x0 + 14, y + rowH + gapPx / 2, MW - 28, 1, WC(0.20f, 0.21f, 0.23f)); /* 区切りの線 */
             const bool sel = !side && active && selJ >= 0 && selJ < cnt && (barY < 0.0f ? (selJ == j) : (barY - static_cast<float>(y) <= rowH * 0.5f && static_cast<float>(y) - barY < rowH * 0.5f)); /* 467: 帯が滑っている間も、帯が重なっている行だけ暗い文字にする (文字だけ先に反転して見えていた) */
-            const Col rowBg = sel ? (side ? Col { 0.10f, 0.105f, 0.115f } : selBg) : panel; /* 文字が消えるときに混ぜる背景色 */
+            const Col rowBg = sel ? (side ? WC(0.10f, 0.105f, 0.115f) : selBg) : panel; /* 文字が消えるときに混ぜる背景色 */
             g_BarSel = sel; /* 472: スライダーの色は、行ごとに必ず決める (前の行・前の絵の値が残って、アップデートを確認に選択があるとき上のバーが反転していた) */
             const bool selDim = (selJ == j) && (side || !active);
-            const Col white = sel ? ink : whiteG, dim = sel ? Col { 0.62f, 0.64f, 0.68f } : dimG; (void)white; (void)dim;
-            const Col amb = sel ? Col { 0.80f, 0.81f, 0.84f } : Col { 0.70f, 0.78f, 0.88f };
+            const Col white = sel ? ink : whiteG, dim = sel ? WC(0.62f, 0.64f, 0.68f) : dimG; (void)white; (void)dim;
+            const Col amb = sel ? WC(0.80f, 0.81f, 0.84f) : WC(0.70f, 0.78f, 0.88f);
             if (i >= 100 && i < kDyn) { /* tmt: アイコンなし。小さな番号 + 名前 */
-                const Col cc = (i - 100 == kCatUlt) ? Col { 1.0f, 0.42f, 0.42f } : (sel ? ink : Col { 0.80f, 0.81f, 0.84f });
+                const Col cc = (i - 100 == kCatUlt) ? WC(1.0f, 0.42f, 0.42f) : (sel ? ink : WC(0.80f, 0.81f, 0.84f));
                 SwU8(v, kCatName[i - 100], x0 + 20, y + ty, 226, cc);
-                { const Col ch = sel ? accent : Col { 0.34f, 0.35f, 0.38f }; const int cx = x0 + MW - 22, cy = y + rowH / 2; /* 右端に小さな矢印 › */
+                { const Col ch = sel ? accent : WC(0.34f, 0.35f, 0.38f); const int cx = x0 + MW - 22, cy = y + rowH / 2; /* 右端に小さな矢印 › */
                   for (int k = 0; k < 4; k++) { SwRect(v, cx + k, cy - 4 + k, 2, 1, ch); SwRect(v, cx + k, cy + 4 - k, 2, 1, ch); } }
                 continue;
             }
             if (i >= kDynWx && i < kDynWx + kWxMaxRows) { /* 武器 (全パラメータ): カテゴリを開閉する一覧。項目は「名前 / 今の値 / ％」と、100% を真ん中にした細いバー */
                 const int rj = i - kDynWx; const WxRow rw = rj < g_WxN ? g_WxRow[rj] : WxRow { 255, 0, 0 };
                 const int rx = x0 + MW - 18; g_BarSel = sel;
-                const Col prp = sel ? Col { 1.00f, 0.45f, 0.90f } : Col { 0.85f, 0.60f, 1.0f }; /* 変えてある物の色 (むらさき) */
-                const Col off = Col { 0.20f, 0.21f, 0.23f };
+                const Col prp = sel ? WC(1.00f, 0.45f, 0.90f) : WC(0.85f, 0.60f, 1.0f); /* 変えてある物の色 (むらさき) */
+                const Col off = WC(0.20f, 0.21f, 0.23f);
                 char vb[64]; vb[0] = 0;
                 if (rw.t == kWrType || rw.t == kWrSel) {
                     WpEnsure(); const int w = WpCur(); const char* nm = rw.t == kWrType ? T("武器の種類","Weapon Type") : T("武器","Weapon");
@@ -10998,8 +10931,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                     SwU8(v, nm, x0 + 20, y + ty, 150, white);
                     const int av = rx - (x0 + 20 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 300 ? av : 300, dim, rowBg);
                 } else if (rw.t == kWrMain || rw.t == kWrGrp) {
-                    if (!sel) SwRRect(v, x0 + 8, y + 3, MW - 16, rowH - 6, 12.0f, Col { 0.115f, 0.12f, 0.15f });
-                    { const Col ac = sel ? ink : Col { 0.62f, 0.64f, 0.70f }; for (int dy = -4; dy <= 4; dy++) { int aw = (5 - (dy < 0 ? -dy : dy)) * 5 / 5; if (aw < 1) aw = 1; SwRect(v, x0 + 18, y + rowH / 2 + dy, aw, 1, ac); } } /* 小さな三角 */
+                    if (!sel) SwRRect(v, x0 + 8, y + 3, MW - 16, rowH - 6, 12.0f, WC(0.115f, 0.12f, 0.15f));
+                    { const Col ac = sel ? ink : WC(0.62f, 0.64f, 0.70f); for (int dy = -4; dy <= 4; dy++) { int aw = (5 - (dy < 0 ? -dy : dy)) * 5 / 5; if (aw < 1) aw = 1; SwRect(v, x0 + 18, y + rowH / 2 + dy, aw, 1, ac); } } /* 小さな三角 */
                     const char* nm = rw.t == kWrMain ? T("主要な項目","Main Items") : WxStr(wxd::kG[rw.a].name);
                     int cntp = 5, chg = 0;
                     if (rw.t == kWrMain) { const int w = WpCur(); for (int k = 0; k < 5; k++) if (g_WxKd[w][k]) chg++; }
@@ -11018,12 +10951,12 @@ constexpr unsigned char kIconA[6][32*32] = {
                     if (!isK && has) { const u32 nvb = WxNv(pid); char ab[32]; if (wxd::kPF[pid] & 1) std::snprintf(ab, sizeof(ab), "%d", static_cast<int>(nvb)); else { float f; std::memcpy(&f, &nvb, 4); std::snprintf(ab, sizeof(ab), "%.4g", static_cast<double>(f)); } SwU8R(v, ab, rx - 88, y + ty - 2, 72, dim); }
                     if (has) { /* 100% を真ん中にした、細いバー (対数: 左端 1/16、右端 16 倍) */
                         const int bx = nx, bw = rx - nx, by = y + rowH - 8;
-                        SwRRect(v, bx, by, bw, 3, 1.5f, sel ? Col { 0.30f, 0.31f, 0.34f } : Col { 0.10f, 0.08f, 0.18f });
+                        SwRRect(v, bx, by, bw, 3, 1.5f, sel ? WC(0.30f, 0.31f, 0.34f) : WC(0.10f, 0.08f, 0.18f));
                         float t = -1.0f; const float ratio = static_cast<float>(100 + dlt) * 0.01f;
                         if (ratio > 0.0f) { u32 bits; std::memcpy(&bits, &ratio, 4); const int ee = static_cast<int>((bits >> 23) & 255) - 127; const float mm = static_cast<float>(bits & 0x7FFFFF) / 8388608.0f; t = (static_cast<float>(ee) + mm) * 0.25f; if (t < -1.0f) t = -1.0f; if (t > 1.0f) t = 1.0f; }
                         const int mid = bx + bw / 2; const int len = static_cast<int>(static_cast<float>(bw / 2) * (t < 0.0f ? -t : t) + 0.5f);
-                        if (len > 0 && mod) SwRRect(v, t < 0.0f ? mid - len : mid, by, len, 3, 1.5f, Col { 0.65f, 0.45f, 0.95f });
-                        SwRect(v, mid - 1, by - 2, 2, 7, sel ? Col { 0.30f, 0.80f, 0.90f } : Col { 0.40f, 0.38f, 0.55f });
+                        if (len > 0 && mod) SwRRect(v, t < 0.0f ? mid - len : mid, by, len, 3, 1.5f, WC(0.65f, 0.45f, 0.95f));
+                        SwRect(v, mid - 1, by - 2, 2, 7, sel ? WC(0.30f, 0.80f, 0.90f) : WC(0.40f, 0.38f, 0.55f));
                     }
                 } else if (rw.t == kWrRst || rw.t == kWrRstAll) {
                     const bool all = rw.t == kWrRstAll; const char* nm = all ? T("全部の武器を戻す","Reset All Weapons") : T("この武器を戻す","Reset This Weapon"); const u64 tm = all ? g_WpRstAllT : g_WpRstT;
@@ -11181,16 +11114,16 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i >= kDynEmo && i < kDynEmo + 5) { static const char* const kEn[5] = { T("十字上のエモート","D-Pad Up Emote"), T("十字下のエモート","D-Pad Down Emote"), T("十字左のエモート","D-Pad Left Emote"), T("十字右のエモート","D-Pad Right Emote"), T("ランダムエモート","Random Emote") }; nm = kEn[i - kDynEmo]; std::snprintf(vb, sizeof(vb), "%s", g_EmoFire == i - kDynEmo ? T("閉じると出る","Shown on close") : T("L: 出す","L: Trigger")); }
                 for (int k = 0; vb[k]; k++) { if (k == 0 || vb[k - 1] == ' ') { const bool hl = vb[k] == 'L' && vb[k + 1] == ':'; const bool hr = static_cast<u8>(vb[k]) == 0xE5 && static_cast<u8>(vb[k + 1]) == 0x8F && static_cast<u8>(vb[k + 2]) == 0xB3 && vb[k + 3] == ':'; if (hl || hr) { int e = k; while (e > 0 && vb[e - 1] == ' ') e--; vb[e] = 0; break; } } } /* 「L: ...」「右: ...」の説明は出さない (後ろに付いているものも) */
                 
-                const bool pchDim = (!g_PatchEnabled && ((i >= kDynPch && i < kDynPch + 64) || i == kDynPchMsg)) || (i >= kDynWpK && i < kDynWpK + 5 && !wpdata::kW[WpCur()].cnt[i - kDynWpK]); SwU8(v, nm, x0 + nx0, y + ty, (st < 0 && !vb[0]) ? MW - nx0 - 12 : ((i >= kDynPch && i < kDynPch + 64) ? MW - nx0 - 80 : 250), pchDim ? Col { 0.20f, 0.21f, 0.23f } : white); /* 名前はいつも白 (OFF はスイッチでわかる) */
+                const bool pchDim = (!g_PatchEnabled && ((i >= kDynPch && i < kDynPch + 64) || i == kDynPchMsg)) || (i >= kDynWpK && i < kDynWpK + 5 && !wpdata::kW[WpCur()].cnt[i - kDynWpK]); SwU8(v, nm, x0 + nx0, y + ty, (st < 0 && !vb[0]) ? MW - nx0 - 12 : ((i >= kDynPch && i < kDynPch + 64) ? MW - nx0 - 80 : 250), pchDim ? WC(0.20f, 0.21f, 0.23f) : white); /* 名前はいつも白 (OFF はスイッチでわかる) */
                 if (i == kDynSym || (i == kDynSymPend && g_SymN)) SymRowDraw(v, i, x0 + nx0 + U8W(nm) + 16, rx, y, rowH, sel);
                 if (i == kDynRstBtn || i == kDynUpd) { /* 押せるボタンの印: 名前の右に小さな再生マーク (▶) を出す。オン/オフのスイッチとは別の形にして区別する */
-                    const int mxx = x0 + nx0 + U8W(nm) + 12, myy = y + rowH / 2; const Col mc = sel ? ink : Col { 0.70f, 0.55f, 1.0f };
+                    const int mxx = x0 + nx0 + U8W(nm) + 12, myy = y + rowH / 2; const Col mc = sel ? ink : WC(0.70f, 0.55f, 1.0f);
                     for (int dy = -5; dy <= 5; dy++) { const int w = 6 - (dy < 0 ? -dy : dy); if (w < 1) continue; SwRect(v, mxx + (5 - w), myy + dy, w, 1, mc); }
                 }
                 RowStateSeen(i, st, sel);
                 if (st >= 0) {
                     const menu_text::Str& V = st ? menu_text::kV_ON : menu_text::kV_OFF;
-                    (void)V; g_SwKey = i + 1; if (pchDim) SwSwitch(v, rx, y + rowH / 2, st != 0, Col { 0.22f, 0.23f, 0.26f }, Col { 0.13f, 0.14f, 0.16f }, Col { 0.32f, 0.33f, 0.36f }); else SwSwitch(v, rx, y + rowH / 2, st != 0, sel ? ink : whiteG, sel ? Col { 0.30f, 0.31f, 0.34f } : Col { 0.13f, 0.135f, 0.15f }, st ? (sel ? whiteG : ink) : (sel ? Col { 1.0f, 1.0f, 1.0f } : Col { 0.36f, 0.37f, 0.40f }));
+                    (void)V; g_SwKey = i + 1; if (pchDim) SwSwitch(v, rx, y + rowH / 2, st != 0, WC(0.22f, 0.23f, 0.26f), WC(0.13f, 0.14f, 0.16f), WC(0.32f, 0.33f, 0.36f)); else SwSwitch(v, rx, y + rowH / 2, st != 0, sel ? ink : whiteG, sel ? WC(0.30f, 0.31f, 0.34f) : WC(0.13f, 0.135f, 0.15f), st ? (sel ? whiteG : ink) : (sel ? WC(1.0f, 1.0f, 1.0f) : WC(0.36f, 0.37f, 0.40f)));
                     if (i == kDynGsp) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, g_GspIdx / 49.0f, false, accent); char gb[24]; if (g_GspCalls == 0) std::snprintf(gb, sizeof(gb), T("%d倍?","x%d?"), GspMul(g_GspIdx)); else std::snprintf(gb, sizeof(gb), T("%d倍","x%d"), GspMul(g_GspIdx)); SwU8R(v, gb, rx - 54, y + ty, 64, amb); }
                     else if (i == kDynText) { const int av = rx - 54 - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx - 54, y + ty, av < 104 ? av : 104, amb, rowBg); }
                     else { const int av = rx - 54 - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx - 54, y + ty, av < 200 ? av : 200, amb, rowBg, i == kDynRstBtn ? g_RstDoneT : (i == kDynReset ? g_SetRstT : (i == kDynWpRst ? g_WpRstT : (i == kDynWpRstAll ? g_WpRstAllT : 0)))); }
@@ -11208,7 +11141,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynFlySpd || i == kDynHopSpd || i == kDynUiOpa || i == kDynCurlSpd) { const int bx = x0 + 22, bw = rx - 22 - bx; /* 版 637: 名前の右から (名前が長くて重なっていた) */ const int lv = i == kDynFlySpd ? g_FlySpd : i == kDynCurlSpd ? g_CurlSpd : g_HopSpd; SwBar(v, bx, y + rowH - 14, bw, i == kDynUiOpa ? (static_cast<float>(g_UiOpa) - 20.0f) / 80.0f : (static_cast<float>(lv) - 1.0f) / 9.0f, false, accent); SwU8R(v, vb, rx, y + ty, 24, amb); } /* 版 636: つまみ */
                 else if (i == kDynInkSz) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, (static_cast<float>(g_InkSz > 5 ? 5 : g_InkSz) - 1.0f) / 4.0f, false, accent); char nb[4] = { 0, 0, 0, 0 }; std::snprintf(nb, sizeof(nb), "%d", static_cast<int>(g_InkSz)); SwU8R(v, nb, rx, y + ty, 24, amb); }
                 else if (i == kDynImgSz) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, (static_cast<float>(g_ImgK) - 1.0f) / 7.0f, false, accent); char nb[2] = { static_cast<char>('0' + (g_ImgK < 1 ? 1 : (g_ImgK > 8 ? 8 : g_ImgK))), 0 }; SwU8R(v, nb, rx, y + ty, 24, amb); }
-                else if (i >= kDynWpK && i < kDynWpK + 5) { const int k = i - kDynWpK, w = WpCur(); if (wpdata::kW[w].cnt[k]) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, g_WpDisp[k] / 100.0f, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); } else SwU8R(v, vb, rx, y + ty, 80, Col { 0.20f, 0.21f, 0.23f }); }
+                else if (i >= kDynWpK && i < kDynWpK + 5) { const int k = i - kDynWpK, w = WpCur(); if (wpdata::kW[w].cnt[k]) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, g_WpDisp[k] / 100.0f, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); } else SwU8R(v, vb, rx, y + ty, 80, WC(0.20f, 0.21f, 0.23f)); }
                 else if (i == kDynWpType || i == kDynWpSel) { const int av = rx - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 300 ? av : 300, dim, rowBg); }
                 else { const int av = rx - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 200 ? av : 200, i == kDyn + 1 ? amb : dim, rowBg, i == kDynRstBtn ? g_RstDoneT : (i == kDynReset ? g_SetRstT : (i == kDynWpRst ? g_WpRstT : (i == kDynWpRstAll ? g_WpRstAllT : 0)))); }
                 continue;
@@ -11225,20 +11158,20 @@ constexpr unsigned char kIconA[6][32*32] = {
             {
                 /* 数値を調整する行には、今の値のバーを出す */
                 const int bx = x0 + 22, bw = rx - 22 - bx, by = y + rowH - 14; /* バーは行の中 (名前と値のあいだ) に描く。行の下はみ出さない */
-                if (i == kItSpeed) SwBar(v, bx, by, bw, g_Genki / 100.0f, false, Col { 0.95f, 0.65f, 0.20f });
-                else if (i == kItFreeCam) SwBar(v, bx, by, bw, g_FreeCam / 100.0f, true, g_FreeCam >= 0 ? Col { 0.30f, 0.75f, 0.95f } : Col { 0.95f, 0.40f, 0.55f });
-                else if (i == kItScale) SwBar(v, bx, by, bw, (g_UiScale - 50) / 100.0f, false, Col { 0.65f, 0.45f, 0.95f });
+                if (i == kItSpeed) SwBar(v, bx, by, bw, g_Genki / 100.0f, false, WC(0.95f, 0.65f, 0.20f));
+                else if (i == kItFreeCam) SwBar(v, bx, by, bw, g_FreeCam / 100.0f, true, g_FreeCam >= 0 ? WC(0.30f, 0.75f, 0.95f) : WC(0.95f, 0.40f, 0.55f));
+                else if (i == kItScale) SwBar(v, bx, by, bw, (g_UiScale - 50) / 100.0f, false, WC(0.65f, 0.45f, 0.95f));
             }
             RowStateSeen(i, states[i], sel);
             if (states[i] >= 0) {
                 const menu_text::Str& V = states[i] ? menu_text::kV_ON : menu_text::kV_OFF;
                 const int pw = 44;
-                (void)V; g_SwKey = i + 1; SwSwitch(v, rx, y + rowH / 2, states[i] != 0, sel ? ink : whiteG, sel ? Col { 0.30f, 0.31f, 0.34f } : Col { 0.13f, 0.135f, 0.15f }, states[i] ? (sel ? whiteG : ink) : (sel ? Col { 1.0f, 1.0f, 1.0f } : Col { 0.36f, 0.37f, 0.40f }));
+                (void)V; g_SwKey = i + 1; SwSwitch(v, rx, y + rowH / 2, states[i] != 0, sel ? ink : whiteG, sel ? WC(0.30f, 0.31f, 0.34f) : WC(0.13f, 0.135f, 0.15f), states[i] ? (sel ? whiteG : ink) : (sel ? WC(1.0f, 1.0f, 1.0f) : WC(0.36f, 0.37f, 0.40f)));
                 if (false) SwU8(v, g_DrawTeam == 0 ? T("色: 自分","Color: Self") : (g_DrawTeam == 1 ? T("色: チーム0","Color: Team 0") : T("色: チーム1","Color: Team 1")), rx - pw - 118, y + ty, 110, g_DrawTeam ? amb : dim);
                                 if (i == kItBunny) SwU8R(v, g_BunnyMode ? "< Squid >" : "< Human >", rx - pw - 10, y + ty, 70, dim);
-                if (i == kItPatch && g_PchPanel) SwU8R(v, T("表示中","Showing"), rx - pw - 10, y + ty, 70, Col { 0.85f, 0.75f, 1.0f });
+                if (i == kItPatch && g_PchPanel) SwU8R(v, T("表示中","Showing"), rx - pw - 10, y + ty, 70, WC(0.85f, 0.75f, 1.0f));
             } else if (i == kItDraw) {
-                SwU8R(v, g_HaveTmpl ? (g_DrawTeam == 0 ? T("色:自分","Color: Self") : (g_DrawTeam == 1 ? T("色:チーム0","Color: Team 0") : T("色:チーム1","Color: Team 1"))) : T("先に1回撃つ","Shoot once first"), rx, y + ty, 160, g_HaveTmpl ? dim : Col { 1.0f, 0.7f, 0.4f });
+                SwU8R(v, g_HaveTmpl ? (g_DrawTeam == 0 ? T("色:自分","Color: Self") : (g_DrawTeam == 1 ? T("色:チーム0","Color: Team 0") : T("色:チーム1","Color: Team 1"))) : T("先に1回撃つ","Shoot once first"), rx, y + ty, 160, g_HaveTmpl ? dim : WC(1.0f, 0.7f, 0.4f));
             } else if (i == kItErase) {
                 static const char* const kEn[3] = { T("敵インク(ブラボー)","Enemy Ink (Bravo)"), T("自陣インク(ブラボー)","Own Ink (Bravo)"), T("全消し","Clear All") };
                 SwU8R(v, kEn[g_EraseSel % 3], rx, y + ty, rx - (x0 + 130), dim);
@@ -11270,7 +11203,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 char fb[40]; std::snprintf(fb, sizeof(fb), T("実行 %d/%d","Run %d/%d"), g_FillPushed, g_FillSeen);
                 SwU8R(v, fb, rx, y + ty, 111, dim);
             } else if (i == kItFill) {
-                if (!g_HaveTmpl) SwU8R(v, T("先に1回撃つ","Shoot once first"), rx, y + ty, 110, g_HaveTmpl ? dim : Col { 1.0f, 0.7f, 0.4f });
+                if (!g_HaveTmpl) SwU8R(v, T("先に1回撃つ","Shoot once first"), rx, y + ty, 110, g_HaveTmpl ? dim : WC(1.0f, 0.7f, 0.4f));
             } else if (i == kItScale) {
                 char t[16]; int k = 0; t[k++] = '<'; t[k++] = ' ';
                 int sc = g_UiScale; if (sc >= 100) t[k++] = static_cast<char>('0' + sc / 100); t[k++] = static_cast<char>('0' + (sc / 10) % 10); t[k++] = static_cast<char>('0' + sc % 10);
@@ -11312,7 +11245,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             const Col pp { 0.075f, 0.080f, 0.095f }, pb = accent;
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
             { PRect pr { px0, y0, PW, PH, 12 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 12.0f, Col { 0.17f, 0.175f, 0.19f }); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
+            SwRRect(v, px0, y0, PW, PH, 12.0f, WC(0.17f, 0.175f, 0.19f)); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
             SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 10.0f, panel); (void)pp;
             char hd[48]; int k = 0;
             const char* h1 = T("パッチの一覧  ","Patch list  "); for (const char* q = h1; *q; q++) hd[k++] = *q;
@@ -11323,7 +11256,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             SwU8(v, hd, px0 + 18, y0 + 16, PW - 36, white);
             SwRect(v, px0 + 12, y0 + head - 6, PW - 24, 1, border);
             const int prow = 34, top = y0 + head, visible = (PH - head - foot) / prow;
-            if (g_GrpN == 0) SwU8(v, T("パッチがありません","No patches"), px0 + 20, top + 8, PW - 40, Col { 0.85f, 0.6f, 0.6f });
+            if (g_GrpN == 0) SwU8(v, T("パッチがありません","No patches"), px0 + 20, top + 8, PW - 40, WC(0.85f, 0.6f, 0.6f));
             int first = g_PchScroll;
             if (g_PchSel < first) first = g_PchSel;
             if (g_PchSel >= first + visible) first = g_PchSel - visible + 1;
@@ -11337,13 +11270,13 @@ constexpr unsigned char kIconA[6][32*32] = {
                 const bool on = g_Grp[gi].on;
                 const int pw = 44, ph = prow - 12, ppx = px0 + PW - 22 - pw, ppy = y + 6;
                 SwU8(v, g_Grp[gi].name, px0 + 20, y + (prow - font_glyphs::kLineH) / 2, ppx - px0 - 30, sel ? ink : white); (void)ppy; (void)ph;
-                SwSwitch(v, px0 + PW - 18, y + prow / 2, on, sel ? ink : whiteG, sel ? Col { 0.30f, 0.31f, 0.34f } : Col { 0.13f, 0.135f, 0.15f }, on ? (sel ? whiteG : ink) : (sel ? Col { 1.0f, 1.0f, 1.0f } : Col { 0.36f, 0.37f, 0.40f })); /* ON/OFF は 2 つ目のメニューと同じスイッチ */
+                SwSwitch(v, px0 + PW - 18, y + prow / 2, on, sel ? ink : whiteG, sel ? WC(0.30f, 0.31f, 0.34f) : WC(0.13f, 0.135f, 0.15f), on ? (sel ? whiteG : ink) : (sel ? WC(1.0f, 1.0f, 1.0f) : WC(0.36f, 0.37f, 0.40f))); /* ON/OFF は 2 つ目のメニューと同じスイッチ */
             }
             if (g_GrpN > visible) {
                 const int trackH = visible * prow, barH = trackH * visible / g_GrpN < 16 ? 16 : trackH * visible / g_GrpN;
                 const int maxF = g_GrpN - visible;
                 const int barY = top + (trackH - barH) * first / (maxF > 0 ? maxF : 1);
-                SwRRect(v, px0 + PW - 10, top, 4, trackH, 2.0f, Col { 0.15f, 0.18f, 0.22f });
+                SwRRect(v, px0 + PW - 10, top, 4, trackH, 2.0f, WC(0.15f, 0.18f, 0.22f));
                 SwRRect(v, px0 + PW - 10, barY, 4, barH, 2.0f, pb);
             }
         }
@@ -11351,20 +11284,20 @@ constexpr unsigned char kIconA[6][32*32] = {
             /* 武器: 項目のパネル (右に開く)。名前 (英語の内部名) / ％ / 100% を真ん中にした細いバー */
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
             { PRect pr { px0, y0, PW, PH, 12 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 12.0f, Col { 0.17f, 0.175f, 0.19f });
+            SwRRect(v, px0, y0, PW, PH, 12.0f, WC(0.17f, 0.175f, 0.19f));
             SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 10.0f, panel);
             SwU8(v, g_WxPG < 0 ? T("主要な項目","Main Items") : WxStr(wxd::kG[g_WxPG].name), px0 + 16, y0 + 14, PW - 120, white);
             SwRect(v, px0 + 12, y0 + head - 6, PW - 24, 1, border);
             const int n = g_WxPN, prow = 38, top = y0 + head, visible = (PH - head - foot) / prow;
             int first = g_SelScroll; if (g_SelCur < first) first = g_SelCur; if (g_SelCur >= first + visible) first = g_SelCur - visible + 1; if (first > n - visible) first = n - visible; if (first < 0) first = 0; g_SelScroll = first;
             const Col prp2 { 0.78f, 0.66f, 1.0f }, off2 { 0.34f, 0.36f, 0.40f };
-            if (n > visible) { const int trackH = prow * visible, thumbH = (trackH * visible / n) < 16 ? 16 : (trackH * visible / n), thumbY = (trackH - thumbH) * first / (n - visible); SwRRect(v, px0 + PW - 8, top + thumbY, 3, thumbH, 1.5f, Col { 0.00f, 0.55f, 0.70f }); }
+            if (n > visible) { const int trackH = prow * visible, thumbH = (trackH * visible / n) < 16 ? 16 : (trackH * visible / n), thumbY = (trackH - thumbH) * first / (n - visible); SwRRect(v, px0 + PW - 8, top + thumbY, 3, thumbH, 1.5f, WC(0.00f, 0.55f, 0.70f)); }
             for (int i = 0; i < visible && first + i < n; i++) {
                 const int gi = first + i, y = top + prow * i; const bool cur = (g_SelCur == gi); g_BarSel = cur;
                 const WxRow rw = g_WxRow[kWxPB + gi]; static const char* const kKn2[5] = { T("射程","Range"), T("連射速度","Fire Rate"), T("インク消費量","Ink Consumption"), T("チャージ時間","Charge Time"), T("当たり判定","Hitbox") };
                 const bool isK = rw.t == kWrKnob; const int w = WpCur(); const char* nms; int dlt = 0, pid = -1; bool has = true;
                 if (isK) { nms = kKn2[rw.k % 5]; has = WxKnobHas(w, rw.k); dlt = g_WxKd[w][rw.k % 5]; } else { pid = rw.a; nms = WxStr(wxd::kPL[pid]); dlt = g_WxPd[pid]; }
-                const Col wh = cur ? ink : whiteG, dm = cur ? Col { 0.40f, 0.42f, 0.46f } : dimG, pr3 = cur ? Col { 0.36f, 0.20f, 0.64f } : prp2, am = cur ? Col { 0.25f, 0.27f, 0.30f } : Col { 0.78f, 0.80f, 0.84f };
+                const Col wh = cur ? ink : whiteG, dm = cur ? WC(0.40f, 0.42f, 0.46f) : dimG, pr3 = cur ? WC(0.36f, 0.20f, 0.64f) : prp2, am = cur ? WC(0.25f, 0.27f, 0.30f) : WC(0.78f, 0.80f, 0.84f);
                 if (cur) SwRRect(v, px0 + 6, y + 1, PW - 12, prow - 2, 12.0f, selBg);
                 const int nx = px0 + 16, rx = px0 + PW - 16; const bool mod = has && dlt != 0;
                 SwU8(v, nms, nx, y + 4, rx - 68 - nx, has ? wh : off2);
@@ -11373,12 +11306,12 @@ constexpr unsigned char kIconA[6][32*32] = {
                 if (has) {
                     if (!isK) { const u32 nvb = WxNv(pid); char ab[32]; if (wxd::kPF[pid] & 1) std::snprintf(ab, sizeof(ab), "%d", static_cast<int>(nvb)); else { float f; std::memcpy(&f, &nvb, 4); std::snprintf(ab, sizeof(ab), "%.4g", static_cast<double>(f)); } if (cur) SwU8R(v, ab, px0 + PW - 16, y0 + 14, 100, dimG); }
                     const int bx = nx, bw = rx - nx, by = y + prow - 9;
-                    SwRRect(v, bx, by, bw, 3, 1.5f, cur ? Col { 0.70f, 0.71f, 0.75f } : Col { 0.16f, 0.15f, 0.22f });
+                    SwRRect(v, bx, by, bw, 3, 1.5f, cur ? WC(0.70f, 0.71f, 0.75f) : WC(0.16f, 0.15f, 0.22f));
                     float t = -1.0f; const float ratio = static_cast<float>(100 + dlt) * 0.01f;
                     if (ratio > 0.0f) { u32 bits; std::memcpy(&bits, &ratio, 4); const int ee = static_cast<int>((bits >> 23) & 255) - 127; const float mm = static_cast<float>(bits & 0x7FFFFF) / 8388608.0f; t = (static_cast<float>(ee) + mm) * 0.25f; if (t < -1.0f) t = -1.0f; if (t > 1.0f) t = 1.0f; }
                     const int mid = bx + bw / 2; const int len = static_cast<int>(static_cast<float>(bw / 2) * (t < 0.0f ? -t : t) + 0.5f);
-                    if (len > 0 && mod) SwRRect(v, t < 0.0f ? mid - len : mid, by, len, 3, 1.5f, Col { 0.65f, 0.45f, 0.95f });
-                    SwRect(v, mid - 1, by - 2, 2, 7, cur ? Col { 0.40f, 0.40f, 0.46f } : Col { 0.40f, 0.38f, 0.50f });
+                    if (len > 0 && mod) SwRRect(v, t < 0.0f ? mid - len : mid, by, len, 3, 1.5f, WC(0.65f, 0.45f, 0.95f));
+                    SwRect(v, mid - 1, by - 2, 2, 7, cur ? WC(0.40f, 0.40f, 0.46f) : WC(0.40f, 0.38f, 0.50f));
                 }
             }
         }
@@ -11387,7 +11320,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             const Col pp { 0.086f, 0.133f, 0.180f };
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
             { PRect pr { px0, y0, PW, PH, 12 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 12.0f, Col { 0.17f, 0.175f, 0.19f });
+            SwRRect(v, px0, y0, PW, PH, 12.0f, WC(0.17f, 0.175f, 0.19f));
             SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 10.0f, panel); (void)pp;
             SwU8(v, g_SelPanel == 1 ? T("絵の選択","Image Select") : (g_SelPanel == 2 ? T("渦の形","Swirl Shape") : (g_SelPanel == 4 ? T("インクの道の形","Ink Trail Pattern") : (g_SelPanel == 5 ? T("ワープ地点","Warp Point") : g_SelPanel == 9 ? T("ワープ地点 > ワープ","Warp Point > Warp") : g_SelPanel == 10 ? T("ワープ地点 > 記憶する","Warp Point > Save") : g_SelPanel == 11 ? T("ワープ地点 > 印・消す","Warp Point > Mark/Clear") : g_SelPanel == 12 ? T("ワープ地点 > 地点を見る","Warp Point > View Point") : (g_SelPanel == 6 ? T("インクの道の太さ","Ink Trail Width") : (g_SelPanel == 7 ? T("絵の向き","Image Rotation") : (g_SelPanel == 8 ? T("描く場所の予約","Reserve Draw Spot") : T("インク消しの種類","Ink Eraser Type"))))))), px0 + 18, y0 + 14, PW - 36, white);
             SwRect(v, px0 + 12, y0 + head - 6, PW - 24, 1, border);
@@ -11399,7 +11332,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             g_SelScroll = first;
             const char* const* const kUn = PaintRequestHook::kTplNames;
             static const char* const kEr[3] = { T("敵インク","Enemy Ink"), T("自陣インク","Own Ink"), T("全消し","Clear All") };
-            if (g_SelPanel == 1 && g_ImgN == 0) SwU8(v, T("画像がありません (SD の tmt に png)","No images (put a png in SD's tmt folder)"), px0 + 20, top + 44, PW - 40, Col { 0.85f, 0.6f, 0.6f });
+            if (g_SelPanel == 1 && g_ImgN == 0) SwU8(v, T("画像がありません (SD の tmt に png)","No images (put a png in SD's tmt folder)"), px0 + 20, top + 44, PW - 40, WC(0.85f, 0.6f, 0.6f));
             for (int i = 0; i < visible && first + i < n; i++) {
                 const int gi = first + i, y = top + prow * i;
                 const bool cur = (g_SelCur == gi);
@@ -11432,7 +11365,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             const Col pp { 0.075f, 0.080f, 0.095f }, pb = accent, sel2 { 0.14f, 0.17f, 0.24f };
             const int px0 = x0 + MWt + gap + (dCat >= 0 ? MW + gap : 0) + sideXo, PH = sideH;
             { PRect pr { px0, y0, PW, PH, 12 }; pr.a = sideA; g_BaseRects[g_BaseRectN++] = pr; if (sideA < 8) g_FadeBusy = true; }
-            SwRRect(v, px0, y0, PW, PH, 12.0f, Col { 0.17f, 0.175f, 0.19f }); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
+            SwRRect(v, px0, y0, PW, PH, 12.0f, WC(0.17f, 0.175f, 0.19f)); /* 2 つ目のメニューと同じ: グレーのふち (太さ 2) + 暗い板 */
             SwRRect(v, px0 + 2, y0 + 2, PW - 4, PH - 4, 10.0f, panel); (void)pp;
             auto hex = [](char* o, u64 x, int digits) { for (int i = digits - 1; i >= 0; i--) { const int d = (x >> (i * 4)) & 15; *o++ = static_cast<char>(d < 10 ? '0' + d : 'A' + d - 10); } *o = 0; };
             auto dec = [](char* o, s64 x) { char t[24]; int n = 0; bool neg = x < 0; u64 u = neg ? static_cast<u64>(-x) : static_cast<u64>(x); do { t[n++] = static_cast<char>('0' + u % 10); u /= 10; } while (u && n < 22); if (neg) *o++ = '-'; while (n) *o++ = t[--n]; *o = 0; };
@@ -11458,7 +11391,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             if (first < 0) first = 0;
             s_first = first;
             const bool ok = base && Readable(base, 0x1004);
-            if (!ok) SwU8(v, base ? T("読めない場所です","This location can't be read") : T("まだ x6 が拾えていません","x6 not collected yet"), px0 + 20, top + 8, PW - 40, Col { 0.95f, 0.6f, 0.6f });
+            if (!ok) SwU8(v, base ? T("読めない場所です","This location can't be read") : T("まだ x6 が拾えていません","x6 not collected yet"), px0 + 20, top + 8, PW - 40, WC(0.95f, 0.6f, 0.6f));
             for (int i = 0; ok && i < visible && first + i < kMemRows; i++) {
                 const int ri = first + i, off = 4 + ri * 4, y = top + prow * i;
                 const bool sl = ri == g_MemSel;
@@ -11500,21 +11433,21 @@ constexpr unsigned char kIconA[6][32*32] = {
                 (void)gl; SwRRect(v, bx, y0, MW, MHc, 12.0f, border); /* ふち: グレー、太さ 2 */
                 SwRRect(v, bx + 2, y0 + 2, MW - 4, MHc - 4, 10.0f, panel); SwTopLine(v, bx + 2, y0 + 2, MW - 4, panel);
                 static const menu_text::Str* const kCatLB[5] = { &menu_text::kL_CAT0, &menu_text::kL_CAT1, &menu_text::kL_CAT2, &menu_text::kL_CAT3, &menu_text::kL_CAT6 };
-                SwU8(v, kCatName[dCat], bx + 18, y0 + 14, 240, dCat == kCatUlt ? Col { 1.0f, 0.25f, 0.25f } : whiteG); /* メニューの名前: 2 つ目も 3 つ目も同じ高さ・白 */
+                SwU8(v, kCatName[dCat], bx + 18, y0 + 14, 240, dCat == kCatUlt ? WC(1.0f, 0.25f, 0.25f) : whiteG); /* メニューの名前: 2 つ目も 3 つ目も同じ高さ・白 */
                 drawRows(dCat, bx, g_Cat >= 0 ? g_MenuSel : -1, g_Cat >= 0);
                 { PRect pr { bx, y0, MW, MHc, 12 }; pr.a = mA; (void)pc; g_BaseRects[g_BaseRectN++] = pr; } /* 出るときはふわっと濃く、戻るときは薄く */
             }
         }
         if (tabP > 0.0f) { /* 札: 先に描いて、メニューの板をその上に重ねる (メニューの下から出てくるように見える) */
             const int tabTop = y0 + MHt - tabH + static_cast<int>(tabE * static_cast<float>(tabH - 10));
-            SwRRect(v, x0 + 12, tabTop, tabW, tabH, 2.0f, Col { 0.17f, 0.175f, 0.19f }); SwRRect(v, x0 + 14, tabTop + 2, tabW - 4, tabH - 4, 12.0f, panel);
-            SwU8(v, T("十字キーで移動","D-Pad to move"), x0 + 26, tabTop + 14, tabW - 28, Col { 1.0f, 0.85f, 0.4f }); SwU8(v, T("L: 決定","L: Confirm"), x0 + 26, tabTop + 38, tabW - 28, Col { 1.0f, 0.85f, 0.4f });
+            SwRRect(v, x0 + 12, tabTop, tabW, tabH, 2.0f, WC(0.17f, 0.175f, 0.19f)); SwRRect(v, x0 + 14, tabTop + 2, tabW - 4, tabH - 4, 12.0f, panel);
+            SwU8(v, T("十字キーで移動","D-Pad to move"), x0 + 26, tabTop + 14, tabW - 28, WC(1.0f, 0.85f, 0.4f)); SwU8(v, T("L: 決定","L: Confirm"), x0 + 26, tabTop + 38, tabW - 28, WC(1.0f, 0.85f, 0.4f));
             { PRect pr { x0 + 12, tabTop, tabW, tabH, 10 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
             if ((g_UiMove && g_MenuOpen && tabP < 1.0f) || (!(g_UiMove && g_MenuOpen) && tabP > 0.0f)) g_FadeBusy = true;
         }
         { PRect pr { x0, y0, MWt, MHt, 12 }; pr.a = mA; g_BaseRects[g_BaseRectN++] = pr; }
         if (mA < 8) g_FadeBusy = true; g_FuncMenuA = mA;
-        SwRRect(v, x0, y0, MWt, MHt, 12.0f, Col { 0.17f, 0.175f, 0.19f }); /* ふち: グレー、太さ 2 (中の色となじむように) */
+        SwRRect(v, x0, y0, MWt, MHt, 12.0f, WC(0.17f, 0.175f, 0.19f)); /* ふち: グレー、太さ 2 (中の色となじむように) */
         SwRRect(v, x0 + 2, y0 + 2, MWt - 4, MHt - 4, 10.0f, panel); SwTopLine(v, x0 + 2, y0 + 2, MWt - 4, panel);
         {
             /* タイトル: 光らせずに白い文字だけ。左に細い縦の線、右に小さくバージョン (白い枠に合わせて、すっきり) */
@@ -11533,10 +11466,17 @@ constexpr unsigned char kIconA[6][32*32] = {
                 const int cy = y0 + 30 + q * ((RH - 60) / (nIc - 1));
                 const bool act = g_Cat >= 0 ? (kTopOrder[q] == g_Cat) : (q == g_MenuSel);
                 if (act) { SwRRect(v, rx0 + (RW - 36) / 2, cy - 18, 36, 36, 12.0f, selBg); { if (kTopOrder[q] == kCatRst) SwIconShape(v, rx0 + RW / 2, cy, 24, 3, ink); else SwIcon(v, rx0 + RW / 2, cy, 24, kTopOrder[q], ink, 1.0f); } }
-                else if (kTopOrder[q] == kCatRst) SwIconShape(v, rx0 + RW / 2, cy, 24, 3, Col { 0.55f, 0.57f, 0.61f }); else SwIcon(v, rx0 + RW / 2, cy, 24, kTopOrder[q], Col { 0.55f, 0.57f, 0.61f }, 1.0f);
+                else if (kTopOrder[q] == kCatRst) SwIconShape(v, rx0 + RW / 2, cy, 24, 3, WC(0.55f, 0.57f, 0.61f)); else SwIcon(v, rx0 + RW / 2, cy, 24, kTopOrder[q], WC(0.55f, 0.57f, 0.61f), 1.0f);
             }
         }
         drawRows(-1, x0, g_Cat < 0 ? g_MenuSel : ([&]{ for (int q = 0; q < kTopCount; q++) if (kTopOrder[q] == g_Cat) return q; return 0; })(), g_Cat < 0);
+        { /* tmt 1.1.21: 右上の角からはみ出すローポリの鳥 / 左下の角を L 字に囲むバラ (いちばん手前。一度だけ描いて貼る) */
+            static u32 mb[kMbW * kMbH], mr[kMrW * kMrH]; static bool built = false; const Spr sbd { mb, kMbW, kMbH }, sro { mr, kMrW, kMrH };
+            if (!built) { built = true; Spr a { mb, kMbW, kMbH }, b { mr, kMrW, kMrH }; DecoMenuBird(a); DecoMenuRose(b); }
+            const int bxp = x0 + MWt - kMbCx, byp = y0 - kMbCy, rxp = x0 - kMrCx, ryp = y0 + MHt - kMrCy;
+            SprBlit(v, sbd, bxp, byp); SprBlit(v, sro, rxp, ryp);
+            g_BaseDeco[0] = DRect { bxp, byp, kMbW, kMbH }; g_BaseDeco[1] = DRect { rxp, ryp, kMrW, kMrH }; g_BaseDecoN = 2;
+        }
 
     }
     /* 100% で描いた絵を、大きさに合わせて縮小/拡大して、写す用の画像にする */
@@ -11547,6 +11487,8 @@ constexpr unsigned char kIconA[6][32*32] = {
         const u32 ag = (((a >> 8) & M) * (256 - t) + ((b >> 8) & M) * t) & 0xFF00FF00u;
         return rb | ag;
     }
+    /* tmt 1.1.21: 白基調。文字や線 (濃い画素) = 濃く写す / 白い板 = 設定の濃さ。暗い板のときは「明るい画素 = 濃く」だった */
+    ALWAYS_INLINE u32 InkLv(u32 m) { u32 r = m & 255u, g = (m >> 8) & 255u, b = (m >> 16) & 255u; u32 n = r < g ? r : g; if (b < n) n = b; return 255u - n; }
     /* 467: 大きさと位置は、目標へなめらかに近づける (時間で決まる指数の近づき方。フレームの長さに左右されない) */
     float g_DsSc = -1.0f, g_DsX = 0.0f, g_DsY = 0.0f; u64 g_DsT = 0;
     static float UiFit(float sc, int W, int H) {
@@ -11573,7 +11515,7 @@ constexpr unsigned char kIconA[6][32*32] = {
     int g_LastUx = -9999, g_LastUy = -9999; u64 g_ScaleT = 0; bool g_ScaleRough = false;
     void SwScale(int W, int H, bool pix = true) {
         float sc = g_DsSc > 0.0f ? g_DsSc : g_UiScale / 100.0f;
-        if (g_BaseW <= 0 || g_BaseH <= 0) { g_SwW = 0; g_SwH = 0; g_SwRectN = 0; return; }
+        if (g_BaseW <= 0 || g_BaseH <= 0) { g_SwW = 0; g_SwH = 0; g_SwRectN = 0; g_SwDecoN = 0; return; }
         if (g_BaseW * sc > W - 8) sc = static_cast<float>(W - 8) / g_BaseW;
         if (g_BaseH * sc > H - 8) sc = static_cast<float>(H - 8) / g_BaseH;
         if (g_BaseW * sc > kOvW) sc = static_cast<float>(kOvW) / g_BaseW;
@@ -11629,6 +11571,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 }
             }
         }
+        g_SwDecoN = 0; for (int k = 0; k < g_BaseDecoN; k++) { const DRect& d = g_BaseDeco[k]; g_SwDeco[g_SwDecoN++] = DRect { ux + static_cast<int>(d.x * sc), uy + static_cast<int>(d.y * sc), static_cast<int>(d.w * sc) + 1, static_cast<int>(d.h * sc) + 1 }; }
         g_SwRectN = 0;
         for (int k = 0; k < g_BaseRectN; k++) {
             const PRect& p = g_BaseRects[k];
@@ -11666,7 +11609,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             if (g_SplashLeaveT) { float q = static_cast<float>(n - g_SplashLeaveT) / 9600000.0f; if (q > 1.0f) q = 1.0f; xx = cxp + static_cast<int>(q * q * q * static_cast<float>(W - cxp)); }
             else { float q = static_cast<float>(n - g_SplashT0) / 9600000.0f; if (q > 1.0f) q = 1.0f; const float e = 1.0f - (1.0f - q) * (1.0f - q) * (1.0f - q); xx = -dw + static_cast<int>(e * static_cast<float>(cxp + dw)); }
             g_SplX = xx; }
-        g_SplY = (H - dh) / 2; g_SplW = dw; g_SplH = dh; g_SplR = static_cast<int>(36.0f * sc) + 1; g_SplOff = off * 4u; g_SplOn = true;
+        g_SplY = (H - dh) / 2; g_SplW = dw; g_SplH = dh; g_SplR = static_cast<int>(36.0f * sc) + 1; g_SplPd = static_cast<int>(static_cast<float>(kSplPad) * sc + 0.5f); g_SplOff = off * 4u; g_SplOn = true;
     }
     /* ワープの印: 画面の上の帯 (方位計)。まん中が今向いている向き (カメラの向き。歩いたときに覚え直す)。
        記憶した地点の向きに光る印を出し、下に番号と距離。左右 90 度より後ろの地点は、端に寄せて矢印を付ける。 */
@@ -11886,7 +11829,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                         const float dx = static_cast<float>(lx < r ? r - lx : lx - (p.w - r - 1)) - 0.5f, dy = static_cast<float>(ly < r ? r - ly : ly - (p.h - r - 1)) - 0.5f;
                         const float d = __builtin_sqrtf(dx * dx + dy * dy); float cf = static_cast<float>(r) - d + 0.5f; if (cf <= 0.0f) continue; if (cf < 1.0f) cov = static_cast<int>(cf * 256.0f);
                     }
-                    const u32 m = row[x]; u32 c = m & 255u; const u32 g = (m >> 8) & 255u, bb = (m >> 16) & 255u; if (g > c) c = g; if (bb > c) c = bb;
+                    const u32 m = row[x]; const u32 c = InkLv(m);
                     int a = base; if (c > 120) { int t = static_cast<int>(c - 120) * 4; if (t > 255) t = 255; a = base + ((255 - base) * t) / 255; }
                     a = (a * fm / 8) * cov / 256; if (a > 255) a = 255;
                     if (static_cast<u32>(a) > (m >> 24)) row[x] = (m & 0x00FFFFFFu) | (static_cast<u32>(a) << 24);
@@ -11949,7 +11892,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                   u32* q = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot);
                   const u32 A = static_cast<u32>(g_UiOpa) * 256u / 100u; const size_t n = static_cast<size_t>(g_SwW) * g_SwH;
                   for (size_t i = 0; i < n; i++) {
-                      const u32 m = q[i]; u32 c = m & 255u; const u32 g = (m >> 8) & 255u, bb = (m >> 16) & 255u; if (g > c) c = g; if (bb > c) c = bb;
+                      const u32 m = q[i]; const u32 c = InkLv(m);
                       u32 kA = A; if (c > 120) { u32 t = (c - 120) * 4; if (t > 256) t = 256; kA = A + (((256 - A) * t) >> 8); }
                       u32 w = 256 - kA; if (w > 255) w = 255;
                       q[i] = (((m & 0x00FF00FFu) * kA >> 8) & 0x00FF00FFu) | ((((m >> 8) & 255u) * kA) & 0xFF00u) | (w << 24);
@@ -12071,7 +12014,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                             int x0 = p.x - g_SwX, x1 = p.x + p.w - g_SwX; if (x0 < 0) x0 = 0; if (x1 > g_SwW) x1 = g_SwW; if (x1 <= x0) continue;
                             if (x0 < lo) lo = x0; if (x1 > hi) hi = x1;
                             for (int x = x0; x < x1; x++) {
-                                const u32 m = sr[x]; u32 c = m & 255u; const u32 g = (m >> 8) & 255u, bb = (m >> 16) & 255u; if (g > c) c = g; if (bb > c) c = bb;
+                                const u32 m = sr[x]; const u32 c = InkLv(m);
                                 u32 kA = A; if (c > 120) { u32 t = (c - 120) * 4; if (t > 256) t = 256; kA = A + (((256 - A) * t) >> 8); }
                                 if (kA >= 256) { dr[x] = m; continue; }
                                 u32 bgp; if (g_BlLod >= 2 && (x & 1) && bgX == x - 1) bgp = bgV; /* 粗いとき: 横 2 画素で背景を共有 */
@@ -12143,7 +12086,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                             for (int q = s_SpN - 1; q >= first && q >= s_SpN - 64; q--) { Sp& e = s_Sp[q]; if (e.last == y - 1 && xs < e.x + e.w && xe > e.x) { const int nx0 = xs < e.x ? xs : e.x, nx1 = xe > e.x + e.w ? xe : e.x + e.w; e.x = static_cast<short>(nx0); e.w = static_cast<short>(nx1 - nx0); e.last = static_cast<short>(y); return; } }
                             if (s_SpN < 500) { s_Sp[s_SpN++] = Sp { static_cast<short>(xs), static_cast<short>(y), static_cast<short>(xe - xs), 0, static_cast<short>(y) }; } };
                         for (int x = ax; x < bx; x++) {
-                            const u32 m = row[x]; u32 c = m & 255u; const u32 g = (m >> 8) & 255u, bb = (m >> 16) & 255u; if (g > c) c = g; if (bb > c) c = bb;
+                            const u32 m = row[x]; const u32 c = InkLv(m);
                             if (c > 72u) { if (sx < 0) sx = x; else if (x - last > 40) { emit(); sx = x; } last = x; }
                         }
                         if (sx >= 0) emit();
@@ -12164,6 +12107,19 @@ constexpr unsigned char kIconA[6][32*32] = {
             }
             if (!p.t) { copy(p.x, p.y + r, p.w, p.h - 2 * r); continue; }
             copy(p.x, p.y + r, p.w, p.h - 2 * r); /* 版 674: 文字のない行も飛ばさない (飛ばすと、後ろの画面が縞に見える) */
+        }
+        if (!gpu && !glass && g_SwDecoN > 0) { /* tmt 1.1.21: 板の外へはみ出した飾り (鳥・バラ): 絵の透けていない所だけを、横の連なりにして写す (2 行ずつ) */
+            const u32* simg = reinterpret_cast<const u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot);
+            for (int k = 0; k < g_SwDecoN; k++) {
+                const DRect& d = g_SwDeco[k]; const int bx0 = d.x - g_SwX, by0 = d.y - g_SwY;
+                SprRuns(simg, g_SwW, g_SwH, bx0, by0, bx0 + d.w, by0 + d.h, 2, [&](int rx, int ry, int rw, int rh) {
+                    int x = g_SwX + rx, y = g_SwY + ry, w = rw, h = rh; /* 画面の外は切る */
+                    if (x < 0) { w += x; x = 0; } if (y < 0) { h += y; y = 0; } if (x + w > W) w = W - x; if (y + h > H) h = H - y;
+                    if (w <= 0 || h <= 0) return;
+                    Reg r { x, y, 0, w, h, 1 };
+                    g_Sw.copyB2T(cb, base + (static_cast<u64>(y - g_SwY) * static_cast<u64>(g_SwW) + static_cast<u64>(x - g_SwX)) * 4, tex, nullptr, &r, 0);
+                });
+            }
         }
         if (false && !gpu && g_SwRectN > 0 && g_PixHi + 4096u <= kPixBytes - static_cast<size_t>(40 * 64 * 4)) { /* 版 692: 枠は常に虹色に流れる (ゲーミング)。色つきの小さな四角を並べて写す。24 色を 1 秒に 12 こま分ずらす */
             constexpr int kHue = 24; const size_t hOff = kPixBytes / 4 - static_cast<size_t>(16 * 64) - static_cast<size_t>(kHue * 64);
@@ -12210,13 +12166,27 @@ constexpr unsigned char kIconA[6][32*32] = {
                 for (int yy = y; yy < y + h;) { const int ph = yy & 7; if (ph < kUiA) { int run = kUiA - ph; if (yy + run > y + h) run = y + h - yy; Reg2 r { x, yy, 0, w, run, 1 };
                     g_Sw.copyB2T(cb, sb + (static_cast<u64>(yy - g_SplY) * static_cast<u64>(g_SplW) + static_cast<u64>(x - g_SplX)) * 4, tex, nullptr, &r, 0); yy += run; } else yy += 8 - ph; } /* メニューと同じく、うっすら */
             };
-            const int rr = g_SplR < g_SplH / 2 ? g_SplR : g_SplH / 2;
+            const int pd = g_SplPd, fx = g_SplX + pd, fy = g_SplY + pd, fw = g_SplW - 2 * pd, fh = g_SplH - 2 * pd; /* 板 (飾りの余白をのぞく) */
+            const int rr = g_SplR < fh / 2 ? g_SplR : fh / 2;
             for (int i = 0; i < rr; i++) {
                 const float dy = static_cast<float>(rr) - (static_cast<float>(i) + 0.5f);
                 const int inset = rr - static_cast<int>(__builtin_sqrtf(static_cast<float>(rr * rr) - dy * dy));
-                copy2(g_SplX + inset, g_SplY + i, g_SplW - 2 * inset, 1); copy2(g_SplX + inset, g_SplY + g_SplH - 1 - i, g_SplW - 2 * inset, 1);
+                copy2(fx + inset, fy + i, fw - 2 * inset, 1); copy2(fx + inset, fy + fh - 1 - i, fw - 2 * inset, 1);
             }
-            copy2(g_SplX, g_SplY + rr, g_SplW, g_SplH - 2 * rr);
+            copy2(fx, fy + rr, fw, fh - 2 * rr);
+            { /* 板の外へはみ出した飾り (葉): 絵の透けていない所だけを、横の連なりにして写す (2 行ずつ) */
+                const u32* simg = reinterpret_cast<const u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot + g_SplOff);
+                auto emitRun = [&](int rx, int ry, int rw, int rh) {
+                    const int X0 = g_SplX + rx, X1 = X0 + rw, Y = g_SplY + ry, Y1 = Y + rh; int e0 = 0, e1 = 0; /* 板の中で、もう写してある範囲 */
+                    if (Y >= fy + rr && Y1 <= fy + fh - rr) { e0 = fx; e1 = fx + fw; } else if (Y >= fy && Y1 <= fy + fh) { e0 = fx + rr; e1 = fx + fw - rr; }
+                    if (e1 <= e0) { copy2(X0, Y, rw, rh); return; }
+                    if (X0 < e0) copy2(X0, Y, (X1 < e0 ? X1 : e0) - X0, rh);
+                    if (X1 > e1) { const int sx = X0 > e1 ? X0 : e1; copy2(sx, Y, X1 - sx, rh); }
+                };
+                const int ty1 = pd + rr, by1 = g_SplH - pd - rr; /* 探すのは、板のまわり (上・下の帯と、左右の縁) だけ */
+                SprRuns(simg, g_SplW, g_SplH, 0, 0, g_SplW, ty1, 2, emitRun); SprRuns(simg, g_SplW, g_SplH, 0, by1, g_SplW, g_SplH, 2, emitRun);
+                SprRuns(simg, g_SplW, g_SplH, 0, ty1, pd + 2, by1, 2, emitRun); SprRuns(simg, g_SplW, g_SplH, g_SplW - pd - 2, ty1, g_SplW, by1, 2, emitRun);
+            }
         }
         if (g_UpdOn) { /* アップデート確認の窓 */
             g_Sw.rowStride(cb, static_cast<ptrdiff_t>(g_UpdW) * 4);

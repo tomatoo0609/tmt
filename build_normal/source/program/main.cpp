@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 127; /* tmt 1.1.17 (名前プリセット: 8枠を保存して選んで適用) */
+    constexpr int kInkVer = 128; /* tmt 1.1.18 (起動スプラッシュを白基調に再デザイン) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -10700,16 +10700,16 @@ constexpr unsigned char kIconA[6][32*32] = {
         g_SplBW = BW; g_SplBH = BH; g_SplR = 28;
         Cv v { g_SplBase, BW, BH, 0, 0 };
         for (int k = 0; k < BW * BH; k++) g_SplBase[k] = 0;
-        const Col edge { 0.040f, 0.043f, 0.052f }, white { 0.97f, 0.97f, 0.98f }, dimc { 0.55f, 0.57f, 0.62f }; /* ふちは出さない (板と同じ色) */
+        const Col edge { 0.955f, 0.965f, 0.980f }, white { 0.10f, 0.11f, 0.14f }, dimc { 0.46f, 0.48f, 0.53f }; /* tmt 1.1.18: 白基調 (板=白, 文字=黒, バージョン=灰) */
         SwRRect(v, 0, 0, BW, BH, 28.0f, edge);
         for (int y = 2; y < BH - 2; y++) { /* 上から下へ、ほんの少し明るくなる */
             const float k = static_cast<float>(y) / static_cast<float>(BH);
-            const Col cc { 0.040f + 0.025f * k, 0.043f + 0.027f * k, 0.052f + 0.032f * k };
+            const Col cc { 0.950f + 0.022f * k, 0.960f + 0.020f * k, 0.978f + 0.014f * k };
             const float yc = static_cast<float>(y) + 0.5f, r2 = 26.0f; float dy = 0.0f; if (yc < 2.0f + r2) dy = 2.0f + r2 - yc; else if (yc > static_cast<float>(BH) - 2.0f - r2) dy = yc - (static_cast<float>(BH) - 2.0f - r2);
             if (dy >= r2) continue; const int in = static_cast<int>(2.0f + r2 - __builtin_sqrtf(r2 * r2 - dy * dy) + 0.999f); /* 中の板: 2 画素内側、半径 26 (角でもふちが 2 画素残る) */
             SwRect(v, in, y, BW - 2 * in, 1, cc);
         }
-        for (int y = 2; y < BH0 - 2; y++) for (int x = BW / 2; x < BW - 30; x++) { const float d = static_cast<float>(x - BW + 120 + y) / 260.0f; if (d < 0.0f || d > 1.0f) continue; const float a = (1.0f - d) * d * 0.10f; Blend(v, x, y, Col { 0.55f, 0.45f, 1.0f }, a); }
+        for (int y = 2; y < BH0 - 2; y++) for (int x = BW / 2; x < BW - 30; x++) { const float d = static_cast<float>(x - BW + 120 + y) / 260.0f; if (d < 0.0f || d > 1.0f) continue; const float a = (1.0f - d) * d * 0.22f; Blend(v, x, y, Col { 0.39f, 0.40f, 0.95f }, a); }
         /* ロゴ「Inkdraw」+ すぐ右にバージョン (枠なし)。読み込みのバーは板の下の方に置き、アップデートの文字が出るときは、その区切りの線になる */
         const menu_text::Str& T = menu_text::kTITLEBIG;
         const int tx = 64, ly = BH0 - 32, ty = (ly - T.h) / 2; /* ロゴの上の余白と、ロゴからバーまでの余白を同じに */
@@ -10722,13 +10722,13 @@ constexpr unsigned char kIconA[6][32*32] = {
             const bool dn = !dl && (g_SplDoneT || g_SplashLeaveT || (g_SplUpd && su != 1) || us == 2); const float tg = dl ? (g_UpdTot ? static_cast<float>(g_UpdGot > g_UpdTot ? g_UpdTot : g_UpdGot) / static_cast<float>(g_UpdTot) : 0.0f) : (dn ? 1.0f : pre);
             if (dl) shown = tg; else { shown += (tg - shown) * (dn ? 0.30f : 0.5f); if (dn && shown > 0.995f) shown = 1.0f; if (shown > tg && !dn) shown = tg; }
             const int bx = tx + 2, bw = BW - 64 - bx, len = static_cast<int>(static_cast<float>(bw) * shown + 0.5f);
-            SwRRect(v, bx, ly, bw, 4, 2.0f, Col { 0.16f, 0.17f, 0.20f });
-            for (int x = 0; x < len; x++) { const float k = static_cast<float>(x) / static_cast<float>(bw > 1 ? bw - 1 : 1); SwRect(v, bx + x, ly, 1, 4, Col { 0.62f - 0.42f * k, 0.40f + 0.48f * k, 1.0f }); }
+            SwRRect(v, bx, ly, bw, 4, 2.0f, Col { 0.87f, 0.88f, 0.91f });
+            for (int x = 0; x < len; x++) { const float k = static_cast<float>(x) / static_cast<float>(bw > 1 ? bw - 1 : 1); SwRect(v, bx + x, ly, 1, 4, Col { 0.39f - 0.06f * k, 0.40f + 0.30f * k, 0.95f - 0.03f * k }); }
         }
         if (EH > 6) { /* のびた所: アップデートの流れ。左に見出し (28px)、右に操作 (A / B) やエラーの番号 (20px)。説明が要るときだけ見出しの下に 1 行 */
             const int y0 = ly + 4, EA = BH - 8 - y0; /* 区切りの線は出さない (読み込みのバーがその代わり)。文字は、バーの下から板の下までのまん中に */
             if (EH > 40) {
-                const Col okc { 0.55f, 0.92f, 0.62f }, ngc { 1.0f, 0.62f, 0.50f }, bgc { 0.060f, 0.064f, 0.079f };
+                const Col okc { 0.17f, 0.60f, 0.33f }, ngc { 0.84f, 0.33f, 0.28f }, bgc { 0.955f, 0.965f, 0.980f };
                 auto drawSt = [&](int st, float al, int oy) { /* st の中身を、濃さ al (0〜1、板の色へ混ぜる)、上下に oy ずらして描く */
                     auto mixc = [&](Col c) { return Col { bgc.r + (c.r - bgc.r) * al, bgc.g + (c.g - bgc.g) * al, bgc.b + (c.b - bgc.b) * al }; };
                     const char* h1 = T("アップデートがあります","Update available"); Col hc = white; char ln[96]; ln[0] = 0; char rt[48]; rt[0] = 0; bool ask = false;
@@ -10746,8 +10746,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                     if (ln[0]) SwHDS(v, ln, 64, hy + hh + 4, 1, mixc(dimc), kHdSc);
                     if (rt[0]) SwHDS(v, rt, BW - 64 - HdWS(rt, 1, kHdSc), cy - sh / 2, 1, mixc(dimc), kHdSc); /* 右: エラーの番号 / ダウンロードの量 */
                     if (ask && EH > 80) { /* 右: A はい  B いいえ (ボタンの丸 + 文字) */
-                        auto key = [&](int x, const char* k, const char* t, Col tc) -> int { const int r = 14, cx = x + r; SwRRect(v, x, cy - r, 2 * r, 2 * r, static_cast<float>(r), mixc(Col { 0.86f, 0.87f, 0.90f }));
-                            SwHDS(v, k, cx - HdWS(k, 1, kHdSc) / 2, cy - sh / 2, 1, mixc(Col { 0.06f, 0.065f, 0.08f }), kHdSc); SwHDS(v, t, x + 2 * r + 8, cy - sh / 2, 1, mixc(tc), kHdSc); return 2 * r + 8 + HdWS(t, 1, kHdSc); };
+                        auto key = [&](int x, const char* k, const char* t, Col tc) -> int { const int r = 14, cx = x + r; SwRRect(v, x, cy - r, 2 * r, 2 * r, static_cast<float>(r), mixc(Col { 0.16f, 0.17f, 0.21f }));
+                            SwHDS(v, k, cx - HdWS(k, 1, kHdSc) / 2, cy - sh / 2, 1, mixc(Col { 0.97f, 0.97f, 0.98f }), kHdSc); SwHDS(v, t, x + 2 * r + 8, cy - sh / 2, 1, mixc(tc), kHdSc); return 2 * r + 8 + HdWS(t, 1, kHdSc); };
                         const int wA = 28 + 8 + HdWS(T("はい","Yes"), 1, kHdSc), wB = 28 + 8 + HdWS(T("いいえ","No"), 1, kHdSc), gapK = 22;
                         int x = BW - 64 - (wA + gapK + wB); x += key(x, "A", T("はい","Yes"), white) + gapK; key(x, "B", T("いいえ","No"), dimc);
                     }

@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 129; /* tmt 1.1.19 (メニュー縦型: つまみを名前の下へ、幅を縮小) */
+    constexpr int kInkVer = 130; /* tmt 1.1.20 (スプラッシュに白黒ローポリの鳥と葉の装飾) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -10125,6 +10125,75 @@ namespace nvnhook {
         const float dr = static_cast<float>(d & 255) / 255.0f, dg = static_cast<float>((d >> 8) & 255) / 255.0f, db = static_cast<float>((d >> 16) & 255) / 255.0f;
         d = Pack(Col { dr + (k.r - dr) * a, dg + (k.g - dg) * a, db + (k.b - db) * a });
     }
+    /* tmt 1.1.20: 起動スプラッシュの飾り (白黒のローポリ鳥 + 葉)。塗り三角・太線・葉の輪郭 */
+    inline void SplTri(Cv& v, float ax, float ay, float bx, float by, float cx, float cy, Col k, float a) {
+        int minx = static_cast<int>(ax < bx ? (ax < cx ? ax : cx) : (bx < cx ? bx : cx)) - 1;
+        int maxx = static_cast<int>(ax > bx ? (ax > cx ? ax : cx) : (bx > cx ? bx : cx)) + 2;
+        int miny = static_cast<int>(ay < by ? (ay < cy ? ay : cy) : (by < cy ? by : cy)) - 1;
+        int maxy = static_cast<int>(ay > by ? (ay > cy ? ay : cy) : (by > cy ? by : cy)) + 2;
+        if (minx < 0) minx = 0; if (miny < 0) miny = 0; if (maxx > v.w) maxx = v.w; if (maxy > v.h) maxy = v.h;
+        const float area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay); if (area > -0.001f && area < 0.001f) return;
+        const bool pos = area > 0.0f;
+        for (int y = miny; y < maxy; y++) for (int x = minx; x < maxx; x++) {
+            int cov = 0;
+            for (int sy = 0; sy < 2; sy++) for (int sx = 0; sx < 2; sx++) {
+                const float px = static_cast<float>(x) + (sx ? 0.75f : 0.25f), py = static_cast<float>(y) + (sy ? 0.75f : 0.25f);
+                const float e0 = (bx - ax) * (py - ay) - (by - ay) * (px - ax);
+                const float e1 = (cx - bx) * (py - by) - (cy - by) * (px - bx);
+                const float e2 = (ax - cx) * (py - cy) - (ay - cy) * (px - cx);
+                if (pos ? (e0 >= 0 && e1 >= 0 && e2 >= 0) : (e0 <= 0 && e1 <= 0 && e2 <= 0)) cov++;
+            }
+            if (cov) Blend(v, x, y, k, a * static_cast<float>(cov) * 0.25f);
+        }
+    }
+    inline void SplSeg(Cv& v, float x0, float y0, float x1, float y1, float t, Col k, float a) {
+        const float dx = x1 - x0, dy = y1 - y0; float L = __builtin_sqrtf(dx * dx + dy * dy); if (L < 0.01f) L = 0.01f;
+        const float nx = -dy / L * t * 0.5f, ny = dx / L * t * 0.5f;
+        SplTri(v, x0 + nx, y0 + ny, x0 - nx, y0 - ny, x1 - nx, y1 - ny, k, a);
+        SplTri(v, x0 + nx, y0 + ny, x1 - nx, y1 - ny, x1 + nx, y1 + ny, k, a);
+    }
+    inline void SplLeaf(Cv& v, float cx, float cy, float ln, float angDeg, Col k) {
+        const float a = angDeg * 3.1415927f / 180.0f, ca = __builtin_cosf(a), sa = __builtin_sinf(a);
+        const float tx = cx + ln * ca, ty = cy + ln * sa; float px = cx, py = cy, qx = cx, qy = cy; bool have = false;
+        for (int i = 0; i <= 14; i++) { const float u = static_cast<float>(i) / 14.0f;
+            const float bx = cx + (tx - cx) * u, by = cy + (ty - cy) * u; const float wd = __builtin_sinf(3.1415927f * u) * ln * 0.22f;
+            const float lx = bx - wd * sa, lyy = by + wd * ca, rx = bx + wd * sa, ry = by - wd * ca;
+            if (have) { SplSeg(v, px, py, lx, lyy, 1.4f, k, 1.0f); SplSeg(v, qx, qy, rx, ry, 1.4f, k, 1.0f); }
+            px = lx; py = lyy; qx = rx; qy = ry; have = true;
+        }
+        SplSeg(v, cx, cy, tx, ty, 1.0f, k, 0.6f); /* 葉脈 */
+    }
+    void SplBird(Cv& v, int BW) {
+        const Col ink { 0.10f, 0.11f, 0.14f };
+        const float cx = static_cast<float>(BW) - 210.0f, cy = 100.0f;
+        /* 面: ax,ay,bx,by,cx,cy,fill(1=黒塗り) 。cx 基準 */
+        static const float F[12][7] = {
+            {-96,-6, -60,2, -30,-14, 0}, {-60,2, -30,-14, -34,16, 1}, {-60,2, -34,16, -10,34, 0},
+            {-30,-14, -34,16, -6,-10, 0}, {-6,-10, 34,-26, -30,-14, 0}, {-6,-10, 34,-26, 54,-72, 1},
+            {34,-26, 54,-72, 76,-40, 0}, {-18,6, -44,20, -10,34, 0}, {-18,6, -44,20, -78,54, 0},
+            {-44,20, -78,54, -54,40, 1}, {-10,34, 10,20, 58,8, 0}, {10,20, 58,8, 70,40, 1},
+        };
+        for (int i = 0; i < 12; i++) {
+            const float ax = cx + F[i][0], ay = cy + F[i][1], bx = cx + F[i][2], by = cy + F[i][3], ccx = cx + F[i][4], ccy = cy + F[i][5];
+            if (F[i][6] > 0.5f) SplTri(v, ax, ay, bx, by, ccx, ccy, ink, 1.0f);
+            SplSeg(v, ax, ay, bx, by, 1.6f, ink, 1.0f); SplSeg(v, bx, by, ccx, ccy, 1.6f, ink, 1.0f); SplSeg(v, ccx, ccy, ax, ay, 1.6f, ink, 1.0f);
+        }
+        SplSeg(v, cx - 96, cy - 6, cx - 120, cy - 10, 1.6f, ink, 1.0f); /* くちばし */
+        SplSeg(v, cx - 60, cy + 2, cx - 120, cy - 10, 1.0f, ink, 0.7f);
+        /* 砕片 (輪郭の三角) */
+        static const float FR[5][6] = {
+            {92,-70, 112,-60, 98,-48}, {126,-52, 146,-46, 132,-34}, {150,-78, 166,-70, 156,-58},
+            {112,-24, 130,-20, 120,-8}, {176,-54, 190,-50, 182,-40} };
+        for (int i = 0; i < 5; i++) { const float ax = cx + FR[i][0], ay = cy + FR[i][1], bx = cx + FR[i][2], by = cy + FR[i][3], ccx = cx + FR[i][4], ccy = cy + FR[i][5];
+            SplSeg(v, ax, ay, bx, by, 1.3f, ink, 1.0f); SplSeg(v, bx, by, ccx, ccy, 1.3f, ink, 1.0f); SplSeg(v, ccx, ccy, ax, ay, 1.3f, ink, 1.0f); }
+        /* 細かな点が右へ散る */
+        static const short SP[18][3] = { {86,-36,1},{104,-18,1},{120,-2,1},{140,-62,1},{150,-20,2},{162,-4,1},{170,-44,1},{182,-66,2},{132,10,1},{112,28,1},{156,24,1},{178,-24,1},{190,-8,1},{168,12,2},{144,-40,1},{100,8,1},{188,-34,1},{174,-56,1} };
+        for (int i = 0; i < 18; i++) { const int r = SP[i][2]; const int px = static_cast<int>(cx) + SP[i][0], py = static_cast<int>(cy) + SP[i][1];
+            for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++) if (dx * dx + dy * dy <= r * r) Blend(v, px + dx, py + dy, ink, 1.0f); }
+        /* 葉: 右上と左下 (縁ぎわ) */
+        SplLeaf(v, static_cast<float>(BW) - 26, 16, 44, 128, ink); SplLeaf(v, static_cast<float>(BW) - 12, 30, 30, 158, ink);
+        SplLeaf(v, 30, 182, 44, -58, ink); SplLeaf(v, 14, 170, 30, -28, ink);
+    }
     char g_FlyStb[40];
     const char* FlyStatus(char* o) {
         if (g_TrkStage == 3) return T("準備OK","Ready");
@@ -10710,6 +10779,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             SwRect(v, in, y, BW - 2 * in, 1, cc);
         }
         for (int y = 2; y < BH0 - 2; y++) for (int x = BW / 2; x < BW - 30; x++) { const float d = static_cast<float>(x - BW + 120 + y) / 260.0f; if (d < 0.0f || d > 1.0f) continue; const float a = (1.0f - d) * d * 0.22f; Blend(v, x, y, Col { 0.39f, 0.40f, 0.95f }, a); }
+        SplBird(v, BW); /* tmt 1.1.20: ローポリの鳥 + 葉 (白黒) */
         /* ロゴ「Inkdraw」+ すぐ右にバージョン (枠なし)。読み込みのバーは板の下の方に置き、アップデートの文字が出るときは、その区切りの線になる */
         const menu_text::Str& T = menu_text::kTITLEBIG;
         const int tx = 64, ly = BH0 - 32, ty = (ly - T.h) / 2; /* ロゴの上の余白と、ロゴからバーまでの余白を同じに */

@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 128; /* tmt 1.1.18 (起動スプラッシュを白基調に再デザイン) */
+    constexpr int kInkVer = 129; /* tmt 1.1.19 (メニュー縦型: つまみを名前の下へ、幅を縮小) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -10762,9 +10762,9 @@ constexpr unsigned char kIconA[6][32*32] = {
         }
     }
     /* 2 つ目のメニューの幅: pchtxt を開いているときは、いちばん長いパッチの名前が全部入る幅 (最大 600) */
-    static int PchMenuW() { static int lastCat = -1; if (g_Cat >= 0) lastCat = g_Cat; if (lastCat == kWpCat) return 280; /* 武器のページは、横幅を狭く (縦長) */ if (lastCat != kPchCat || g_GrpN <= 0) return 400;
+    static int PchMenuW() { static int lastCat = -1; if (g_Cat >= 0) lastCat = g_Cat; if (lastCat == kWpCat) return 280; /* 武器のページは、横幅を狭く (縦長) */ if (lastCat != kPchCat || g_GrpN <= 0) return 336;
         int m = 0; for (int k = 0; k < g_GrpN && k < 64; k++) { const int w = U8W(g_Grp[k].name); if (w > m) m = w; }
-        const int need = 56 + m + 90; return need < 400 ? 400 : (need > 600 ? 600 : need); }
+        const int need = 56 + m + 90; return need < 336 ? 336 : (need > 600 ? 600 : need); }
     static void SymRowDraw(Cv& v, int i, int xl, int rx, int y, int rowH, bool sel) { /* tmt: ゲームの記号を絵で出す */
         const Col gc = sel ? Col { 1.0f, 1.0f, 1.0f } : Col { 0.86f, 0.87f, 0.90f }, dc { 0.45f, 0.46f, 0.50f };
         const int gy = y + (rowH - 26) / 2;
@@ -10808,7 +10808,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         const int glowStep = static_cast<int>((NowTick() / 11520000ull) % 100ull); /* 0.6 秒ごとに 1 色 */
         static const float kMcH[6] = { 0.0f, 0.52f, 0.78f, 0.36f, 0.92f, 0.08f }; /* メニューの色: 虹 / 水色 / 紫 / 緑 / ピンク / オレンジ */
         const Col glowC = g_MenuCol % 6 == 0 ? HueCol(glowStep / 100.0f, 0.80f, 1.0f) : HueCol(kMcH[g_MenuCol % 6], 0.80f, 1.0f);
-        const int M = 4, MW = PchMenuW(), MWt = [] { const int a = 48 + U8W(T("プレイヤー","Player")) + 14, b = 18 + static_cast<int>(static_cast<float>(menu_text::kTITLE.w) * 0.62f) + 10 + U8W("Ver.0.0.0") + 10; return a > b ? a : b; }(), /* 中身ぴったりの幅 */ MWc0 = MW, rowH = 38, head = 50, foot = 5, RW = 0, RG = 0, /* MWt: メインメニューの幅 (右の余白をけずった縦長)。MW: 2 個目のメニュー。foot: 下の余白 */ ty = (rowH - font_glyphs::kLineH) / 2;
+        const int M = 4, MW = PchMenuW(), MWt = [] { const int a = 48 + U8W(T("プレイヤー","Player")) + 14, b = 18 + static_cast<int>(static_cast<float>(menu_text::kTITLE.w) * 0.62f) + 10 + U8W("Ver.0.0.0") + 10; return a > b ? a : b; }(), /* 中身ぴったりの幅 */ MWc0 = MW, rowH = 50, head = 50, foot = 5, RW = 0, RG = 0, /* MWt: メインメニューの幅 (右の余白をけずった縦長)。MW: 2 個目のメニュー。foot: 下の余白 */ ty = (rowH - font_glyphs::kLineH) / 2;
         const int cnt = PageCount();
         static int prevCat = -1; static int catLast = -1; static u64 catBackT = 0;
         {
@@ -11121,24 +11121,24 @@ constexpr unsigned char kIconA[6][32*32] = {
                 if (st >= 0) {
                     const menu_text::Str& V = st ? menu_text::kV_ON : menu_text::kV_OFF;
                     (void)V; g_SwKey = i + 1; if (pchDim) SwSwitch(v, rx, y + rowH / 2, st != 0, Col { 0.22f, 0.23f, 0.26f }, Col { 0.13f, 0.14f, 0.16f }, Col { 0.32f, 0.33f, 0.36f }); else SwSwitch(v, rx, y + rowH / 2, st != 0, sel ? ink : whiteG, sel ? Col { 0.30f, 0.31f, 0.34f } : Col { 0.13f, 0.135f, 0.15f }, st ? (sel ? whiteG : ink) : (sel ? Col { 1.0f, 1.0f, 1.0f } : Col { 0.36f, 0.37f, 0.40f }));
-                    if (i == kDynGsp) { const int bx = x0 + 148, bw = rx - 54 - 58 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, g_GspIdx / 49.0f, false, accent); char gb[24]; if (g_GspCalls == 0) std::snprintf(gb, sizeof(gb), T("%d倍?","x%d?"), GspMul(g_GspIdx)); else std::snprintf(gb, sizeof(gb), T("%d倍","x%d"), GspMul(g_GspIdx)); SwU8R(v, gb, rx - 54, y + ty, 64, amb); }
+                    if (i == kDynGsp) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, g_GspIdx / 49.0f, false, accent); char gb[24]; if (g_GspCalls == 0) std::snprintf(gb, sizeof(gb), T("%d倍?","x%d?"), GspMul(g_GspIdx)); else std::snprintf(gb, sizeof(gb), T("%d倍","x%d"), GspMul(g_GspIdx)); SwU8R(v, gb, rx - 54, y + ty, 64, amb); }
                     else if (i == kDynText) { const int av = rx - 54 - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx - 54, y + ty, av < 104 ? av : 104, amb, rowBg); }
                     else { const int av = rx - 54 - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx - 54, y + ty, av < 200 ? av : 200, amb, rowBg, i == kDynRstBtn ? g_RstDoneT : (i == kDynReset ? g_SetRstT : (i == kDynWpRst ? g_WpRstT : (i == kDynWpRstAll ? g_WpRstAllT : 0)))); }
                 } else if (i == kDynSpdV) { char nb[80] = { 0 }; if (!g_SpdObj) std::snprintf(nb, sizeof(nb), T("探し中","Searching")); else { const volatile float* q = reinterpret_cast<const volatile float*>(g_SpdObj + 0x40 + g_SpdGrp * 16); std::snprintf(nb, sizeof(nb), "+%X x%.2f  %.2f %.2f %.2f %.2f", 0x40 + g_SpdGrp * 16, static_cast<double>(g_SpdMul), static_cast<double>(q[0]), static_cast<double>(q[1]), static_cast<double>(q[2]), static_cast<double>(q[3])); } SwU8R(v, nb, rx, y + ty, 250, amb);
-                } else if (i == kDynHSpd) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, static_cast<float>(g_HSpd) / 20.0f, false, accent); char nb[40] = { 0 }; if (g_HSpd == 0) std::snprintf(nb, sizeof(nb), "OFF s%u n%u", static_cast<unsigned>(g_HState), static_cast<unsigned>(g_HCalls)); else std::snprintf(nb, sizeof(nb), "%d s%u n%u", static_cast<int>(g_HSpd), static_cast<unsigned>(g_HState), static_cast<unsigned>(g_HCalls)); SwU8R(v, nb, rx, y + ty, 120, g_HSpd ? amb : dim); }
-                else if (i == kDynGcRange || i == kDynGcCirc || i == kDynGcLead) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, i == kDynGcRange ? static_cast<float>(g_LookRange) / 19.0f : (i == kDynGcLead ? static_cast<float>(g_LeadLv) / 20.0f : static_cast<float>(g_CircR - 1) / 99.0f), false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); }
+                } else if (i == kDynHSpd) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, static_cast<float>(g_HSpd) / 20.0f, false, accent); char nb[40] = { 0 }; if (g_HSpd == 0) std::snprintf(nb, sizeof(nb), "OFF s%u n%u", static_cast<unsigned>(g_HState), static_cast<unsigned>(g_HCalls)); else std::snprintf(nb, sizeof(nb), "%d s%u n%u", static_cast<int>(g_HSpd), static_cast<unsigned>(g_HState), static_cast<unsigned>(g_HCalls)); SwU8R(v, nb, rx, y + ty, 120, g_HSpd ? amb : dim); }
+                else if (i == kDynGcRange || i == kDynGcCirc || i == kDynGcLead) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, i == kDynGcRange ? static_cast<float>(g_LookRange) / 19.0f : (i == kDynGcLead ? static_cast<float>(g_LeadLv) / 20.0f : static_cast<float>(g_CircR - 1) / 99.0f), false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); }
                 else if (i == kDynFov) { /* 視野の広さ: バーをなめらかに動かす (段がカクッと飛ばないように) */
-                    const int bx = x0 + 148, bw = rx - 66 - bx;
+                    const int bx = x0 + 22, bw = rx - 22 - bx;
                     static float fovBarT = -1.0f; static u64 fovBarAt = 0; const float tgt = static_cast<float>(g_FovLv) / 12.0f; const u64 nowB = NowTick();
                     if (fovBarT < 0.0f) fovBarT = tgt;
                     else { float dt = static_cast<float>(nowB - fovBarAt) / 19200000.0f; if (dt > 0.2f) dt = 0.2f; float k = dt * 10.0f; if (k > 1.0f) k = 1.0f; fovBarT += (tgt - fovBarT) * k; if (fovBarT - tgt < 0.004f && tgt - fovBarT < 0.004f) fovBarT = tgt; }
                     fovBarAt = nowB; if (fovBarT != tgt) g_AnimBusy = true;
-                    SwBar(v, bx, y + rowH / 2 - 2, bw, fovBarT, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb);
+                    SwBar(v, bx, y + rowH - 14, bw, fovBarT, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb);
                 }
-                else if (i == kDynFlySpd || i == kDynHopSpd || i == kDynUiOpa || i == kDynCurlSpd) { const int bx = x0 + nx0 + U8W(nm) + 16, bw = rx - (i == kDynUiOpa ? 64 : 40) - bx; /* 版 637: 名前の右から (名前が長くて重なっていた) */ const int lv = i == kDynFlySpd ? g_FlySpd : i == kDynCurlSpd ? g_CurlSpd : g_HopSpd; SwBar(v, bx, y + rowH / 2 - 2, bw, i == kDynUiOpa ? (static_cast<float>(g_UiOpa) - 20.0f) / 80.0f : (static_cast<float>(lv) - 1.0f) / 9.0f, false, accent); SwU8R(v, vb, rx, y + ty, 24, amb); } /* 版 636: つまみ */
-                else if (i == kDynInkSz) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, (static_cast<float>(g_InkSz > 5 ? 5 : g_InkSz) - 1.0f) / 4.0f, false, accent); char nb[4] = { 0, 0, 0, 0 }; std::snprintf(nb, sizeof(nb), "%d", static_cast<int>(g_InkSz)); SwU8R(v, nb, rx, y + ty, 24, amb); }
-                else if (i == kDynImgSz) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, (static_cast<float>(g_ImgK) - 1.0f) / 7.0f, false, accent); char nb[2] = { static_cast<char>('0' + (g_ImgK < 1 ? 1 : (g_ImgK > 8 ? 8 : g_ImgK))), 0 }; SwU8R(v, nb, rx, y + ty, 24, amb); }
-                else if (i >= kDynWpK && i < kDynWpK + 5) { const int k = i - kDynWpK, w = WpCur(); if (wpdata::kW[w].cnt[k]) { const int bx = x0 + 148, bw = rx - 66 - bx; SwBar(v, bx, y + rowH / 2 - 2, bw, g_WpDisp[k] / 100.0f, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); } else SwU8R(v, vb, rx, y + ty, 80, Col { 0.20f, 0.21f, 0.23f }); }
+                else if (i == kDynFlySpd || i == kDynHopSpd || i == kDynUiOpa || i == kDynCurlSpd) { const int bx = x0 + 22, bw = rx - 22 - bx; /* 版 637: 名前の右から (名前が長くて重なっていた) */ const int lv = i == kDynFlySpd ? g_FlySpd : i == kDynCurlSpd ? g_CurlSpd : g_HopSpd; SwBar(v, bx, y + rowH - 14, bw, i == kDynUiOpa ? (static_cast<float>(g_UiOpa) - 20.0f) / 80.0f : (static_cast<float>(lv) - 1.0f) / 9.0f, false, accent); SwU8R(v, vb, rx, y + ty, 24, amb); } /* 版 636: つまみ */
+                else if (i == kDynInkSz) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, (static_cast<float>(g_InkSz > 5 ? 5 : g_InkSz) - 1.0f) / 4.0f, false, accent); char nb[4] = { 0, 0, 0, 0 }; std::snprintf(nb, sizeof(nb), "%d", static_cast<int>(g_InkSz)); SwU8R(v, nb, rx, y + ty, 24, amb); }
+                else if (i == kDynImgSz) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, (static_cast<float>(g_ImgK) - 1.0f) / 7.0f, false, accent); char nb[2] = { static_cast<char>('0' + (g_ImgK < 1 ? 1 : (g_ImgK > 8 ? 8 : g_ImgK))), 0 }; SwU8R(v, nb, rx, y + ty, 24, amb); }
+                else if (i >= kDynWpK && i < kDynWpK + 5) { const int k = i - kDynWpK, w = WpCur(); if (wpdata::kW[w].cnt[k]) { const int bx = x0 + 22, bw = rx - 22 - bx; SwBar(v, bx, y + rowH - 14, bw, g_WpDisp[k] / 100.0f, false, accent); SwU8R(v, vb, rx, y + ty, 58, amb); } else SwU8R(v, vb, rx, y + ty, 80, Col { 0.20f, 0.21f, 0.23f }); }
                 else if (i == kDynWpType || i == kDynWpSel) { const int av = rx - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 300 ? av : 300, dim, rowBg); }
                 else { const int av = rx - (x0 + nx0 + U8W(nm) + 8); if (av >= 36) SwVbText(v, i, vb, rx, y + ty, av < 200 ? av : 200, i == kDyn + 1 ? amb : dim, rowBg, i == kDynRstBtn ? g_RstDoneT : (i == kDynReset ? g_SetRstT : (i == kDynWpRst ? g_WpRstT : (i == kDynWpRstAll ? g_WpRstAllT : 0)))); }
                 continue;
@@ -11154,7 +11154,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             (void)expd; /* 右端の > は出さない */
             {
                 /* 数値を調整する行には、今の値のバーを出す */
-                const int bx = x0 + 148, bw = rx - 100 - bx, by = y + rowH / 2 - 2; /* バーは行の中 (名前と値のあいだ) に描く。行の下はみ出さない */
+                const int bx = x0 + 22, bw = rx - 22 - bx, by = y + rowH - 14; /* バーは行の中 (名前と値のあいだ) に描く。行の下はみ出さない */
                 if (i == kItSpeed) SwBar(v, bx, by, bw, g_Genki / 100.0f, false, Col { 0.95f, 0.65f, 0.20f });
                 else if (i == kItFreeCam) SwBar(v, bx, by, bw, g_FreeCam / 100.0f, true, g_FreeCam >= 0 ? Col { 0.30f, 0.75f, 0.95f } : Col { 0.95f, 0.40f, 0.55f });
                 else if (i == kItScale) SwBar(v, bx, by, bw, (g_UiScale - 50) / 100.0f, false, Col { 0.65f, 0.45f, 0.95f });

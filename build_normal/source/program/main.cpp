@@ -314,7 +314,7 @@ namespace {
     volatile int g_FreeCam = 0; int g_FreeCamLast = 20; /* フリーカメラ: カメラを上げる高さ (0 = OFF、1〜100) */
     volatile int g_DrawTeam = 0; /* 絵の色: 0 = そのまま、1 = チーム0 (アルファ)、2 = チーム1 (ブラボー) */
     volatile int g_CleanSel = 0; volatile bool g_CleanPending = false; bool g_CleanMode = false; /* インクリーナー: +0x48 に入れる値の候補 (調査中) */
-    volatile bool g_UiMove = false; volatile int g_UiScale = 100, g_UiX = 0, g_UiY = 0;
+    volatile bool g_UiMove = false; volatile int g_UiScale = 120, g_UiX = 0, g_UiY = 0;
     volatile bool g_DrawEnabled = true, g_PatchEnabled = true, g_ReqPatchApply = false;
     u64 g_PrevMenuBtn[64] = {};
     constexpr int kFxBase = 19, kFxN = 22; constexpr int kMenuItems = 19 + 22 + 3; constexpr int kItImage = 19 + 22; constexpr int kItFps60 = 19 + 22 + 1; constexpr int kItErase = 19 + 22 + 2;
@@ -330,7 +330,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 104; /* tmt 1.0.4 (Inkdraw の番号とは別に 100 から) */
+    constexpr int kInkVer = 105; /* tmt 1.0.5 (Inkdraw の番号とは別に 100 から) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -437,7 +437,7 @@ namespace {
     int g_WxPd[wxd::kPN]; int g_WxKd[wpdata::kWN][5]; u8 g_WxOpen[wxd::kGN]; bool g_WxMainOpen = true;
     enum : u8 { kWrType = 0, kWrSel, kWrMain, kWrKnob, kWrGrp, kWrParam, kWrRst, kWrRstAll };
     struct WxRow { u8 t, k; u16 a; };
-    volatile int g_UiOpa = 62; /* 版 642: メニューの濃さ (20〜100%、100 = 透かさない) */
+    volatile int g_UiOpa = 100; /* 版 642: メニューの濃さ (20〜100%、100 = 透かさない) */
     volatile int g_PanQ = 4; /* 展開したメニューの濃さ (1〜4、4 = 不透明) */
     constexpr int kWxPB = 40; int g_WxPN = 0, g_WxPG = -1; /* 右に開くパネル: 行は g_WxRow[kWxPB〜] に置く */
     WxRow g_WxRow[kWxMaxRows]; int g_WxN = 0; bool g_WxDirty = true; int g_WxBuiltW = -1; u64 g_WxPauseT = 0;
@@ -1172,7 +1172,7 @@ namespace {
     }
     volatile int g_RstMsg = 0; volatile u64 g_RstT = 0;
     void SettingsReset() { /* 設定をぜんぶ最初の状態に戻す */
-        g_PanQ = 4; g_UiOpa = 62; g_UiScale = 100; g_UiX = 0; g_UiY = 0; g_LookOn = false; g_LookMsg = 0; g_AimTgt = 0; g_LookAHold = false; g_CircOn = false; g_CircR = 30; g_LookRange = 9; g_LeadLv = 0;
+        g_PanQ = 4; g_UiOpa = 100; g_UiScale = 120; g_UiX = 0; g_UiY = 0; g_LookOn = false; g_LookMsg = 0; g_AimTgt = 0; g_LookAHold = false; g_CircOn = false; g_CircR = 30; g_LookRange = 9; g_LeadLv = 0;
         g_EnOn = false; g_BalOn = false; g_BoxOn = false; g_LineOn = true; g_FovLv = 0; g_FovSel = 0; g_Fx[4] = 0;
         for (int q = 0; q < kCatCount; q++) g_CatSel[q] = 0; g_EmSel = 0; g_EmOn = false; g_MacroOn = false; g_MacroBtn = 0; g_MacroIv = 120;
         g_RstMsg = 1; g_RstT = NowTick();
@@ -1281,7 +1281,7 @@ namespace {
         if (it == kDynCurlSpd) { int v = g_CurlSpd; if (rt && v < 10) v++; if (lf && v > 1) v--; if (act) v = 3; g_CurlSpd = v; return; }
         if (it == kDynHop) { if (act || lf || rt) g_HopOn = !g_HopOn; return; }
         if (it == kDynHopSpd) { int v = g_HopSpd; if (rt && v < 10) v++; if (lf && v > 1) v--; if (act) v = 3; g_HopSpd = v; return; }
-        if (it == kDynUiOpa) { int v = g_UiOpa; if (rt && v < 100) v += 5; if (lf && v > 20) v -= 5; if (act) v = 62; g_UiOpa = v; return; }
+        if (it == kDynUiOpa) { int v = g_UiOpa; if (rt && v < 100) v += 5; if (lf && v > 20) v -= 5; if (act) v = 100; g_UiOpa = v; return; }
         if (it == kDynFlyBFwd) { g_FlyBFwd = false; return; } /* 版 699: 項目は消した */
         if (it == kDynFlySpd) { int v = g_FlySpd; if (rt && v < 10) v++; if (lf && v > 1) v--; if (act) v = 3; g_FlySpd = v; return; }
         if (it == kDynTpSave) { int v = g_TpSlot; if (rt) v = (v + 1) % 3; if (lf) v = (v + 2) % 3; g_TpSlot = v; if (act) { float P[3]; if (GetPlayerPosRaw(P)) { g_TpMem[v][0] = P[0]; g_TpMem[v][1] = P[1]; g_TpMem[v][2] = P[2]; g_TpMemOk[v] = true; g_TpMemMsg = 1; } else g_TpMemMsg = 3; } return; } /* 左右で記憶 1〜3、A で今の位置を記憶 */
@@ -1584,7 +1584,7 @@ namespace {
         reinterpret_cast<FnPreset>(aPre)(g_KbArg, 0); *reinterpret_cast<u32*>(g_KbArg + 0) = 0; /* tmt: ふつうのキーボード (かな・漢字・英数字。ユーザー名の設定は全角に寄るのでやめた) */
         g_KbArg[0x1a] = 1; /* 予測変換 (かな漢字の候補) を有効にする (isPredictionEnabled) */
         *reinterpret_cast<u32*>(g_KbArg + 0x1c) = 0; /* プリセット2 は「Mii の名前に使える文字だけ」(0x100) に制限するので、制限をなくして漢字も入れられるようにする */
-        *reinterpret_cast<u64*>(g_KbArg + 0x3ac) = g_KbTarget ? 0x10000000Aull : 0x100000018ull; /* 文字数: 名前は Switch と同じ 10 文字まで (オンラインで弾かれないように) */
+        *reinterpret_cast<u64*>(g_KbArg + 0x3ac) = 0x100000018ull; /* 文字数: 名前は Switch と同じ 10 文字まで (オンラインで弾かれないように) */
         *reinterpret_cast<u64*>(g_KbArg + 0x518) = reinterpret_cast<u64>(kbWork);
         *reinterpret_cast<u64*>(g_KbArg + 0x520) = wkSz;
         *reinterpret_cast<u64*>(g_KbArg + 0x528) = reinterpret_cast<u64>(kbCheck);
@@ -1601,7 +1601,8 @@ namespace {
         for (int i = 0; u[i] && i < 64 && o < lim; i++) {
             u32 c = u[i];
             if (c >= 0xD800 && c < 0xDC00 && u[i + 1]) { c = 0x10000 + ((c - 0xD800) << 10) + (u[i + 1] - 0xDC00); i++; }
-            if (g_KbTarget) { if (c >= 0xFF01 && c <= 0xFF5E) c -= 0xFEE0; else if (c == 0x3000) c = ' '; } /* tmt: 全角の英数字・記号・空白は半角に (かな・漢字はそのまま) */
+            if (g_KbTarget) { if (c >= 0xFF01 && c <= 0xFF5E) c -= 0xFEE0; else if (c == 0x3000) c = ' ';
+                if (c == '\\' && (u[i + 1] == 'u' || u[i + 1] == 'U' || u[i + 1] == 0xFF55)) { int hv = 0, k = 0; for (; k < 4; k++) { u32 h = u[i + 2 + k]; if (h >= 0xFF01 && h <= 0xFF5E) h -= 0xFEE0; const int d = h >= '0' && h <= '9' ? static_cast<int>(h - '0') : (h >= 'a' && h <= 'f' ? static_cast<int>(h - 'a' + 10) : (h >= 'A' && h <= 'F' ? static_cast<int>(h - 'A' + 10) : -1)); if (d < 0) break; hv = hv * 16 + d; } if (k == 4 && hv > 0) { c = static_cast<u32>(hv); i += 5; } } } /* \uXXXX → ゲームの記号など */ /* tmt: 全角の英数字・記号・空白は半角に (かな・漢字はそのまま) */
             if (g_KbTarget && o + 4 > lim) break;
             if (c < 0x80) dst[o++] = static_cast<char>(c);
             else if (c < 0x800) { dst[o++] = static_cast<char>(0xC0 | (c >> 6)); dst[o++] = static_cast<char>(0x80 | (c & 63)); }
@@ -6866,7 +6867,7 @@ namespace {
             o[n++] = { "aimbot", (g_LookOn && g_LookSlot == 6) ? 1 : 0 }; o[n++] = { "aimTarget", g_AimTgt }; o[n++] = { "aHold", g_LookAHold ? 1 : 0 };
             o[n++] = { "circle", g_CircOn ? 1 : 0 }; o[n++] = { "circleSize", g_CircR }; o[n++] = { "range", g_LookRange }; o[n++] = { "lead", g_LeadLv };
             o[n++] = { "fovCandidate", g_FovSel }; o[n++] = { "zrHold", g_Fx[4] };
-            o[n++] = { "pchtxtOn", g_PatchEnabled ? 1 : 0 }; o[n++] = { "panQ", g_PanQ }; o[n++] = { "emOn", g_EmOn ? 1 : 0 }; o[n++] = { "emSel", g_EmSel }; o[n++] = { "macroOn", g_MacroOn ? 1 : 0 }; o[n++] = { "macroBtn", g_MacroBtn }; o[n++] = { "macroIv", g_MacroIv }; o[n++] = { "uiScale", g_UiScale }; o[n++] = { "tmtOpa", g_UiOpa }; o[n++] = { "uiX", g_UiX }; o[n++] = { "uiY", g_UiY };
+            o[n++] = { "pchtxtOn", g_PatchEnabled ? 1 : 0 }; o[n++] = { "panQ", g_PanQ }; o[n++] = { "emOn", g_EmOn ? 1 : 0 }; o[n++] = { "emSel", g_EmSel }; o[n++] = { "macroOn", g_MacroOn ? 1 : 0 }; o[n++] = { "macroBtn", g_MacroBtn }; o[n++] = { "macroIv", g_MacroIv }; o[n++] = { "tmtScale", g_UiScale }; o[n++] = { "tmtOpa2", g_UiOpa }; o[n++] = { "uiX", g_UiX }; o[n++] = { "uiY", g_UiY };
             static const char* const kCv[9] = { "curve0", "curve1", "curve2", "curve3", "curve4", "curve5", "curve6", "curve7", "curve8" };
             for (int i = 0; i < 9; i++) o[n++] = { kCv[i], g_AimCurveY[i] }; o[n++] = { "aimTune", g_AimTune }; o[n++] = { "newsSkip", g_NewsSkip ? 1 : 0 };
             return n; };
@@ -6879,7 +6880,7 @@ namespace {
                 if (get("aimTarget", &v) && v >= 0 && v < 3) g_AimTgt = v; if (get("aHold", &v)) g_LookAHold = v != 0; if (get("circle", &v)) g_CircOn = v != 0;
                 if (get("circleSize", &v) && v >= 1 && v <= 100) g_CircR = v; if (get("range", &v) && v >= 0 && v <= 19) g_LookRange = v; if (get("lead", &v) && v >= 0 && v <= 20) g_LeadLv = v;
                 if (get("fovCandidate", &v) && v >= 0 && v < 24) g_FovSel = v; if (get("zrHold", &v)) g_Fx[4] = v ? 1 : 0;
-                if (get("pchtxtOn", &v) && (v != 0) != g_PatchEnabled) { g_PatchEnabled = v != 0; g_ReqPatchApply = true; } if (get("panQ", &v) && v >= 1 && v <= 4) g_PanQ = 4; /* 版 675: 縞になるので固定 */ if (get("emSel", &v) && v >= 0 && v < kEmN) g_EmSel = v; if (get("emOn", &v)) g_EmOn = v != 0; if (get("macroOn", &v)) g_MacroOn = v != 0; if (get("macroBtn", &v) && v >= 0 && v < kMacroN) g_MacroBtn = v; if (get("macroIv", &v) && v >= 20 && v <= 2000) g_MacroIv = v; if (get("uiScale", &v) && v >= 50 && v <= 150) g_UiScale = v; if (get("tmtOpa", &v) && v >= 20 && v <= 100) g_UiOpa = v; /* 版 678: 新しい名前 (前の保存値は使わず、初期値 80 から) */ if (get("uiX", &v) && v > -2000 && v < 2000) g_UiX = v; if (get("uiY", &v) && v > -2000 && v < 2000) g_UiY = v;
+                if (get("pchtxtOn", &v) && (v != 0) != g_PatchEnabled) { g_PatchEnabled = v != 0; g_ReqPatchApply = true; } if (get("panQ", &v) && v >= 1 && v <= 4) g_PanQ = 4; /* 版 675: 縞になるので固定 */ if (get("emSel", &v) && v >= 0 && v < kEmN) g_EmSel = v; if (get("emOn", &v)) g_EmOn = v != 0; if (get("macroOn", &v)) g_MacroOn = v != 0; if (get("macroBtn", &v) && v >= 0 && v < kMacroN) g_MacroBtn = v; if (get("macroIv", &v) && v >= 20 && v <= 2000) g_MacroIv = v; if (get("tmtScale", &v) && v >= 50 && v <= 150) g_UiScale = v; if (get("tmtOpa2", &v) && v >= 20 && v <= 100) g_UiOpa = v; /* 版 678: 新しい名前 (前の保存値は使わず、初期値 80 から) */ if (get("uiX", &v) && v > -2000 && v < 2000) g_UiX = v; if (get("uiY", &v) && v > -2000 && v < 2000) g_UiY = v;
                 
                 { char nm[8] = { 'c', 'u', 'r', 'v', 'e', '0', 0, 0 }; for (int i = 0; i < 9; i++) { nm[5] = static_cast<char>('0' + i); if (get(nm, &v) && v >= -100 && v <= 100) g_AimCurveY[i] = v; } }
                 if (get("aimTune", &v) && v >= -50 && v <= 50) g_AimTune = v; if (get("newsSkip", &v)) g_NewsSkip = v != 0;
@@ -10597,7 +10598,8 @@ constexpr unsigned char kIconA[6][32*32] = {
     static void SwFadeRow(Cv& v, int x, int y, int w, int h, Col bg, Col ac) { /* 左 22% → 右 0% のミント */
         for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1), k = 0.22f * (1.0f - t) * (1.0f - t); SwRect(v, x + i, y, 1, h, MixC(bg, ac, k)); } }
     static void SwTopLine(Cv& v, int x, int y, int w, Col bg) { /* パネルの上の細いミントの線 (右へ消える) */
-        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1); SwRect(v, x + i, y, 1, 2, MixC(Col { 0.56f, 0.84f, 0.78f }, bg, t * t)); } }
+        const Col hc = HueCol(static_cast<float>((NowTick() / 1920000ull) % 600ull) / 600.0f, 0.55f, 0.95f); /* tmt: 30 秒で 1 周、色が変わり続ける */
+        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1); SwRect(v, x + i, y, 1, 2, MixC(hc, bg, t * t)); } }
     static void SwNeonLine(Cv& v, int x, int y, int w) { /* tmt: シアン → マゼンタの細い線 */
         for (int i = 0; i < w; i++) { const float t = w > 1 ? static_cast<float>(i) / static_cast<float>(w - 1) : 0.0f;
             (void)t; SwRect(v, x + i, y, 1, 1, Col { 0.17f, 0.175f, 0.19f }); } /* tmt v2: 細い灰色の線 */
@@ -12287,14 +12289,21 @@ namespace {
 /* tmt: ゲームが出すキーボード (nn::swkbd::ShowKeyboard)。名前の入力 (ユーザー名の設定・最大 10〜32 文字) だけ、
    ふつうのキーボード (かな漢字変換・文字の制限なし・改行あり) に変えて出す。番号 (最小 = 最大) や長い文章のときは触らない。
    出てきた文字は、全角の英数字・記号・空白を半角に直す */
-namespace { 
+namespace { static int KbHex4(const u32* c);
     static void KbHalfU8(char* p, size_t cap) { size_t i = 0, o = 0;
         while (i < cap && p[i]) { const u8 a = static_cast<u8>(p[i]);
             if (a == 0xEF && i + 2 < cap && (static_cast<u8>(p[i + 1]) == 0xBC || static_cast<u8>(p[i + 1]) == 0xBD)) { const u32 c = 0xF000u | ((static_cast<u8>(p[i + 1]) & 0x3Fu) << 6) | (static_cast<u8>(p[i + 2]) & 0x3Fu); if (c >= 0xFF01 && c <= 0xFF5E) { p[o++] = static_cast<char>(c - 0xFEE0); i += 3; continue; } }
             if (a == 0xE3 && i + 2 < cap && static_cast<u8>(p[i + 1]) == 0x80 && static_cast<u8>(p[i + 2]) == 0x80) { p[o++] = ' '; i += 3; continue; }
+            if (a == '\\' && i + 5 < cap && (p[i + 1] == 'u' || p[i + 1] == 'U')) { u32 q[4]; for (int k = 0; k < 4; k++) q[k] = static_cast<u8>(p[i + 2 + k]); const int hv = KbHex4(q);
+                if (hv > 0) { if (hv < 0x80) p[o++] = static_cast<char>(hv); else if (hv < 0x800) { p[o++] = static_cast<char>(0xC0 | (hv >> 6)); p[o++] = static_cast<char>(0x80 | (hv & 63)); } else { p[o++] = static_cast<char>(0xE0 | (hv >> 12)); p[o++] = static_cast<char>(0x80 | ((hv >> 6) & 63)); p[o++] = static_cast<char>(0x80 | (hv & 63)); } i += 6; continue; } }
             p[o++] = p[i++]; }
         if (o < cap) p[o] = 0; }
-    static void KbHalfU16(u16* p, size_t n) { for (size_t i = 0; i < n && p[i]; i++) { if (p[i] >= 0xFF01 && p[i] <= 0xFF5E) p[i] = static_cast<u16>(p[i] - 0xFEE0); else if (p[i] == 0x3000) p[i] = ' '; } }
+    static int KbHex4(const u32* c) { int v = 0; for (int k = 0; k < 4; k++) { const u32 h = c[k]; int d = h >= '0' && h <= '9' ? static_cast<int>(h - '0') : (h >= 'a' && h <= 'f' ? static_cast<int>(h - 'a' + 10) : (h >= 'A' && h <= 'F' ? static_cast<int>(h - 'A' + 10) : -1)); if (d < 0) return -1; v = v * 16 + d; } return v; }
+    static void KbHalfU16(u16* p, size_t n) { size_t o = 0; /* 全角英数字 → 半角、\uXXXX → その文字 (ゲームの記号など) */
+        for (size_t i = 0; i < n && p[i]; i++) { u32 c = p[i]; if (c >= 0xFF01 && c <= 0xFF5E) c -= 0xFEE0; else if (c == 0x3000) c = ' ';
+            if (c == '\\' && i + 5 < n) { u32 q[5]; for (int k = 0; k < 5; k++) { u32 x = p[i + 1 + k]; if (x >= 0xFF01 && x <= 0xFF5E) x -= 0xFEE0; q[k] = x; } if (q[0] == 'u' || q[0] == 'U') { const int hv = KbHex4(q + 1); if (hv > 0) { p[o++] = static_cast<u16>(hv); i += 5; continue; } } }
+            p[o++] = static_cast<u16>(c); }
+        if (o < n) p[o] = 0; }
 }
 HOOK_DEFINE_TRAMPOLINE(GameKbHook) {
     static u32 Callback(void* out, u8* arg) {
@@ -12302,6 +12311,7 @@ HOOK_DEFINE_TRAMPOLINE(GameKbHook) {
         if (g_GameKbFree && !g_OwnKb && arg) {
             const s32 mx = *reinterpret_cast<const s32*>(arg + 0x3ac), mn = *reinterpret_cast<const s32*>(arg + 0x3b0); const u32 mode = *reinterpret_cast<const u32*>(arg);
             if (mx > 0 && mx <= 32 && mn < mx && mode != 1u) { /* 1 = 数字だけ */
+                if (mx < 24) *reinterpret_cast<s32*>(arg + 0x3ac) = 24; /* tmt: 名前は 24 文字まで */
                 *reinterpret_cast<u32*>(arg) = 0;            /* キーボード: ふつう (かな・漢字・英数字) */
                 arg[0x1a] = 1;                                 /* 予測変換 (漢字) */
                 *reinterpret_cast<u32*>(arg + 0x1c) = 0;     /* 使えない文字の制限をなくす */

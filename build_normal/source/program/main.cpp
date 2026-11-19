@@ -330,11 +330,17 @@ namespace {
     constexpr int kDynTeamP0 = 530; /* 530-539: プレイヤー0〜9 のチーム変更 */
     void TeamCApply(bool on);
     volatile bool g_TeamC = false; volatile int g_TeamCState = 0; /* tmt: プラベのチーム変更 (どちらのチームにも入れる = チャーリー)。1 = 当てた / -1 = 命令が違うので当てなかった */
-    /* tmt: 選手ごとのチーム変更 — sub_38C8A28(playerIndex, teamId) を関数ポインタで呼ぶ */
+    /* tmt: 選手ごとのチーム変更
+       sub_38C8A28 は UI だけ変えるのですぐ戻される。データソースに直接書き込む:
+       - off_5F3A780 → *ptr + 184 → v2 (チームデータ配列)。v2[267+i] がプレイヤー i のチーム。
+       - sub_390BDC0(playerIdx, teamId) を呼んで UI にも反映 (TeamChangeChild イベント)。
+       - sub_3908CE8(a1) がゲーム側で全プレイヤーのチームを v2[267..276] から読み直すので、
+         v2 に書いておけば次の同期でも維持される。 */
     volatile int g_TeamPV[10] = { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 }; /* 各選手の現在チーム: -1 不明, 0 None, 1 Alpha, 2 Bravo, 3 Charlie, 4 Spectator */
     volatile bool g_TeamEditing = false; /* チーム編集モード中か */
-    using FnSetTeamBySlot = s64 (*)(unsigned int playerIndex, unsigned int teamId);
-    constexpr uintptr_t kSetTeamBySlotOff = 0x38C8A28; /* sub_38C8A28: ロビーのプレイヤーのチームを変える */
+    using FnTeamChangeChild = s64 (*)(unsigned int playerIndex, unsigned int teamId);
+    constexpr uintptr_t kTeamChangeChildOff = 0x390BDC0; /* sub_390BDC0: TeamChangeChild (UI + イベント発火) */
+    constexpr uintptr_t kTeamDataPtrOff     = 0x5F3A780; /* off_5F3A780: チームデータへのポインタ */
     volatile int g_RecruitSt = -1; volatile bool g_RecruitY = true, g_AliasNotify = true; volatile bool g_RecruitReq = false; volatile u32 g_RecruitSent = 0; /* tmt: プラベの募集 */
     volatile int g_SymSel = 0; volatile int g_SymN = 0; u16 g_SymPend[24] = {}; /* tmt: 選んだゲームの記号 (次のキーボードの入力欄に入れる) */ /* tmt: v771 の項目 */
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
@@ -1256,14 +1262,24 @@ namespace {
         if (it == kDynSym) { int k = g_SymSel; if (lf) k = (k + sym_glyphs::kN - 1) % sym_glyphs::kN; if (rt) k = (k + 1) % sym_glyphs::kN; g_SymSel = k; if (act && g_SymN < 24) { g_SymPend[g_SymN] = sym_glyphs::kCode[k]; g_SymN = g_SymN + 1; } return; }
         if (it == kDynSymPend) { if (act) g_SymN = 0; if (lf && g_SymN > 0) g_SymN = g_SymN - 1; return; } /* A: 全部消す / 左: 1 つ消す */
         if (it == kDynTeamC) { if (act || lf || rt) { g_TeamC = !g_TeamC; TeamCApply(g_TeamC); } return; }
-        if (it >= kDynTeamP0 && it < kDynTeamP0 + 10) { /* 選手ごとのチーム変更: 左右で Alpha/Bravo/Charlie/Spectator を切り替え。A で確定 */
+        if (it >= kDynTeamP0 && it < kDynTeamP0 + 10) { /* 選手ごとのチーム変更: 左右で Alpha/Bravo/Charlie/Spectator を切り替え */
             const int pi = it - kDynTeamP0;
             int tv = g_TeamPV[pi]; if (tv < 0) tv = 0;
             if (lf) { tv--; if (tv < 1) tv = 4; }
             if (rt) { tv++; if (tv > 4) tv = 1; }
             g_TeamPV[pi] = tv;
-            if (act || lf || rt) { /* 即座に反映: 関数ポインタで sub_38C8A28 を呼ぶ */
-                auto fn = reinterpret_cast<FnSetTeamBySlot>(exl::util::modules::GetTargetOffset(kSetTeamBySlotOff));
+            if (act || lf || rt) {
+                /* データソースに直接書き込む: off_5F3A780 → *ptr + 184 → v2[267+pi] */
+                const uintptr_t main = exl::util::GetMainModuleInfo().m_Total.m_Start;
+                const uintptr_t* pOff = reinterpret_cast<const uintptr_t*>(main + kTeamDataPtrOff);
+                if (*pOff) {
+                    u32* v2 = *reinterpret_cast<u32**>(*pOff + 184);
+                    if (v2) {
+                        v2[267 + pi] = static_cast<u32>(tv); /* チームデータ本体に書く */
+                    }
+                }
+                /* TeamChangeChild を呼んで UI にも即反映 */
+                auto fn = reinterpret_cast<FnTeamChangeChild>(exl::util::modules::GetTargetOffset(kTeamChangeChildOff));
                 fn(static_cast<unsigned int>(pi), static_cast<unsigned int>(tv));
             }
             return;

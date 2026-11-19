@@ -11481,7 +11481,6 @@ constexpr unsigned char kIconA[6][32*32] = {
             if (!built) { built = true; mb = DecoMem(kMbW * kMbH); if (mb) { Spr a { mb, kMbW, kMbH }; DecoMenuBird(a); } }
             if (mb && dm && showBird) { const Spr sbd { mb, kMbW, kMbH }; const int bxp = x0 + MWt - kMbCx, byp = y0 - kMbCy; SprBlit(v, sbd, bxp, byp); g_BaseDeco[g_BaseDecoN++] = DRect { bxp, byp, kMbW, kMbH }; }
         }
-        }
 
     }
     /* 100% で描いた絵を、大きさに合わせて縮小/拡大して、写す用の画像にする */

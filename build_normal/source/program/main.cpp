@@ -98,6 +98,7 @@ namespace {
             x = (x ^ MaskInsn(p[i])) * 0x01000193u;
         return x;
     }
+    void InitMainBuildId(const char* verName); /* 前方宣言 (実体は pchtxt の近くにある) */
     bool SelectVersion() {
         /* tmt: BASELINE でも署名は必ず確かめる (違う版のゲームで起動したら何もしない = 落とさない) */
         for (const auto& v : kVersions) {
@@ -106,6 +107,7 @@ namespace {
                 g_OffPaintExecLocal = v.paintExecLocal;
                 g_OffPaintMgrPtr = v.paintMgrPtr;
                 g_OffPlayerMgrPtr = v.playerMgrPtr;
+                InitMainBuildId(v.name); /* pchtxt の @nsobid 比較用 */
                 return true;
             }
         }
@@ -813,7 +815,20 @@ namespace {
        書式: 先頭の @nsobid-xxxx (ゲーム本体のビルドID。違えば当てない)、@flag offset_shift 0x100、
              @enabled / @disabled / @stop、「オフセット 16進のバイト列」または「オフセット T("文字列","String")」の行。
        モードをオフにすると、元のバイトに戻す。 */
-    constexpr const char* kMainBuildId = "28C4287AEE36F749"; /* 11.3.0 の main (クラッシュレポートの Module Id から) */
+    /* tmt: main のビルドID。起動時に kVersions で見つけた版の名前から取る (例: "12.0.0 (6cbb1669)" → "6CBB1669")。
+       pchtxt の @nsobid-XXXX… と先頭 8 文字で比べる (8 文字あれば版を間違えない)。 */
+    char g_MainBuildId[20] = {}; int g_MainBuildIdLen = 0;
+    void InitMainBuildId(const char* verName) {
+        /* verName = "12.0.0 (6cbb1669)" のような文字列。'(' の次の8文字を大文字で取る */
+        const char* p = verName; while (*p && *p != '(') p++; if (*p == '(') p++;
+        int n = 0;
+        while (*p && *p != ')' && n < 16) {
+            char c = *p++;
+            if (c >= 'a' && c <= 'f') c = static_cast<char>(c - 32);
+            if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) g_MainBuildId[n++] = c;
+        }
+        g_MainBuildId[n] = 0; g_MainBuildIdLen = n;
+    }
     struct PchEntry { u32 off; u8 len; u8 grp; bool applied; u8 data[48]; u8 orig[48]; };
     /* パッチのまとまり (直前のコメントを名前にする)。ひとつずつ ON/OFF できる。 */
     struct PchGroup { char name[56]; bool on; s8 file; s32 mS, mE, first; }; /* file: どのファイルか、mS〜mE: そのまとまりの @enabled / @disabled の行 (なければ -1)、first: 最初のパッチの行の頭 */
@@ -875,9 +890,12 @@ namespace {
                 auto starts = [&](const char* k) { size_t q = 0; while (k[q]) { if (a + q >= b || t[a + q] != k[q]) return false; q++; } return true; };
                 if (starts("@nsobid-")) {
                     idOk = true;
-                    for (int q = 0; q < 16 && a + 8 + q < b; q++) {
-                        char c = t[a + 8 + q]; if (c >= 'a' && c <= 'f') c = static_cast<char>(c - 32);
-                        if (c != kMainBuildId[q]) { idOk = false; break; }
+                    if (g_MainBuildIdLen <= 0) { idOk = false; } /* ビルドIDがまだ分かっていない */
+                    else {
+                        for (int q = 0; q < g_MainBuildIdLen && a + 8 + q < b; q++) {
+                            char c = t[a + 8 + q]; if (c >= 'a' && c <= 'f') c = static_cast<char>(c - 32);
+                            if (c != g_MainBuildId[q]) { idOk = false; break; }
+                        }
                     }
                     if (!idOk) g_PchDiag += 0x100;
                 } else if (starts("@flag offset_shift")) {

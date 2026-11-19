@@ -25,7 +25,7 @@ def render(text, h):
             runs.append((y, s, x - s, q))
     return W, H, runs
 p = sys.argv[1]; src = open(p, encoding='utf-8').read()
-for name, h in (('kTITLE', 22), ('kTITLEBIG', 40), ('kTITLEXL', 40)):
+for name, h in (('kTITLE', 22), ('kTITLEBIG', 30), ('kTITLEXL', 30)):
     W, H, runs = render('tmt', h)
     arr = ','.join(f'{a},{b},{c},{d}' for a, b, c, d in runs)
     src = re.sub(rf'inline constexpr uint16_t {name}_runs\[\] = \{{[^}}]*\}};', f'inline constexpr uint16_t {name}_runs[] = {{{arr}}};', src)

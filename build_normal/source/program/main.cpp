@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 122; /* tmt 1.1.12 (チーム変更の診断: 入力カウンタ I と要求 Q を表示) */
+    constexpr int kInkVer = 123; /* tmt 1.1.13 (チーム変更の診断: R にどのポインタで止まったか -2..-6) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -2819,17 +2819,16 @@ void TeamReqTick() {
     { const uintptr_t P = *reinterpret_cast<const uintptr_t*>(mb + kOffLobbyStep); if (ok(P) && Readable(P + 1224, 1)) g_TmStep = *reinterpret_cast<const u8*>(P + 1224); }
     { const uintptr_t P = *reinterpret_cast<const uintptr_t*>(mb + kOffLobbyGate); if (ok(P) && Readable(P + 208, 4)) g_TmGate = *reinterpret_cast<const s32*>(P + 208); }
     /* sub_38C8A28 が最初に触るポインタ連鎖を確かめてから呼ぶ (ロビー外でも、生きていれば呼べる / 無ければ素通り) */
-    g_TmReady = 0;
     const uintptr_t seqSlot = *reinterpret_cast<const uintptr_t*>(mb + kOffTeamSeq);
     const uintptr_t pA = *reinterpret_cast<const uintptr_t*>(mb + kOffTeamMgr);
-    if (!ok(seqSlot) || !Readable(seqSlot, 4)) return;
-    if (!ok(pA) || !Readable(pA, 48)) return;
+    if (!ok(seqSlot) || !Readable(seqSlot, 4)) { g_TmReady = -2; return; }
+    if (!ok(pA) || !Readable(pA, 48)) { g_TmReady = -3; return; }
     const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(pA + 40);
-    if (!ok(mgr) || !Readable(mgr, 8)) return;
+    if (!ok(mgr) || !Readable(mgr, 8)) { g_TmReady = -4; return; }
     const uintptr_t vt = *reinterpret_cast<const uintptr_t*>(mgr);
-    if (!ok(vt) || !Readable(vt, 80)) return;
+    if (!ok(vt) || !Readable(vt, 80)) { g_TmReady = -5; return; }
+    if (*reinterpret_cast<const u32*>(mb + kTeamSetUiOff) != 0xA9BD7BFDu) { g_TmReady = -6; return; }
     g_TmReady = 1;
-    if (*reinterpret_cast<const u32*>(mb + kTeamSetUiOff) != 0xA9BD7BFDu) return; /* 命令が想定どおりのときだけ */
     auto fn = reinterpret_cast<FnTeamSetUi>(mb + kTeamSetUiOff);
     for (int i = 0; i < 10; i++) {
         const int tv = g_TeamReq[i];

@@ -335,7 +335,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 109; /* tmt 1.0.9 (Inkdraw の番号とは別に 100 から) */
+    constexpr int kInkVer = 110; /* tmt 1.0.10 (Inkdraw の番号とは別に 100 から) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -10860,7 +10860,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynSym) { nm = T("記号 (A で追加)", "Symbol (A: add)"); st = -1; vb[0] = 0; }
                 else if (i == kDynSymPend) { nm = T("入れる記号", "Symbols to insert"); st = -1; if (!g_SymN) std::snprintf(vb, sizeof(vb), "%s", T("なし", "none")); else vb[0] = 0; }
                 else if (i == kDynTeamC) { nm = T("チーム変更 (どちらのチームにも)", "Team change (either team)"); st = g_TeamC ? 1 : 0; if (g_TeamCState < 0) std::snprintf(vb, sizeof(vb), "%s", T("使えない", "unavailable")); }
-                else if (i == kDynRecruitY) { nm = T("Y 長押しで募集 (待ち時間なし)", "Recruit on Y hold (no cooldown)"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent || g_RecruitSt >= 0) std::snprintf(vb, sizeof(vb), T("%u回 (状態%d)", "%ux (st %d)"), static_cast<unsigned>(g_RecruitSent), static_cast<int>(g_RecruitSt)); }
+                else if (i == kDynRecruitY) { nm = T("Y で募集 (押すたび・待ち時間なし)", "Recruit on each Y press"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent || g_RecruitSt >= 0) std::snprintf(vb, sizeof(vb), T("%u回 (状態%d)", "%ux (st %d)"), static_cast<unsigned>(g_RecruitSent), static_cast<int>(g_RecruitSt)); }
                 else if (i == kDynAliasNotify) { nm = T("募集通知を別名で", "Recruit with alias name"); st = g_AliasNotify ? 1 : 0; }
                 else if (i == kDynGameKb) { nm = T("ゲームのキーボードを自由入力に", "Free game keyboard"); st = g_GameKbFree ? 1 : 0; if (g_GameKbHits) std::snprintf(vb, sizeof(vb), T("%u回", "%ux"), static_cast<unsigned>(g_GameKbHits)); }
                 else if (i == kDynNewsSkip) { nm = T("広場のニュースを飛ばす", "Skip plaza news"); st = g_NewsSkip ? 1 : 0; }
@@ -12353,13 +12353,10 @@ namespace { volatile int g_NotifyDepth = 0; u64 g_RecruitBtnPrev = 0;
         g_RecruitSent = g_RecruitSent + 1;
     }
     void RecruitTick(int st) {
-        const u64 b = g_BtnNow; static u64 yT = 0; static bool yFired = false; const u64 now = NowTick();
-        if (b & 8ull) { if (!(g_RecruitBtnPrev & 8ull)) { yT = now; yFired = false; } } else yFired = false;
-        g_RecruitBtnPrev = b;
-        if (b & 8ull) g_RecruitSt = st;
-        const bool held = (b & 8ull) && !yFired && yT && now - yT >= 8640000ull; /* Y を 0.45 秒押し続けたら 1 回。押している間にロビーの状態が変わっても予約しておく */
-        if (g_RecruitY && held && !g_MenuOpen) { yFired = true; g_RecruitReq = true; }
-        if (st == 1 && g_RecruitReq) { g_RecruitReq = false; RecruitSendNow(); } /* 通常の状態 (1) のときに送る */
+        const u64 b = g_BtnNow; const bool yEdge = (b & 8ull) && !(g_RecruitBtnPrev & 8ull); g_RecruitBtnPrev = b; /* tmt 1.0.10: 押すたびに送る (1.0.7 の方式) */
+        if (yEdge) g_RecruitSt = st;
+        if (st != 1) return;
+        if ((g_RecruitY && yEdge && !g_MenuOpen) || g_RecruitReq) { g_RecruitReq = false; RecruitSendNow(); }
     }
 }
 HOOK_DEFINE_TRAMPOLINE(LobbyHookA) { static u64 Callback(uintptr_t a1, int a2) { const u64 r = Orig(a1, a2); RecruitTick(a2); return r; } };

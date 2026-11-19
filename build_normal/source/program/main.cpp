@@ -348,7 +348,7 @@ namespace {
     using FnTeamSetUi = s64 (*)(unsigned int slot, unsigned int team);
     constexpr uintptr_t kTeamSetUiOff = 0x38C8A28;
     volatile int g_TeamReq[10] = { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 }; /* 各スロットの保留中の要求チーム (-1 なし) */
-    volatile int g_TmLobby = -1, g_TmStep = -1, g_TmGate = -1, g_TmReady = -1; volatile u32 g_TmCalls = 0; /* tmt 1.1.10: 診断 */
+    volatile int g_TmLobby = -1, g_TmStep = -1, g_TmGate = -1, g_TmReady = -1; volatile u32 g_TmCalls = 0, g_TmInput = 0; /* tmt 1.1.10: 診断 */
     constexpr uintptr_t kOffLobbyStep = 0x5F2C8A0, kOffLobbyGate = 0x5F2DAA0, kOffTeamSeq = 0x5F46808, kOffTeamMgr = 0x5F2DB40;
     void TeamReqTick();
     volatile int g_RecruitSt = -1; volatile bool g_RecruitY = true, g_AliasNotify = true; volatile bool g_RecruitReq = false; volatile u32 g_RecruitSent = 0; /* tmt: プラベの募集 */
@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 121; /* tmt 1.1.11 (チーム変更: ロビー判定を外し、ポインタ有効性で安全に呼ぶ) */
+    constexpr int kInkVer = 122; /* tmt 1.1.12 (チーム変更の診断: 入力カウンタ I と要求 Q を表示) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -1299,7 +1299,7 @@ namespace {
                         }
                     }
                 }
-                g_TeamReq[pi] = tv; /* tmt 1.1.8: 決定後も効くよう、ゲームスレッドで SetTeam を呼んでもらう */
+                g_TeamReq[pi] = tv; g_TmInput++; /* tmt 1.1.8: 決定後も効くよう、ゲームスレッドで SetTeam を呼んでもらう */
             }
             return;
         }
@@ -10967,7 +10967,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynSymPend) { nm = T("入れる記号", "Symbols to insert"); st = -1; if (!g_SymN) std::snprintf(vb, sizeof(vb), "%s", T("なし", "none")); else vb[0] = 0; }
                 else if (i == kDynTeamC) { nm = T("チーム変更 (どちらのチームにも)", "Team change (either team)"); st = g_TeamC ? 1 : 0; if (g_TeamCState < 0) std::snprintf(vb, sizeof(vb), "%s", T("使えない", "unavailable")); }
                 else if (i >= kDynTeamP0 && i < kDynTeamP0 + 10) { const int pi = i - kDynTeamP0; static const char* const kTmNm[] = { "---", "Alpha", "Bravo", "Charlie", T("観戦","Spectator") }; const int tv = g_TeamPV[pi]; static const char* const kPnJa[] = { "P1 チーム", "P2 チーム", "P3 チーム", "P4 チーム", "P5 チーム", "P6 チーム", "P7 チーム", "P8 チーム", "P9 チーム", "P10 チーム" }; static const char* const kPnEn[] = { "P1 Team", "P2 Team", "P3 Team", "P4 Team", "P5 Team", "P6 Team", "P7 Team", "P8 Team", "P9 Team", "P10 Team" }; nm = kEn ? kPnEn[pi] : kPnJa[pi]; st = -1; if (tv >= 0 && tv <= 4) std::snprintf(vb, sizeof(vb), "%s", kTmNm[tv]); else std::snprintf(vb, sizeof(vb), T("不明","Unknown"));
-                    if (pi == 0) { char dbg[56]; std::snprintf(dbg, sizeof(dbg), " [L%d S%d G%d R%d C%u]", g_TmLobby, g_TmStep, g_TmGate, g_TmReady, static_cast<unsigned>(g_TmCalls)); std::strncat(vb, dbg, sizeof(vb) - std::strlen(vb) - 1); } }
+                    if (pi == 0) { char dbg[56]; std::snprintf(dbg, sizeof(dbg), " [I%u R%d C%u Q%d]", static_cast<unsigned>(g_TmInput), g_TmReady, static_cast<unsigned>(g_TmCalls), g_TeamReq[0]); std::strncat(vb, dbg, sizeof(vb) - std::strlen(vb) - 1); } }
                 else if (i == kDynRecruitY) { nm = T("Y で募集 (押すたび・待ち時間なし)", "Recruit on each Y press"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent || g_RecruitSt >= 0) std::snprintf(vb, sizeof(vb), T("%u回 (状態%d)", "%ux (st %d)"), static_cast<unsigned>(g_RecruitSent), static_cast<int>(g_RecruitSt)); }
                 else if (i == kDynAliasNotify) { nm = T("募集通知を別名で", "Recruit with alias name"); st = g_AliasNotify ? 1 : 0; }
                 else if (i == kDynGameKb) { nm = T("ゲームのキーボードを自由入力に", "Free game keyboard"); st = g_GameKbFree ? 1 : 0; if (g_GameKbHits) std::snprintf(vb, sizeof(vb), T("%u回", "%ux"), static_cast<unsigned>(g_GameKbHits)); }

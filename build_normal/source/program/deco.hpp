@@ -56,111 +56,53 @@ inline float DecoRnd(int i) { u32 h = static_cast<u32>(i) * 2654435761u + 0x9E37
 inline Col DecoShade(Col c, float m) { auto q = [](float x) { return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); }; return Col { q(c.r * m), q(c.g * m), q(c.b * m) }; }
 inline Col DecoMix(Col a, Col b, float t) { return Col { a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t }; }
 
-/* ---- 色 (白と相性のよい、青みの藍 + 若葉 + 薔薇) ---- */
-namespace decoc {
-    constexpr Col kNavy { 0.07f, 0.07f, 0.08f }, kDeep { 0.19f, 0.19f, 0.20f }, kMid { 0.40f, 0.40f, 0.41f }, kLite { 0.66f, 0.66f, 0.67f }, kPale { 0.85f, 0.85f, 0.86f }, kSnow { 0.96f, 0.96f, 0.97f },
-        kAmber { 0.60f, 0.60f, 0.61f }, kAmberD { 0.34f, 0.34f, 0.35f }, kTeal { 0.22f, 0.22f, 0.23f }; /* 鳥は白黒 */
-    constexpr Col kLeafD { 0.14f, 0.42f, 0.36f }, kLeafM { 0.24f, 0.55f, 0.44f }, kLeafL { 0.46f, 0.72f, 0.56f }, kLeafP { 0.70f, 0.86f, 0.74f };
-    constexpr Col kRoseD { 0.05f, 0.05f, 0.06f }, kRoseM { 0.26f, 0.26f, 0.27f }, kRoseL { 0.62f, 0.62f, 0.63f }, kRoseP { 0.90f, 0.90f, 0.91f }; /* バラも白黒 */
+/* ---- 色: 黒と白だけ (灰色は使わない) ---- */
+namespace decoc { constexpr Col kK { 0.0f, 0.0f, 0.0f }, kW { 1.0f, 1.0f, 1.0f }; }
+
+/* 面: 白か黒で塗って、黒い細い線でふちどる (白い板の上でも形が見える) */
+inline void DecoFacet(Cv& v, float ax, float ay, float bx, float by, float cx, float cy, bool black, float lw = 1.3f) {
+    using namespace decoc;
+    DecoTri(v, ax, ay, bx, by, cx, cy, black ? kK : kW, 1.0f, 0.3f);
+    DecoSeg(v, ax, ay, bx, by, lw, kK); DecoSeg(v, bx, by, cx, cy, lw, kK); DecoSeg(v, cx, cy, ax, ay, lw, kK);
 }
 
-/* ---- 葉: 4 つの面に割ったローポリの葉。bx,by = 根もと、ang = 向き (度)、ln = 長さ、wd = 幅 ---- */
-inline void DecoLeaf(Cv& v, float bx, float by, float angDeg, float ln, float wd, Col dark, Col light, int seed) {
+/* ---- 葉: 4 つの面だけのひし形のローポリ。面の白黒はたねで変わるので、見る人によって読み方が変わる。bx,by = 根もと ---- */
+inline void DecoLeaf(Cv& v, float bx, float by, float angDeg, float ln, float wd, int seed) {
     const float a = angDeg * 0.017453293f, ca = __builtin_cosf(a), sa = __builtin_sinf(a);
-    static const float U[5] = { 0.0f, 0.26f, 0.55f, 0.80f, 1.0f }, W[5] = { 0.0f, 0.78f, 1.0f, 0.62f, 0.0f };
-    float mx[5], my[5], lx[5], ly[5], rx[5], ry[5];
-    for (int i = 0; i < 5; i++) {
-        const float u = U[i] * ln, w = W[i] * wd * 0.5f * (0.92f + 0.16f * DecoRnd(seed * 7 + i));
-        mx[i] = bx + u * ca; my[i] = by + u * sa;
-        lx[i] = mx[i] + w * sa; ly[i] = my[i] - w * ca; rx[i] = mx[i] - w * sa; ry[i] = my[i] + w * ca;
-    }
-    for (int i = 0; i < 4; i++) {
-        const float s = 0.94f + 0.10f * DecoRnd(seed * 13 + i);
-        DecoTri(v, mx[i], my[i], lx[i], ly[i], lx[i + 1], ly[i + 1], DecoShade(i & 1 ? dark : light, s), 1.0f, 0.3f);
-        DecoTri(v, mx[i], my[i], lx[i + 1], ly[i + 1], mx[i + 1], my[i + 1], DecoShade(i & 1 ? light : dark, s), 1.0f, 0.3f);
-        DecoTri(v, mx[i], my[i], rx[i], ry[i], rx[i + 1], ry[i + 1], DecoShade(i & 1 ? light : dark, s), 1.0f, 0.3f);
-        DecoTri(v, mx[i], my[i], rx[i + 1], ry[i + 1], mx[i + 1], my[i + 1], DecoShade(i & 1 ? dark : light, s), 1.0f, 0.3f);
-    }
-    DecoSeg(v, mx[0], my[0], mx[4], my[4], 0.9f, DecoMix(light, Col { 1.0f, 1.0f, 1.0f }, 0.55f), 0.8f); /* 葉脈 */
+    const float u1 = ln * (0.40f + 0.18f * DecoRnd(seed * 5 + 1)), w1 = wd * 0.5f * (0.85f + 0.3f * DecoRnd(seed * 5 + 2)), w2 = wd * 0.5f * (0.85f + 0.3f * DecoRnd(seed * 5 + 3)), ofs = (DecoRnd(seed * 5 + 4) - 0.5f) * ln * 0.12f;
+    auto P = [&](float u, float w, float& ox, float& oy) { ox = bx + u * ca - w * sa; oy = by + u * sa + w * ca; };
+    float x0, y0, xl, yl, xr, yr, xm, ym, xt, yt; P(0, 0, x0, y0); P(u1, w1, xl, yl); P(u1 + ofs, -w2, xr, yr); P(u1 * 0.8f, 0, xm, ym); P(ln, ofs * 0.6f, xt, yt);
+    const int pat = static_cast<int>(DecoRnd(seed * 3 + 9) * 6.0f); /* 白黒の割り振り 6 通り (全部白・全部黒にはならない) */
+    static const unsigned char K[6] = { 0x9, 0x6, 0x3, 0xC, 0x5, 0xA }; const unsigned m = K[pat];
+    DecoFacet(v, x0, y0, xl, yl, xm, ym, (m & 1) != 0); DecoFacet(v, xm, ym, xl, yl, xt, yt, (m & 2) != 0);
+    DecoFacet(v, x0, y0, xr, yr, xm, ym, (m & 4) != 0); DecoFacet(v, xm, ym, xr, yr, xt, yt, (m & 8) != 0);
 }
 /* 枝: 根もとから、ゆるく曲がる茎に、左右互い違いに葉を付ける */
-inline void DecoSprig(Cv& v, float bx, float by, float angDeg, float len, float leaf, int n, int seed, float bend, bool mono = false) {
-    const Col lD = mono ? decoc::kDeep : decoc::kLeafD, lM = mono ? decoc::kMid : decoc::kLeafM, lL = mono ? decoc::kLite : decoc::kLeafL;
+inline void DecoSprig(Cv& v, float bx, float by, float angDeg, float len, float leaf, int n, int seed, float bend) {
     float x = bx, y = by, ang = angDeg; const float seg = len / static_cast<float>(n);
     for (int i = 0; i < n; i++) {
         const float a = ang * 0.017453293f, nx = x + seg * __builtin_cosf(a), ny = y + seg * __builtin_sinf(a);
-        DecoSeg(v, x, y, nx, ny, 2.0f, lD);
-        const float side = (i & 1) ? 1.0f : -1.0f, sz = leaf * (1.0f - 0.45f * static_cast<float>(i) / static_cast<float>(n)) * (0.9f + 0.2f * DecoRnd(seed + i));
-        DecoLeaf(v, nx, ny, ang + side * (38.0f + 14.0f * DecoRnd(seed * 3 + i)), sz, sz * 0.42f, i & 1 ? lD : lM, i & 1 ? lM : lL, seed + i * 5);
+        DecoSeg(v, x, y, nx, ny, 1.8f, decoc::kK);
+        const float side = (i & 1) ? 1.0f : -1.0f, sz = leaf * (1.0f - 0.40f * static_cast<float>(i) / static_cast<float>(n)) * (0.9f + 0.2f * DecoRnd(seed + i));
+        DecoLeaf(v, nx, ny, ang + side * (36.0f + 16.0f * DecoRnd(seed * 3 + i)), sz, sz * 0.46f, seed + i * 5);
         x = nx; y = ny; ang += bend;
     }
-    DecoLeaf(v, x, y, ang, leaf * 0.7f, leaf * 0.3f, lM, lL, seed + 99); /* 先の葉 */
+    DecoLeaf(v, x, y, ang, leaf * 0.7f, leaf * 0.32f, seed + 99);
 }
 
-/* ---- 鳥: 左向きに羽ばたくローポリ。輪郭の多角形を、内側の点でさらに細かい面に割って、面ごとに色を変える ---- */
+/* ---- 鳥: ほんの十数枚の三角だけ。鳥だと分かる人にも、折り紙や破片に見える人にも読めるように ---- */
 struct DecoTr { float cx, cy, sc, ca, sa, mx; };
 inline void DecoTrApply(const DecoTr& t, float x, float y, float& ox, float& oy) { const float fx = x * t.mx; ox = t.cx + (fx * t.ca - y * t.sa) * t.sc; oy = t.cy + (fx * t.sa + y * t.ca) * t.sc; }
-/* 結晶: 輪郭 P (n 点) と中心 (qx,qy)。内側の輪 (中心へ inner 倍) を作り、輪の間と中心を三角に割る。色は (gx,gy) の向きに c0 → c1、面ごとにゆらぎ */
-inline void DecoCrystal(Cv& v, const DecoTr& t, const float* P, int n, float qx, float qy, float inner, Col c0, Col c1, float gx, float gy, int seed) {
-    float ox[24], oy[24], ix[24], iy[24]; float rmax = 1.0f;
-    for (int i = 0; i < n; i++) { DecoTrApply(t, P[i * 2], P[i * 2 + 1], ox[i], oy[i]); const float dx = P[i * 2] - qx, dy = P[i * 2 + 1] - qy; const float r = __builtin_sqrtf(dx * dx + dy * dy); if (r > rmax) rmax = r; }
-    for (int i = 0; i < n; i++) { const float k = inner * (0.85f + 0.3f * DecoRnd(seed * 19 + i)); DecoTrApply(t, qx + (P[i * 2] - qx) * k, qy + (P[i * 2 + 1] - qy) * k, ix[i], iy[i]); }
-    float cx, cy; DecoTrApply(t, qx, qy, cx, cy);
-    auto col = [&](float x, float y, int s2) { /* x,y: 面の中心 (元の座標系) */ float f = 0.5f + ((x - qx) * gx + (y - qy) * gy) / (rmax * 2.0f) + (DecoRnd(seed * 7 + s2) - 0.5f) * 0.42f; f = f < 0.0f ? 0.0f : (f > 1.0f ? 1.0f : f); return DecoMix(c0, c1, f); };
-    for (int i = 0; i < n; i++) {
-        const int j = (i + 1) % n; const float x0 = P[i * 2], y0 = P[i * 2 + 1], x1 = P[j * 2], y1 = P[j * 2 + 1];
-        DecoTri(v, ox[i], oy[i], ox[j], oy[j], ix[i], iy[i], col((x0 * 2 + x1 + qx) / 4.0f, (y0 * 2 + y1 + qy) / 4.0f, i * 3), 1.0f, 0.5f);
-        DecoTri(v, ox[j], oy[j], ix[j], iy[j], ix[i], iy[i], col((x1 * 2 + x0 + qx) / 4.0f, (y1 * 2 + y0 + qy) / 4.0f, i * 3 + 1), 1.0f, 0.5f);
-        DecoTri(v, cx, cy, ix[i], iy[i], ix[j], iy[j], col((x0 + x1 + qx * 4) / 6.0f, (y0 + y1 + qy * 4) / 6.0f, i * 3 + 2), 1.0f, 0.5f);
-    }
-}
 inline void DecoBird(Cv& v, float cx, float cy, float sc, float rotDeg, bool mirror) {
-    using namespace decoc;
     const DecoTr t { cx, cy, sc, __builtin_cosf(rotDeg * 0.017453293f), __builtin_sinf(rotDeg * 0.017453293f), mirror ? -1.0f : 1.0f };
-    static const float WF[] = { -26, 12, -50, 40, -80, 74, -58, 72, -68, 98, -42, 86, -38, 108, -18, 84, 6, 88, 10, 56, 34, 20 };      /* 遠い方の羽 (風切り羽がぎざぎざに出る) */
-    static const float TL[] = { 48, -8, 104, -14, 146, -4, 118, 14, 142, 48, 100, 34, 54, 16 };                                          /* 尾 (二つに割れる) */
-    static const float BD[] = { -92, -16, -80, -32, -58, -30, -24, -33, 20, -23, 56, -8, 58, 14, 18, 27, -24, 26, -56, 14, -74, 4, -90, -3 }; /* 体 + 丸い頭 */
-    static const float WU[] = { -30, -22, -40, -58, -16, -96, 30, -128, 62, -114, 46, -96, 82, -94, 60, -76, 90, -68, 64, -58, 82, -40, 56, -38, 30, -20 }; /* 近い方の羽 (風切り羽が 4 本はね出る) */
-    DecoCrystal(v, t, WF, 11, -22, 58, 0.50f, kLite, kPale, 0.2f, 1.0f, 5);
-    DecoCrystal(v, t, TL, 7, 90, 10, 0.45f, kNavy, kMid, 1.0f, 0.3f, 9);
-    DecoCrystal(v, t, BD, 12, -8, -2, 0.50f, kDeep, kSnow, -0.3f, 1.0f, 3);
-    DecoCrystal(v, t, WU, 13, 24, -64, 0.52f, kNavy, kMid, 0.6f, 0.8f, 12);
-    float ax, ay, bx, by, qx, qy;
-    DecoTrApply(t, -112, -10, ax, ay); DecoTrApply(t, -88, -19, bx, by); DecoTrApply(t, -87, -3, qx, qy); DecoTri(v, ax, ay, bx, by, qx, qy, kAmber); /* くちばし */
-    DecoTrApply(t, -100, -5, ax, ay); DecoTrApply(t, -86, -4, bx, by); DecoTrApply(t, -90, 3, qx, qy); DecoTri(v, ax, ay, bx, by, qx, qy, kAmberD);
-    float ex, ey; DecoTrApply(t, -72, -17, ex, ey); DecoDisc(v, ex, ey, 2.3f * sc + 0.5f, kSnow); DecoDisc(v, ex, ey, 1.1f * sc + 0.2f, kNavy); /* 目 */
-}
-
-/* ---- バラ: 上から見たローポリ。中心から 4 つの輪、外の輪はふちがぎざぎざの花びら ---- */
-inline void DecoRose(Cv& v, float cx, float cy, float R, float rot, int seed) {
-    using namespace decoc;
-    constexpr int N = 7; float px[4][N], py[4][N];
-    static const float RR[4] = { 0.20f, 0.44f, 0.72f, 1.0f };
-    for (int k = 0; k < 4; k++) for (int i = 0; i < N; i++) {
-        const float a = rot + (static_cast<float>(i) + 0.5f * static_cast<float>(k & 1) + 0.25f * (DecoRnd(seed * 31 + k * 9 + i) - 0.5f)) * 6.2831853f / static_cast<float>(N);
-        float r = RR[k] * R * (k == 3 ? ((i & 1) ? 0.86f : 1.0f) : 1.0f) * (0.94f + 0.12f * DecoRnd(seed * 17 + k * 5 + i));
-        px[k][i] = cx + r * __builtin_cosf(a); py[k][i] = cy + r * __builtin_sinf(a);
-    }
-    auto tone = [&](int k, int i, float lit) { /* k 番目の輪 (中ほど濃く、外へ淡く)。光は左上から */
-        const Col base = k == 0 ? kRoseD : (k == 1 ? DecoMix(kRoseD, kRoseM, 0.6f) : (k == 2 ? kRoseM : DecoMix(kRoseL, kRoseP, 0.25f)));
-        return DecoShade(DecoMix(base, kRoseP, lit * 0.35f), 0.92f + 0.16f * DecoRnd(seed * 3 + k * 13 + i)); };
-    for (int k = 3; k >= 1; k--) for (int i = 0; i < N; i++) { /* 外から内へ */
-        const int j = (i + 1) % N; const float lit = (i % 3 == 0) ? 0.9f : (i % 3 == 1 ? 0.35f : 0.0f);
-        DecoTri(v, px[k][i], py[k][i], px[k][j], py[k][j], px[k - 1][i], py[k - 1][i], tone(k, i, lit), 1.0f, 0.4f);
-        DecoTri(v, px[k][j], py[k][j], px[k - 1][j], py[k - 1][j], px[k - 1][i], py[k - 1][i], tone(k, j, 0.5f * lit), 1.0f, 0.4f);
-    }
-    for (int i = 0; i < N; i++) { const int j = (i + 1) % N; DecoTri(v, cx, cy, px[0][i], py[0][i], px[0][j], py[0][j], DecoShade(kRoseD, 0.80f + 0.30f * DecoRnd(seed + i))); }
-    for (int i = 0; i < N; i += 2) DecoSeg(v, px[1][i], py[1][i], px[1][(i + 1) % N], py[1][(i + 1) % N], 0.9f, kRoseP, 0.55f); /* 花びらのふち */
-}
-/* つぼみ: 小さな 2 枚の花びら + がく */
-inline void DecoBud(Cv& v, float cx, float cy, float s, float angDeg, int seed) {
-    using namespace decoc;
-    const float a = angDeg * 0.017453293f, ca = __builtin_cosf(a), sa = __builtin_sinf(a);
-    auto P = [&](float x, float y, float& ox, float& oy) { ox = cx + (x * ca - y * sa) * s; oy = cy + (x * sa + y * ca) * s; };
-    float x0, y0, x1, y1, x2, y2, x3, y3, x4, y4; P(0, 0, x0, y0); P(-10, -8, x1, y1); P(0, -22, x2, y2); P(10, -8, x3, y3); P(0, -3, x4, y4);
-    DecoTri(v, x0, y0, x1, y1, x2, y2, kRoseM); DecoTri(v, x0, y0, x2, y2, x3, y3, kRoseD); DecoTri(v, x4, y4, x1, y1, x3, y3, DecoShade(kRoseL, 0.95f + 0.1f * DecoRnd(seed)));
-    float g0, h0, g1, h1, g2, h2; P(-9, 4, g0, h0); P(0, -4, g1, h1); P(9, 4, g2, h2);
-    DecoTri(v, g0, h0, g1, h1, x0, y0, kMid); DecoTri(v, g2, h2, g1, h1, x0, y0, kDeep);
+    static const short F[][7] = { /* 三角 3 点 + 黒(1)/白(0) */
+        { -26, 14, -62, 70, 14, 52, 0 },                                   /* 遠い方の羽 */
+        { 30, 0, 136, -8, 84, 30, 1 }, { 84, 30, 136, -8, 118, 44, 0 },    /* 尾 */
+        { -104, -10, -70, -32, -60, -2, 1 },                               /* 頭とくちばし */
+        { -70, -32, -60, -2, -8, -28, 0 }, { -60, -2, -8, -28, 6, 22, 1 }, { -8, -28, 6, 22, 52, -4, 0 }, /* 体 */
+        { -16, -26, 24, -128, 62, -36, 1 }, { 24, -128, 62, -36, 90, -88, 0 }, /* 近い方の羽 */
+    };
+    for (const auto& f : F) { float ax, ay, bx, by, qx, qy; DecoTrApply(t, f[0], f[1], ax, ay); DecoTrApply(t, f[2], f[3], bx, by); DecoTrApply(t, f[4], f[5], qx, qy); DecoFacet(v, ax, ay, bx, by, qx, qy, f[6] != 0, 1.2f + 0.8f * t.sc); }
 }
 
 /* ---- 小さな絵 (スプライト): 一度だけ描いて、あとは貼るだけ ---- */
@@ -193,62 +135,52 @@ template <class Emit> inline void SprRuns(const u32* img, int w, int h, int bx0,
 }
 
 /* ======== 組み立て (スプライトに描く。座標は各スプライトの左上が原点) ======== */
-/* メニューの鳥 (右上の角からはみ出す)。角は (kMbCx, kMbCy) */
+/* メニューの鳥 (右上の角をまたぐ)。角は (kMbCx, kMbCy) */
 constexpr int kMbW = 80, kMbH = 70, kMbCx = 34, kMbCy = 4;
 inline void DecoMenuBird(Spr& s) {
     Cv v { s.px, s.w, s.h, 0, 0 }; SprClear(s);
-    DecoBird(v, static_cast<float>(kMbCx) - 2.0f, static_cast<float>(kMbCy) + 30.0f, 0.25f, -8.0f, false); /* 角 (kMbCx,kMbCy) をまたぐ小さな鳥 */
-}
-/* メニューのバラ (左下の角)。角 (メニューの左下) は (kMrCx, kMrCy)。縦は板の中の縁に沿って上へ、横は板の下へはみ出して右へ */
-constexpr int kMrW = 170, kMrH = 130, kMrCx = 2, kMrCy = 106;
-inline void DecoMenuRose(Spr& s) {
-    Cv v { s.px, s.w, s.h, 0, 0 }; SprClear(s);
-    const float cx = static_cast<float>(kMrCx), cy = static_cast<float>(kMrCy);
-    DecoSprig(v, cx + 6.0f, cy - 4.0f, -90.0f, 96.0f, 15.0f, 5, 11, 2.0f, true);  /* 左の縁 (板の中) に沿って上へ */
-    DecoSprig(v, cx + 22.0f, cy + 8.0f, -2.0f, 128.0f, 17.0f, 5, 41, -2.0f, true); /* 下の縁に沿って右へ */
-    DecoBud(v, cx + 9.0f, cy - 100.0f, 0.8f, 0.0f, 5); DecoBud(v, cx + 152.0f, cy + 8.0f, 0.8f, 88.0f, 6);
-    DecoRose(v, cx + 10.0f, cy - 54.0f, 9.0f, 0.5f, 3); DecoRose(v, cx + 76.0f, cy + 9.0f, 10.0f, 1.1f, 4);
-    DecoRose(v, cx + 15.0f, cy + 4.0f, 15.0f, 0.2f, 1);
+    DecoBird(v, static_cast<float>(kMbCx) - 2.0f, static_cast<float>(kMbCy) + 30.0f, 0.25f, -8.0f, false);
 }
 
 /* スプラッシュの飾り。板は (0,0)-(BW,BH) */
 constexpr int kSaX = 300, kSaW = 520, kSaH = 200; /* 右側の絵: 板の x = 300 から右 */
 inline void DecoSplashArt(Spr& s, int BW) {
+    using namespace decoc;
     Cv v { s.px, s.w, s.h, kSaX, 0 }; SprClear(s); (void)BW;
-    /* 淡いローポリの下地: 左から右へ少しずつ濃く */
+    /* 細い線のローポリの下地 (右へ行くほど密) */
     constexpr int gx = 11, gy = 5; float PX[gy + 1][gx + 1], PY[gy + 1][gx + 1];
     const float cw = static_cast<float>(kSaW) / gx, ch = static_cast<float>(kSaH) / gy;
     for (int j = 0; j <= gy; j++) for (int i = 0; i <= gx; i++) {
         const bool edge = i == 0 || j == 0 || i == gx || j == gy;
         PX[j][i] = static_cast<float>(kSaX) + cw * i + (edge ? 0.0f : (DecoRnd(j * 31 + i) - 0.5f) * cw * 0.6f); PY[j][i] = ch * j + (edge ? 0.0f : (DecoRnd(j * 17 + i + 400) - 0.5f) * ch * 0.6f); }
-    for (int j = 0; j < gy; j++) for (int i = 0; i < gx; i++) for (int q = 0; q < 2; q++) {
-        const float t = (static_cast<float>(i) + 0.5f) / gx; const float k = DecoRnd(j * 53 + i * 7 + q * 3 + 900);
-        const Col c = DecoMix(decoc::kPale, decoc::kLite, 0.15f + 0.55f * k * t); const float al = (0.04f + 0.62f * t * t) * (0.45f + 0.55f * k);
-        if (q == 0) DecoTri(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], c, al, 0.3f);
-        else DecoTri(v, PX[j][i + 1], PY[j][i + 1], PX[j + 1][i + 1], PY[j + 1][i + 1], PX[j + 1][i], PY[j + 1][i], DecoShade(c, 0.985f), al * 0.9f, 0.3f);
+    for (int j = 0; j < gy; j++) for (int i = 0; i < gx; i++) {
+        const float t = (static_cast<float>(i) + 0.5f) / gx; const float p = t < 0.42f ? 0.0f : 0.45f + 0.5f * t; /* 左半分は線なし (線が途中で切れて見えないように) */
+        if (DecoRnd(j * 53 + i * 7 + 900) < p) DecoSeg(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], 0.9f, kK);
+        if (DecoRnd(j * 29 + i * 11 + 950) < p) DecoSeg(v, PX[j][i], PY[j][i], PX[j + 1][i], PY[j + 1][i], 0.9f, kK);
+        if (DecoRnd(j * 41 + i * 3 + 990) < p) DecoSeg(v, PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], 0.9f, kK);
+        if (t > 0.55f && DecoRnd(j * 19 + i * 23 + 1100) > 0.86f) DecoTri(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], kK, 1.0f, 0.3f); /* ところどころ黒く塗る */
     }
-    /* 鳥 (大きく) + 散る面 */
     DecoBird(v, 628.0f, 84.0f, 0.74f, -6.0f, false);
-    static const float SH[9][6] = { { 732, 30, 752, 24, 742, 42 }, { 764, 66, 782, 62, 772, 78 }, { 716, 80, 730, 76, 722, 90 }, { 700, 22, 710, 18, 706, 30 }, { 770, 112, 782, 108, 776, 120 }, { 744, 138, 758, 136, 750, 148 }, { 780, 30, 790, 28, 785, 38 }, { 690, 150, 702, 146, 696, 158 }, { 730, 112, 740, 108, 734, 120 } };
-    for (int i = 0; i < 9; i++) DecoTri(v, SH[i][0], SH[i][1], SH[i][2], SH[i][3], SH[i][4], SH[i][5], i % 3 == 0 ? decoc::kTeal : (i % 3 == 1 ? decoc::kLite : decoc::kMid), 0.95f);
+    static const float SH[7][6] = { { 732, 30, 752, 24, 742, 42 }, { 764, 66, 782, 62, 772, 78 }, { 716, 80, 730, 76, 722, 90 }, { 770, 112, 782, 108, 776, 120 }, { 744, 138, 758, 136, 750, 148 }, { 690, 150, 702, 146, 696, 158 }, { 700, 22, 710, 18, 706, 30 } };
+    for (int i = 0; i < 7; i++) DecoFacet(v, SH[i][0], SH[i][1], SH[i][2], SH[i][3], SH[i][4], SH[i][5], (i & 1) == 0, 1.1f);
 }
 /* 右上の角 (板の右上 = (kStrCx, kStrCy)) に、枠の外へ付く枝と葉 */
 constexpr int kStrW = 260, kStrH = 170, kStrCx = 190, kStrCy = 60;
 inline void DecoSplashTR(Spr& s) {
     Cv v { s.px, s.w, s.h, 0, 0 }; SprClear(s);
     const float cx = static_cast<float>(kStrCx), cy = static_cast<float>(kStrCy);
-    DecoSprig(v, cx + 24.0f, cy - 12.0f, 172.0f, 170.0f, 38.0f, 6, 21, -3.5f); /* 角から、枠の上の縁に沿って左へ */
-    DecoSprig(v, cx + 10.0f, cy - 6.0f, 98.0f, 120.0f, 32.0f, 5, 61, 4.0f);   /* 右の縁に沿って下へ */
-    DecoSprig(v, cx + 4.0f, cy - 20.0f, -38.0f, 70.0f, 30.0f, 3, 81, 5.0f);    /* 外へ伸びる */
-    DecoLeaf(v, cx - 6.0f, cy + 4.0f, 128.0f, 50.0f, 22.0f, decoc::kLeafD, decoc::kLeafM, 7); DecoLeaf(v, cx + 2.0f, cy + 12.0f, 60.0f, 44.0f, 19.0f, decoc::kLeafM, decoc::kLeafL, 8);
+    DecoSprig(v, cx + 24.0f, cy - 12.0f, 172.0f, 170.0f, 38.0f, 6, 21, -3.5f);
+    DecoSprig(v, cx + 10.0f, cy - 6.0f, 98.0f, 120.0f, 32.0f, 5, 61, 4.0f);
+    DecoSprig(v, cx + 4.0f, cy - 20.0f, -38.0f, 70.0f, 30.0f, 3, 81, 5.0f);
+    DecoLeaf(v, cx - 6.0f, cy + 4.0f, 128.0f, 50.0f, 24.0f, 7); DecoLeaf(v, cx + 2.0f, cy + 12.0f, 60.0f, 44.0f, 20.0f, 8);
 }
 /* 左下の角 (板の左下 = (kSblCx, kSblCy)) */
 constexpr int kSblW = 260, kSblH = 170, kSblCx = 60, kSblCy = 110;
 inline void DecoSplashBL(Spr& s) {
     Cv v { s.px, s.w, s.h, 0, 0 }; SprClear(s);
     const float cx = static_cast<float>(kSblCx), cy = static_cast<float>(kSblCy);
-    DecoSprig(v, cx - 24.0f, cy + 12.0f, -8.0f, 170.0f, 38.0f, 6, 121, 3.5f);  /* 角から、下の縁に沿って右へ */
-    DecoSprig(v, cx - 10.0f, cy + 6.0f, -82.0f, 120.0f, 32.0f, 5, 161, -4.0f); /* 左の縁に沿って上へ */
-    DecoSprig(v, cx - 4.0f, cy + 20.0f, 142.0f, 70.0f, 30.0f, 3, 181, -5.0f);  /* 外へ伸びる */
-    DecoLeaf(v, cx + 6.0f, cy - 4.0f, -52.0f, 50.0f, 22.0f, decoc::kLeafD, decoc::kLeafM, 17); DecoLeaf(v, cx - 2.0f, cy - 12.0f, -120.0f, 44.0f, 19.0f, decoc::kLeafM, decoc::kLeafL, 18);
+    DecoSprig(v, cx - 24.0f, cy + 12.0f, -8.0f, 170.0f, 38.0f, 6, 121, 3.5f);
+    DecoSprig(v, cx - 10.0f, cy + 6.0f, -82.0f, 120.0f, 32.0f, 5, 161, -4.0f);
+    DecoSprig(v, cx - 4.0f, cy + 20.0f, 142.0f, 70.0f, 30.0f, 3, 181, -5.0f);
+    DecoLeaf(v, cx + 6.0f, cy - 4.0f, -52.0f, 50.0f, 24.0f, 17); DecoLeaf(v, cx - 2.0f, cy - 12.0f, -120.0f, 44.0f, 20.0f, 18);
 }

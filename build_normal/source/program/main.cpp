@@ -356,10 +356,10 @@ namespace {
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
     volatile bool g_NewsSkip = true; volatile u32 g_NewsHits = 0; /* 広場のニュースを飛ばす (既定 ON) */
     constexpr int kTplN = 30; constexpr int kDynGaAim = 344, kDynGyRec = 345, kDynRst1 = 347, kDynRst2 = 348, kDynRst3 = 349, kDynRstBtn = 350, kDynRst4 = 351, kDynRst5 = 352, kDynPchMaster = 354, kDynEmpty = 355; constexpr int kDynFlow = 265; constexpr int kDynText = 266, kDynName = 267, kDynYg = 268, kDynImgSz = 271, kDynMark = 272, kDynAuto = 273, kDynFlk = 274, kDynWall = 275, kDynRuler = 276, kDynNameRnd = 277, kDynCrash = 278, kDynInkSz = 279, kDynHSpd = 280, kDynSpdV = 281, kDynTrail = 282, kDynLogClr = 283, kDynWarp = 303, kDynTrW = 305, kDynTrP = 306, kDynMenuCol = 307, kDynImgRot = 309, kDynResv = 310, kDynCamScan = 311, kDynUpd = 312, kDynAddr = 313, kDynFt2 = 314, kDynBl = 315, kDynTg = 316, kDynGcBal = 320, kDynGcEn = 321, kDynGcLkBal = 322, kDynGcLkEn = 323, kDynGcRange = 324, kDynGcCirc = 325, kDynGcA = 326, kDynGcCircOn = 327, kDynGcLine = 328, kDynGcLead = 329, kDynGcAim = 330, kDynGcTgt = 331, kDynRt = 317, kDynZr = 318, kDynFov = 319, kDynGcWarp = 332, kDynBalSum = 333, kDynReset = 334, kDynDth = 335, kDynTeam = 336, kDynAsari = 337, kDynClam = 338, kDynAsrDet = 339, kDynAsrDiff = 340, kDynLkRec = 341, kDynEnInk = 342, kDynKbRec = 343, kDynGaAimX = 346, kDynPch = 400, kDynPchMsg = 464; volatile bool g_BalSumReq = false; volatile u64 g_BalSumUntil = 0; volatile int g_BalSumMsg = 0, g_BalSumN = 0; /* バルーン召喚: 1 探し中 2 呼んだ 3 バルーンがない */ void TextKeyboard(); void ExtraTick(); bool ReadLive(float* out);
-    constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
+    constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 126; /* tmt 1.1.16 (チーム変更: P1-P10 の10人を選択可能に) */
+    constexpr int kInkVer = 127; /* tmt 1.1.17 (名前プリセット: 8枠を保存して選んで適用) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -425,7 +425,7 @@ namespace {
     const char* const kMacroNm[kMacroN] = { "A", "B", "X", "Y", "L", "R", "ZL", "ZR", T("左スティック押込み","L-Stick Click"), T("右スティック押込み","R-Stick Click"), T("十字上","D-Pad Up"), T("十字下","D-Pad Down"), T("十字左","D-Pad Left"), T("十字右","D-Pad Right") };
     volatile bool g_MacroOn = false; volatile int g_MacroBtn = 0, g_MacroIv = 120;
     constexpr int kCatCount = 14; constexpr int kCatRst = 8; constexpr int kCatUlt = 12; constexpr int kTopCount = 12; /* 版 692: 最強チートはメニューから外した (日本版も英語版と同じ並び) */ /* 最上位に出すカテゴリの数 (サーチは外したので kCatCount より 1 少ない) */
-    constexpr short kCatItems[kCatCount][18] = { /* メニューを整理: 設定はメニューのことだけ、数値を調べる物はまとめた。アップデートを確認はいちばん下の 1 つだけ */
+    constexpr short kCatItems[kCatCount][20] = { /* メニューを整理: 設定はメニューのことだけ、数値を調べる物はまとめた。アップデートを確認はいちばん下の 1 つだけ */
         { kDynFreeFly, kDynFlySpd, kDynTpSave, kDynTpX, kDynTpGo, kDynHop, kDynHopSpd, kDynCurl, kDynCurlSpd, kDynFov, kDynFlow, kDynLight, kDynHeartAuto, -1, -1 } /* 版 634: 終わりの印 (-1) が無くて、0 番の項目 (pchtxt) が 3 つ出ていた */ /* プレイヤー (ノックバック強化・リスポーンは削除) */,
         { kItDraw, kItImage, kItFill2, kItErase, kDynUzu, kDynText, kDynImgSz, kDynInkSz, kDynImgRot, kDynResv, kDynTrail, kDynTrW, kDynTrP, kDynEnInk, -1, -1 } /* 塗り */,
         { kDynZr, kItFreeCam, kDynMacroOn, kDynMacroBtn, kDynMacroIv, kDynNewsSkip, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* ツール (版 615: アドレスサーチをここに) */,
@@ -439,7 +439,7 @@ namespace {
         { kDynEmSel, kDynEmGate, kDynEmOn, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* エモート */,
         { kDynSgFix, kDynSgFix + 1, kDynSgFix + 2, kDynSgFix + 3, kDynSgFix + 4, kDynSgFix + 5, kDynSgVs, kDynSgCop, kDynSgEtc, kDynSgBot, kDynSgNow, -1, -1, -1, -1, -1 } /* 版 654: ステージ */
         ,{ kDynNetBlk, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* 版 679: 最強チート (日本版だけ) */
-        ,{ kDynName, kDynNameRnd, kDynSym, kDynSymPend, kDynGameKb, kDynRecruitY, kDynAliasNotify, kDynTeamC, kDynTeamP0, kDynTeamP0+1, kDynTeamP0+2, kDynTeamP0+3, kDynTeamP0+4, kDynTeamP0+5, kDynTeamP0+6, kDynTeamP0+7, kDynTeamP0+8, kDynTeamP0+9 } /* tmt: 名前・プラベ (チーム変更: P1-P10) */
+        ,{ kDynName, kDynNamePre, kDynNamePreSave, kDynNameRnd, kDynSym, kDynSymPend, kDynGameKb, kDynRecruitY, kDynAliasNotify, kDynTeamC, kDynTeamP0, kDynTeamP0+1, kDynTeamP0+2, kDynTeamP0+3, kDynTeamP0+4, kDynTeamP0+5, kDynTeamP0+6, kDynTeamP0+7, kDynTeamP0+8, kDynTeamP0+9 } /* tmt: 名前・プラベ (チーム変更: P1-P10) */
     }; /* ガチチート */
     constexpr int kTopOrderJa[14] = { 12, 0, 13, 6, 1, 2, 9, 11, 10, 4, 5, 3, 8, 0 }; /* tmt: プレイヤー → 名前・プラベ → チート → 塗り → ツール ... */
     struct TopOrdT { constexpr int operator[](int i) const { return kTopOrderJa[i + 1]; } }; constexpr TopOrdT kTopOrder{};
@@ -447,7 +447,7 @@ namespace {
     const char* const kCatName[kCatCount] = { T("プレイヤー","Player"), T("塗り","Paint"), T("ツール","Tools"), T("設定","Settings"), T("表示","Display"), "pchtxt", T("チート","Cheats"), T("サーチ","Search"), T("ログリセット","Log Reset"), T("武器","Weapon"), T("エモート","Emote"), T("ステージ","Stage"), T("最強チート","Ultimate"), T("名前・プラベ","Name / Private") };
     extern int g_GrpN; constexpr int kPchCat = 5; constexpr int kPchVis = 12; /* pchtxt: ファイルがあれば、2 つ目のメニューに一覧を出す (なければ「読み込まれていません」) */
     int WxRowCount();
-    int CatCount(int c) { if (c == kWpCat) return WxRowCount(); if (c == kPchCat) return (g_GrpN > 0 ? (g_GrpN > 64 ? 64 : g_GrpN) : 1) + 1; int n = 0; while (n < 18 && kCatItems[c][n] >= 0) n++; return n; }
+    int CatCount(int c) { if (c == kWpCat) return WxRowCount(); if (c == kPchCat) return (g_GrpN > 0 ? (g_GrpN > 64 ? 64 : g_GrpN) : 1) + 1; int n = 0; while (n < 20 && kCatItems[c][n] >= 0) n++; return n; }
     int CatItem(int c, int j) { if (c == kWpCat) return kDynWx + j; if (c == kPchCat) return j == 0 ? kDynPchMaster : (g_GrpN > 0 ? kDynPch + j - 1 : kDynPchMsg); return kCatItems[c][j]; }
     void DynInput(int it, bool act, bool lf, bool rt);
     const char* GlitchLabel();
@@ -636,6 +636,7 @@ namespace {
     static int SymPendU8(char* o, int cap) { int n = 0; for (int q = 0; q < g_SymN && q < 24; q++) { const u32 c = g_SymPend[q]; if (n + 4 > cap) break; o[n++] = static_cast<char>(0xE0 | (c >> 12)); o[n++] = static_cast<char>(0x80 | ((c >> 6) & 63)); o[n++] = static_cast<char>(0x80 | (c & 63)); } if (n < cap) o[n] = 0; return n; }
     volatile int g_OwnKb = 0; /* tmt: 自分のキーボードを出している間 (ゲームのキーボードのフックで触らない) */
     void NameSave(); void NameLoadOnce(); /* tmt: 名前を SD に覚える (起動直後からゲームに偽の名前を返す) */
+    void NamePreSave(); void NamePreLoadOnce(); char g_NamePreset[8][40] = {}; volatile int g_NamePreSel = 0; /* tmt 1.1.17: 名前プリセット 8 枠 */
     void NameLive(const char* cur, const char* nw); char g_RealNick[40] = {}; char g_NameCur[40] = {}; volatile bool g_CrashArm = false; u64 g_CrashArmT = 0; volatile bool g_NameRnd = false; volatile int g_NameRndIv = 1; u64 g_NameRndT = 0; u32 g_NameRndLast = 99; volatile bool g_NameOn = false; volatile int g_KbTarget = 0, g_VibReq = 0; char g_NameU8[40] = {}; volatile bool g_NickHooked = false;
     volatile bool g_TextOn = false; volatile int g_TextReq = 0, g_TextK = 2, g_TextMsg = 0; char g_TextU8[100] = {}; bool g_TextImg = false;
     alignas(16) u8 g_KbArg[0x560];
@@ -1425,6 +1426,16 @@ namespace {
         if (it == kDynName) { if (act) { g_NameOn = !g_NameOn; NameSave(); if (g_NameOn && !g_NameU8[0]) { g_KbTarget = 1; g_TextReq = 1; }
             else if (g_NameOn) { const char* const from = g_NameCur[0] ? g_NameCur : g_RealNick; if (from[0] && std::strcmp(from, g_NameU8) != 0) NameLive(from, g_NameU8); std::memcpy(g_NameCur, g_NameU8, sizeof(g_NameCur)); }
             else if (g_NameCur[0] && g_RealNick[0]) { NameLive(g_NameCur, g_RealNick); std::memcpy(g_NameCur, g_RealNick, sizeof(g_NameCur)); } } if (rt) { g_KbTarget = 1; g_TextReq = 1; } return; }
+        if (it == kDynNamePre) { /* tmt 1.1.17: プリセットを選んで適用 */
+            if (lf) g_NamePreSel = (g_NamePreSel + 7) & 7;
+            if (rt) g_NamePreSel = (g_NamePreSel + 1) & 7;
+            if (act) { const char* pn = g_NamePreset[g_NamePreSel & 7]; if (pn[0]) {
+                std::memcpy(g_NameU8, pn, sizeof(g_NameU8)); g_NameOn = true; NameSave();
+                const char* const from = g_NameCur[0] ? g_NameCur : g_RealNick;
+                if (from[0] && std::strcmp(from, g_NameU8) != 0) NameLive(from, g_NameU8);
+                std::memcpy(g_NameCur, g_NameU8, sizeof(g_NameCur)); } }
+            return; }
+        if (it == kDynNamePreSave) { if (act || rt) { g_KbTarget = 2; g_TextReq = 1; } return; } /* 選んだ枠をキーボードで編集 → 自動保存 */
         if (it == kDynText) { if (act) { g_TextOn = !g_TextOn; if (g_TextOn && !g_TextU8[0]) { g_KbTarget = 0; g_TextReq = 1; } } if (rt) { g_KbTarget = 0; g_TextReq = 1; } if (lf) g_TextK = g_TextK % 4 + 1; return; }
         if (it == kDynMark) { if (act) g_MarkOn = !g_MarkOn; return; }
         if (it == kDynFlk) { if (act) g_Flk = !g_Flk; return; }
@@ -1699,7 +1710,7 @@ namespace {
         if (!kbWork || !kbCheck || !kbStr) { if (kbWork) fr(kbWork); if (kbCheck) fr(kbCheck); if (kbStr) fr(kbStr); g_TextMsg = 4; return; }
         std::memset(kbWork, 0, up(wkSz)); std::memset(kbCheck, 0, up(tcSz)); std::memset(kbStr, 0, up(stSz));
         std::memset(g_KbArg, 0, sizeof(g_KbArg));
-        char* const dst = g_KbTarget ? g_NameU8 : g_TextU8; const int lim = g_KbTarget ? 32 : 90; /* 名前は、ゲームの名前の入れ物が 33 バイト (終わりの 0 を含む) なので 32 バイトまで */
+        char* const dst = g_KbTarget == 2 ? g_NamePreset[g_NamePreSel & 7] : (g_KbTarget ? g_NameU8 : g_TextU8); const int lim = g_KbTarget ? 32 : 90; /* 名前は、ゲームの名前の入れ物が 33 バイト (終わりの 0 を含む) なので 32 バイトまで */
         reinterpret_cast<FnPreset>(aPre)(g_KbArg, 0); *reinterpret_cast<u32*>(g_KbArg + 0) = 0; /* tmt: ふつうのキーボード (かな・漢字・英数字。ユーザー名の設定は全角に寄るのでやめた) */
         g_KbArg[0x1a] = 1; /* 予測変換 (かな漢字の候補) を有効にする (isPredictionEnabled) */
         *reinterpret_cast<u32*>(g_KbArg + 0x1c) = 0; /* プリセット2 は「Mii の名前に使える文字だけ」(0x100) に制限するので、制限をなくして漢字も入れられるようにする */
@@ -1730,8 +1741,10 @@ namespace {
             else { dst[o++] = '?'; }
         }
         dst[o] = 0; g_TextMsg = 0; fr(kbWork); fr(kbCheck); fr(kbStr);
-        if (g_SymN > 0 && dst[0]) g_SymN = 0; if (g_KbTarget) NameSave(); if (g_KbTarget && dst[0]) { const char* const from = g_NameCur[0] ? g_NameCur : g_RealNick; if (from[0] && std::strcmp(from, g_NameU8) != 0) NameLive(from, g_NameU8); std::memcpy(g_NameCur, g_NameU8, sizeof(g_NameCur)); } /* 入れた名前を、その場でゲームの中にも反映する */
-        if (!dst[0]) { if (g_KbTarget) g_NameOn = false; else g_TextOn = false; }
+        if (g_SymN > 0 && dst[0]) g_SymN = 0;
+        if (g_KbTarget == 2) { NamePreSave(); }
+        else { if (g_KbTarget) NameSave(); if (g_KbTarget && dst[0]) { const char* const from = g_NameCur[0] ? g_NameCur : g_RealNick; if (from[0] && std::strcmp(from, g_NameU8) != 0) NameLive(from, g_NameU8); std::memcpy(g_NameCur, g_NameU8, sizeof(g_NameCur)); }
+          if (!dst[0]) { if (g_KbTarget) g_NameOn = false; else g_TextOn = false; } }
     }
     bool PosObjValid(); bool LiveValid(); bool ReadLive(float* out);
     /* ステージの中で 20 秒たつまでは、メモリの走査をしない (読み込み中にゲームがメモリを解放して、走査中に落ちるのを避ける) */
@@ -2485,7 +2498,7 @@ HOOK_DEFINE_TRAMPOLINE(SixAxisHook) {
 };
 HOOK_DEFINE_TRAMPOLINE(NickHook) {
     static void Callback(char* nick, const void* uid) {
-        NameLoadOnce();
+        NameLoadOnce(); NamePreLoadOnce();
         Orig(nick, uid);
         if (nick && nick[0]) { int o = 0; while (nick[o] && o < 32) { g_RealNick[o] = nick[o]; o++; } g_RealNick[o] = 0; }
         if (g_NameOn && g_NameU8[0] && nick) { int o = 0; while (g_NameU8[o] && o < 32) { nick[o] = g_NameU8[o]; o++; } nick[o] = 0; }
@@ -10961,6 +10974,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDyn + 1) { static const char* const kSi[5] = { T("約10秒","~10s"), T("約30秒","~30s"), T("約1分","~1min"), T("約2分","~2min"), T("約5分","~5min") }; nm = T("出る間隔", "Interval"); std::snprintf(vb, sizeof(vb), "< %s >", kSi[g_ScareInt % 5]); }
                 else if (i == kDyn + 2) { nm = T("ためしに出す", "Test It"); std::snprintf(vb, sizeof(vb), "%s", g_ScareN ? T("L: 出す","L: Trigger") : T("画像なし","No image")); }
                 if (i == kDynName) { nm = T("名前を変える", "Change Name"); st = g_NameOn ? 1 : 0; if (g_NameU8[0]) std::snprintf(vb, sizeof(vb), "%s%s", g_NameU8, g_NickHooked ? "" : T(" 準備中"," preparing")); else std::snprintf(vb, sizeof(vb), T("右:入力","Right: Input")); }
+                else if (i == kDynNamePre) { nm = T("名前プリセット", "Name Preset"); st = -1; const int sl = g_NamePreSel & 7; const char* pn = g_NamePreset[sl]; std::snprintf(vb, sizeof(vb), "< %d:%s > %s", sl + 1, pn[0] ? pn : "---", T("A:使う","A:Use")); }
+                else if (i == kDynNamePreSave) { nm = T("プリセット編集", "Edit Preset"); st = -1; const int sl = g_NamePreSel & 7; std::snprintf(vb, sizeof(vb), "%d %s", sl + 1, T("A:入力して保存","A:Type & Save")); }
                 else if (i == kDynImgSz) { nm = T("絵の大きさ", "Image Size"); }
                 else if (i == kDynInkSz) { nm = T("インクの大きさ", "Ink Size"); }
                 else if (i == kDynHSpd) { nm = T("人速度(ギア無視)", "Move Speed (ignores gear)"); }
@@ -12549,6 +12564,20 @@ namespace {
         const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return;
         char t[48]; const int n = std::snprintf(t, sizeof(t), "%d\n%s\n", g_NameOn ? 1 : 0, g_NameU8);
         if (n > 0) UpdWrite(sdk, "tmt:/tmt/name.txt", t, static_cast<u32>(n));
+    }
+    void NamePreSave() { /* tmt 1.1.17: 8 枠を 1 枠 1 行で SD に保存 */
+        const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return;
+        char t[8 * 40 + 16]; int n = 0;
+        for (int i = 0; i < 8; i++) { for (const char* q = g_NamePreset[i]; *q && n < (int)sizeof(t) - 2; q++) { if (*q == '\n' || *q == '\r') continue; t[n++] = *q; } t[n++] = '\n'; }
+        if (n > 0) UpdWrite(sdk, "tmt:/tmt/namepre.txt", t, static_cast<u32>(n));
+    }
+    void NamePreLoadOnce() {
+        static volatile int done = 0; if (__atomic_exchange_n(&done, 1, __ATOMIC_ACQ_REL)) return;
+        const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return;
+        char t[8 * 40 + 16]; const int n = UpdReadSmall(sdk, "tmt:/tmt/namepre.txt", t, sizeof(t) - 1); if (n <= 0) return; t[n] = 0;
+        int i = 0, slot = 0, o = 0;
+        while (i < n && slot < 8) { const char c = t[i++]; if (c == '\n') { g_NamePreset[slot][o] = 0; slot++; o = 0; } else if (c != '\r' && o < 32) g_NamePreset[slot][o++] = c; }
+        if (slot < 8 && o > 0) g_NamePreset[slot][o] = 0;
     }
     void NameLoadOnce() {
         static volatile int done = 0; if (__atomic_exchange_n(&done, 1, __ATOMIC_ACQ_REL)) return;

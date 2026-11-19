@@ -143,7 +143,7 @@ inline void DecoMenuBird(Spr& s) {
 }
 
 /* スプラッシュの飾り。板は (0,0)-(BW,BH) */
-constexpr int kSaX = 300, kSaW = 520, kSaH = 200; /* 右側の絵: 板の x = 300 から右 */
+constexpr int kSaX = 270, kSaW = 550, kSaH = 130; /* 右側の絵: 板の x = 300 から右 */
 inline void DecoSplashArt(Spr& s, int BW) {
     using namespace decoc;
     Cv v { s.px, s.w, s.h, kSaX, 0 }; SprClear(s); (void)BW;
@@ -154,15 +154,17 @@ inline void DecoSplashArt(Spr& s, int BW) {
         const bool edge = i == 0 || j == 0 || i == gx || j == gy;
         PX[j][i] = static_cast<float>(kSaX) + cw * i + (edge ? 0.0f : (DecoRnd(j * 31 + i) - 0.5f) * cw * 0.6f); PY[j][i] = ch * j + (edge ? 0.0f : (DecoRnd(j * 17 + i + 400) - 0.5f) * ch * 0.6f); }
     for (int j = 0; j < gy; j++) for (int i = 0; i < gx; i++) {
-        const float t = (static_cast<float>(i) + 0.5f) / gx; const float p = t < 0.42f ? 0.0f : 0.45f + 0.5f * t; /* 左半分は線なし (線が途中で切れて見えないように) */
-        if (DecoRnd(j * 53 + i * 7 + 900) < p) DecoSeg(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], 0.9f, kK);
-        if (DecoRnd(j * 29 + i * 11 + 950) < p) DecoSeg(v, PX[j][i], PY[j][i], PX[j + 1][i], PY[j + 1][i], 0.9f, kK);
-        if (DecoRnd(j * 41 + i * 3 + 990) < p) DecoSeg(v, PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], 0.9f, kK);
-        if (t > 0.55f && DecoRnd(j * 19 + i * 23 + 1100) > 0.86f) DecoTri(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], kK, 1.0f, 0.3f); /* ところどころ黒く塗る */
+        /* 「tmt Ver.…」の右あたりで見えなくなるまで、左へ向かって少しずつ薄く (鳥のうしろでも、濃くなりすぎない) */
+        const float xm = static_cast<float>(kSaX) + cw * (static_cast<float>(i) + 0.5f); float f = (xm - 285.0f) / (800.0f - 285.0f); f = f < 0.0f ? 0.0f : (f > 1.0f ? 1.0f : f);
+        const float al = 0.50f * f * f * (3.0f - 2.0f * f) * 0.9f + 0.04f * f; if (al < 0.01f) continue;
+        if (DecoRnd(j * 53 + i * 7 + 900) < 0.7f) DecoSeg(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], 0.9f, kK, al);
+        if (DecoRnd(j * 29 + i * 11 + 950) < 0.7f) DecoSeg(v, PX[j][i], PY[j][i], PX[j + 1][i], PY[j + 1][i], 0.9f, kK, al);
+        if (DecoRnd(j * 41 + i * 3 + 990) < 0.7f) DecoSeg(v, PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], 0.9f, kK, al);
+        if (f > 0.5f && DecoRnd(j * 19 + i * 23 + 1100) > 0.86f) DecoTri(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], kK, al * 0.55f, 0.3f); /* ところどころ薄く塗る */
     }
-    DecoBird(v, 628.0f, 84.0f, 0.74f, -6.0f, false);
+    DecoBird(v, 640.0f, 62.0f, 0.47f, -6.0f, false);
     static const float SH[7][6] = { { 732, 30, 752, 24, 742, 42 }, { 764, 66, 782, 62, 772, 78 }, { 716, 80, 730, 76, 722, 90 }, { 770, 112, 782, 108, 776, 120 }, { 744, 138, 758, 136, 750, 148 }, { 690, 150, 702, 146, 696, 158 }, { 700, 22, 710, 18, 706, 30 } };
-    for (int i = 0; i < 7; i++) DecoFacet(v, SH[i][0], SH[i][1], SH[i][2], SH[i][3], SH[i][4], SH[i][5], (i & 1) == 0, 1.1f);
+    for (int i = 0; i < 7; i++) DecoFacet(v, SH[i][0], SH[i][1] * 0.62f + 6.0f, SH[i][2], SH[i][3] * 0.62f + 6.0f, SH[i][4], SH[i][5] * 0.62f + 6.0f, (i & 1) == 0, 1.0f);
 }
 /* 右上の角 (板の右上 = (kStrCx, kStrCy)) に、枠の外へ付く枝と葉 */
 constexpr int kStrW = 260, kStrH = 170, kStrCx = 190, kStrCy = 60;

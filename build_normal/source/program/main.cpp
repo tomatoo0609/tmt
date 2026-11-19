@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 134; /* tmt 1.1.24 (鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 135; /* tmt 1.1.25 (起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -467,7 +467,7 @@ namespace {
     int g_WxPd[wxd::kPN]; int g_WxKd[wpdata::kWN][5]; u8 g_WxOpen[wxd::kGN]; bool g_WxMainOpen = true;
     enum : u8 { kWrType = 0, kWrSel, kWrMain, kWrKnob, kWrGrp, kWrParam, kWrRst, kWrRstAll };
     struct WxRow { u8 t, k; u16 a; };
-    volatile int g_UiOpa = 100; /* 版 642: メニューの濃さ (20〜100%、100 = 透かさない) */
+    volatile int g_UiOpa = 80; /* 版 642: メニューの濃さ (20〜100%、100 = 透かさない) */
     volatile int g_PanQ = 4; /* 展開したメニューの濃さ (1〜4、4 = 不透明) */
     constexpr int kWxPB = 40; int g_WxPN = 0, g_WxPG = -1; /* 右に開くパネル: 行は g_WxRow[kWxPB〜] に置く */
     WxRow g_WxRow[kWxMaxRows]; int g_WxN = 0; bool g_WxDirty = true; int g_WxBuiltW = -1; u64 g_WxPauseT = 0;
@@ -1221,7 +1221,7 @@ namespace {
     }
     volatile int g_RstMsg = 0; volatile u64 g_RstT = 0;
     void SettingsReset() { /* 設定をぜんぶ最初の状態に戻す */
-        g_PanQ = 4; g_UiOpa = 100; g_UiScale = 120; g_UiX = 0; g_UiY = 0; g_LookOn = false; g_LookMsg = 0; g_AimTgt = 0; g_LookAHold = false; g_CircOn = false; g_CircR = 30; g_LookRange = 9; g_LeadLv = 0;
+        g_PanQ = 4; g_UiOpa = 80; g_UiScale = 120; g_UiX = 0; g_UiY = 0; g_LookOn = false; g_LookMsg = 0; g_AimTgt = 0; g_LookAHold = false; g_CircOn = false; g_CircR = 30; g_LookRange = 9; g_LeadLv = 0;
         g_EnOn = false; g_BalOn = false; g_BoxOn = false; g_LineOn = true; g_FovLv = 0; g_FovSel = 0; g_Fx[4] = 0;
         for (int q = 0; q < kCatCount; q++) g_CatSel[q] = 0; g_EmSel = 0; g_EmOn = false; g_MacroOn = false; g_MacroBtn = 0; g_MacroIv = 120;
         g_RstMsg = 1; g_RstT = NowTick();
@@ -10165,7 +10165,7 @@ namespace nvnhook {
         if (mx < 0.34f || mx - mn < 0.10f) { const float l = (r + g + b) * (1.0f / 3.0f); return Col { 0.985f - 0.90f * l, 0.988f - 0.90f * l, 0.995f - 0.90f * l }; } /* 灰色: 明るさを反転 (ほんの少し青みの白へ) */
         return Col { r * 0.60f, g * 0.60f, b * 0.60f };
     }
-    constexpr Col kAcc { 0.76f, 0.47f, 0.20f }; /* キャラメル色 (つまみ・強調) */
+    constexpr Col kAcc { 0.66f, 0.38f, 0.13f }; /* キャラメル色 (つまみ・強調) */
     static Col MixC(Col a, Col b, float t) { return Col { a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t }; }
     /* 472: スイッチのアニメーション: つまみが動いて、色がなめらかに変わる (行ごとに状態を覚える。最初に見たときは動かさない) */
     struct SwAn { int key; float from, to; u64 t0; bool on; };
@@ -10367,7 +10367,7 @@ namespace nvnhook {
     }
     /* メニュー全体を CPU で描く (大きさ 100% の座標)。描いた範囲の大きさを返す。 */
     u32 g_Base[1000 * 640];                               /* 100% で描く作業場 */
-    constexpr int kMDL = 0, kMDT = 0, kMDR = 36, kMDB = 0; /* メニューのまわりの余白: 鳥は右上、バラは左下から、板の外へはみ出す */
+    constexpr int kMDL = 0, kMDT = 0, kMDR = 0, kMDB = 0; /* メニューのまわりの余白: 鳥は右上、バラは左下から、板の外へはみ出す */
     struct DRect { int x, y, w, h; }; DRect g_BaseDeco[4]; int g_BaseDecoN = 0; DRect g_SwDeco[4]; int g_SwDecoN = 0; /* 飾りの範囲 (切り抜いて写す) */
     int g_BaseW = 0, g_BaseH = 0;
     PRect g_BaseRects[6]; int g_BaseRectN = 0;
@@ -10696,7 +10696,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (upd && !extT) extT = nw; if (!upd) extT = 0;
         static int su = 0; if (upd) su = (us == 0 && g_UpdManual) ? 1 : us; /* 消えていく間は、最後に出していた中身のまま */
         float ex = 0.0f; if (g_SplMan) ex = 1.0f; else if (extT) { float q = static_cast<float>(nw - extT) / 7680000.0f; if (q > 1.0f) q = 1.0f; ex = 1.0f - (1.0f - q) * (1.0f - q) * (1.0f - q); } /* 0.4 秒でのびる */
-        const int BW = 820, BH0 = 200, EH = static_cast<int>(100.0f * ex), BH = BH0 + EH, PAD = kSplPad; /* PAD: 板の外 (葉が板の外へはみ出す所) */
+        const int BW = 820, BH0 = 130, EH = static_cast<int>(100.0f * ex), BH = BH0 + EH, PAD = kSplPad; /* PAD: 板の外 (葉が板の外へはみ出す所) */
         g_SplBW = BW + 2 * PAD; g_SplBH = BH + 2 * PAD; g_SplR = 28;
         Cv v { g_SplBase, BW + 2 * PAD, BH + 2 * PAD, -PAD, -PAD }; /* 描く座標は板の左上が (0,0) */
         for (int k = 0; k < (BW + 2 * PAD) * (BH + 2 * PAD); k++) g_SplBase[k] = 0x00FFFFFFu; /* 透明 (色は白) */
@@ -10781,7 +10781,7 @@ constexpr unsigned char kIconA[6][32*32] = {
             SwStr(v, g, x, gy, gc); x += g.w + 3; }
     }
     static void SwFadeRow(Cv& v, int x, int y, int w, int h, Col bg, Col ac) { /* 左 22% → 右 0% のミント */
-        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1), k = 0.16f * (1.0f - t) * (1.0f - t); SwRect(v, x + i, y, 1, h, MixC(bg, ac, k)); } }
+        for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1), k = 0.24f * (1.0f - t) * (1.0f - t); SwRect(v, x + i, y, 1, h, MixC(bg, ac, k)); } }
     static void SwTopLine(Cv& v, int x, int y, int w, Col bg) { /* パネルの上の細いミントの線 (右へ消える) */
         const Col hc = HueCol(static_cast<float>((NowTick() / 96000ull) % 600ull) / 600.0f, 0.60f, 1.0f); /* tmt: 3 秒で 1 周 */
         for (int i = 0; i < w; i++) { const float t = static_cast<float>(i) / static_cast<float>(w > 1 ? w - 1 : 1); SwRect(v, x + i, y, 1, 2, MixC(hc, bg, t * t)); } }
@@ -11476,12 +11476,6 @@ constexpr unsigned char kIconA[6][32*32] = {
             }
         }
         drawRows(-1, x0, g_Cat < 0 ? g_MenuSel : ([&]{ for (int q = 0; q < kTopCount; q++) if (kTopOrder[q] == g_Cat) return q; return 0; })(), g_Cat < 0);
-        { /* tmt 1.1.21: 右上の角からはみ出すローポリの鳥 / 左下の角を L 字に囲むバラ (いちばん手前。一度だけ描いて貼る) */
-            static u32* mb = nullptr; static bool built = false;
-            if (!built) { built = true; mb = DecoMem(kMbW * kMbH); if (mb) { Spr a { mb, kMbW, kMbH }; DecoMenuBird(a); } }
-            if (mb && dm && showBird) { const Spr sbd { mb, kMbW, kMbH }; const int bxp = x0 + MWt - kMbCx, byp = y0 - kMbCy; SprBlit(v, sbd, bxp, byp); g_BaseDeco[g_BaseDecoN++] = DRect { bxp, byp, kMbW, kMbH }; }
-        }
-
     }
     /* 100% で描いた絵を、大きさに合わせて縮小/拡大して、写す用の画像にする */
     /* 2 つの色を t/256 の割合で混ぜる (4 つの色成分をまとめて計算) */
@@ -11995,7 +11989,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 int bad = 0; for (int r = 0; r < g_SwH; r++) if (s_In[r] && !s_Ok[r]) bad++;
                 /* 版 684: 展開したメニューが広いほど、背景の混ぜ直しを減らして粗くする (lod 0〜3)。変わっていないとき (bad == 0) だけ、2〜3 フレームに 1 回に間引く */
                 { long long area = 0; for (int k = 0; k < g_SwRectN; k++) area += static_cast<long long>(g_SwRects[k].w) * g_SwRects[k].h;
-                  g_BlLod = area < 150000 ? 0 : (area < 300000 ? 1 : (area < 480000 ? 2 : 3));
+                  g_BlLod = 3 /* 背景は、ぼやけてよいので、いつもいちばん粗く (軽く) */;
                   static const u32 kIv[4] = { 1, 2, 2, 3 }; skipF = bad <= 0 && kIv[g_BlLod] > 1 && (s_Frame % kIv[g_BlLod]) != 0; }
                 if (!skipF && g_Rb.ok && g_Rb.off >= g_PixHi && g_Rb.w > 0 && g_Rb.rows > 0) {
                     const int rw = g_Rb.w, rn = g_Rb.rows, st = g_Rb.step;
@@ -12021,7 +12015,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                                 const u32 m = sr[x]; const u32 c = InkLv(m);
                                 u32 kA = A; if (c > 120) { u32 t = (c - 120) * 4; if (t > 256) t = 256; kA = A + (((256 - A) * t) >> 8); }
                                 if (kA >= 256) { dr[x] = m; continue; }
-                                u32 bgp; if (g_BlLod >= 2 && (x & 1) && bgX == x - 1) bgp = bgV; /* 粗いとき: 横 2 画素で背景を共有 */
+                                u32 bgp; if (g_BlLod >= 2 && (x & (g_BlLod >= 3 ? 3 : 1)) && bgX >= x - (g_BlLod >= 3 ? 3 : 1) && bgX < x) bgp = bgV; /* 粗いとき: 横 2 画素 (いちばん粗いときは 4 画素) で背景を共有 */
                                 else { int bx = x + g_SwX - g_Rb.x; if (bx < 0) bx = 0; if (bx >= rw) bx = rw - 1; bgp = tw ? LerpPx(bg[bx], bg1[bx], tw) : bg[bx]; bgV = bgp; bgX = x; }
                                 dr[x] = (LerpPx(bgp, m, kA) & 0x00FFFFFFu) | 0xFF000000u;
                             }

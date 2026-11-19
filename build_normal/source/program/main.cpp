@@ -324,7 +324,8 @@ namespace {
     /* カテゴリ: 0 プレイヤー / 1 塗り / 2 ツール / 3 設定。g_Cat = -1 のときは、カテゴリの一覧を出す。 */
     constexpr int kDynGsp = 260; constexpr int kDynUzu = 270, kDynEmo = 280, kUzuN = 14, kUzuPer = 220; constexpr int kDyn = 200; /* 200〜: 文字で描く行 (ジャンプスケア) */
     volatile bool g_FlowOn = false; int g_FlowN = 0; uintptr_t g_FlowObj[8]; float g_FlowOrig[8][14]; volatile int g_FlowMode = 2; volatile u64 g_FlowUntil = 0; /* 0 表示のみ / 1 GUI を切り替えた後の 5 秒だけ、加点を 1000 に / 2 加点を 1000 のまま */ int g_FlowPasses = 0, g_FlowHits = 0, g_FlowRej = 0; u32 g_FlowRejV[4] = {}; /* イカフロー: GUI を切り替えた後の 5 秒だけ加点を大きくして、ゲーム自身のイカフローを出す */
-    constexpr int kDynAimCurve = 520, kDynAimTune = 521, kDynAimNow = 522, kDynNewsSkip = 523, kDynGameKb = 524, kDynSym = 525, kDynSymPend = 526;
+    constexpr int kDynAimCurve = 520, kDynAimTune = 521, kDynAimNow = 522, kDynNewsSkip = 523, kDynGameKb = 524, kDynSym = 525, kDynSymPend = 526, kDynRecruitY = 527, kDynAliasNotify = 528;
+    volatile bool g_RecruitY = true, g_AliasNotify = true; volatile bool g_RecruitReq = false; volatile u32 g_RecruitSent = 0; /* tmt: プラベの募集 */
     volatile int g_SymSel = 0; volatile int g_SymN = 0; u16 g_SymPend[24] = {}; /* tmt: 選んだゲームの記号 (次のキーボードの入力欄に入れる) */ /* tmt: v771 の項目 */
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
     volatile bool g_NewsSkip = true; volatile u32 g_NewsHits = 0; /* 広場のニュースを飛ばす (既定 ON) */
@@ -332,7 +333,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 106; /* tmt 1.0.6 (Inkdraw の番号とは別に 100 から) */
+    constexpr int kInkVer = 107; /* tmt 1.0.7 (Inkdraw の番号とは別に 100 から) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -401,7 +402,7 @@ namespace {
     constexpr short kCatItems[kCatCount][16] = { /* メニューを整理: 設定はメニューのことだけ、数値を調べる物はまとめた。アップデートを確認はいちばん下の 1 つだけ */
         { kDynFreeFly, kDynFlySpd, kDynTpSave, kDynTpX, kDynTpGo, kDynHop, kDynHopSpd, kDynCurl, kDynCurlSpd, kDynFov, kDynName, kDynFlow, kDynLight, kDynHeartAuto, -1, -1 } /* 版 634: 終わりの印 (-1) が無くて、0 番の項目 (pchtxt) が 3 つ出ていた */ /* プレイヤー (ノックバック強化・リスポーンは削除) */,
         { kItDraw, kItImage, kItFill2, kItErase, kDynUzu, kDynText, kDynImgSz, kDynInkSz, kDynImgRot, kDynResv, kDynTrail, kDynTrW, kDynTrP, kDynEnInk, -1, -1 } /* 塗り */,
-        { kDynZr, kItFreeCam, kDynMacroOn, kDynMacroBtn, kDynMacroIv, kDynAddr, kDynNewsSkip, kDynGameKb, kDynSym, kDynSymPend, -1, -1, -1, -1, -1, -1 } /* ツール (版 615: アドレスサーチをここに) */,
+        { kDynZr, kItFreeCam, kDynMacroOn, kDynMacroBtn, kDynMacroIv, kDynAddr, kDynNewsSkip, kDynGameKb, kDynSym, kDynSymPend, kDynRecruitY, kDynAliasNotify, -1, -1, -1, -1 } /* ツール (版 615: アドレスサーチをここに) */,
         { kItScale, kItPos, kDynUiOpa, kDynReset, kDynLkRec, kDynUpd, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* 設定 (メニューのこと) */,
         { kFxBase + 18, kFxBase + 19, kFxBase + 20, kFxBase + 21, kDynCrash, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* 表示 */,
         { kItPatch, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 } /* pchtxt */,
@@ -1227,6 +1228,8 @@ namespace {
         if (it == kDynAimNow) return;
         if (it == kDynSym) { int k = g_SymSel; if (lf) k = (k + sym_glyphs::kN - 1) % sym_glyphs::kN; if (rt) k = (k + 1) % sym_glyphs::kN; g_SymSel = k; if (act && g_SymN < 24) { g_SymPend[g_SymN] = sym_glyphs::kCode[k]; g_SymN = g_SymN + 1; } return; }
         if (it == kDynSymPend) { if (act) g_SymN = 0; if (lf && g_SymN > 0) g_SymN = g_SymN - 1; return; } /* A: 全部消す / 左: 1 つ消す */
+        if (it == kDynRecruitY) { if (act || lf || rt) g_RecruitY = !g_RecruitY; return; }
+        if (it == kDynAliasNotify) { if (act || lf || rt) g_AliasNotify = !g_AliasNotify; return; }
         if (it == kDynGameKb) { if (act || lf || rt) g_GameKbFree = !g_GameKbFree; return; }
         if (it == kDynNewsSkip) { if (act || lf || rt) g_NewsSkip = !g_NewsSkip; return; }
         if (it == kDynGcLead) { if (lf && g_LeadLv > 0) g_LeadLv = g_LeadLv - 1; if (rt && g_LeadLv < 20) g_LeadLv = g_LeadLv + 1; if (act) g_LeadLv = g_LeadLv ? 0 : 10; return; } /* 偏差射撃: 左右で強さ、L で なし ⇔ 10 */
@@ -6876,7 +6879,7 @@ namespace {
             o[n++] = { "fovCandidate", g_FovSel }; o[n++] = { "zrHold", g_Fx[4] };
             o[n++] = { "pchtxtOn", g_PatchEnabled ? 1 : 0 }; o[n++] = { "panQ", g_PanQ }; o[n++] = { "emOn", g_EmOn ? 1 : 0 }; o[n++] = { "emSel", g_EmSel }; o[n++] = { "macroOn", g_MacroOn ? 1 : 0 }; o[n++] = { "macroBtn", g_MacroBtn }; o[n++] = { "macroIv", g_MacroIv }; o[n++] = { "tmtScale", g_UiScale }; o[n++] = { "tmtOpa2", g_UiOpa }; o[n++] = { "uiX", g_UiX }; o[n++] = { "uiY", g_UiY };
             static const char* const kCv[9] = { "curve0", "curve1", "curve2", "curve3", "curve4", "curve5", "curve6", "curve7", "curve8" };
-            for (int i = 0; i < 9; i++) o[n++] = { kCv[i], g_AimCurveY[i] }; o[n++] = { "aimTune", g_AimTune }; o[n++] = { "newsSkip", g_NewsSkip ? 1 : 0 };
+            for (int i = 0; i < 9; i++) o[n++] = { kCv[i], g_AimCurveY[i] }; o[n++] = { "aimTune", g_AimTune }; o[n++] = { "newsSkip", g_NewsSkip ? 1 : 0 }; o[n++] = { "recruitY", g_RecruitY ? 1 : 0 }; o[n++] = { "aliasNotify", g_AliasNotify ? 1 : 0 };
             return n; };
         if (!loaded) {
             if (now - t0 < 3ull * 19200000ull) return; loaded = true;
@@ -6890,7 +6893,7 @@ namespace {
                 if (get("pchtxtOn", &v) && (v != 0) != g_PatchEnabled) { g_PatchEnabled = v != 0; g_ReqPatchApply = true; } if (get("panQ", &v) && v >= 1 && v <= 4) g_PanQ = 4; /* 版 675: 縞になるので固定 */ if (get("emSel", &v) && v >= 0 && v < kEmN) g_EmSel = v; if (get("emOn", &v)) g_EmOn = v != 0; if (get("macroOn", &v)) g_MacroOn = v != 0; if (get("macroBtn", &v) && v >= 0 && v < kMacroN) g_MacroBtn = v; if (get("macroIv", &v) && v >= 20 && v <= 2000) g_MacroIv = v; if (get("tmtScale", &v) && v >= 50 && v <= 150) g_UiScale = v; if (get("tmtOpa2", &v) && v >= 20 && v <= 100) g_UiOpa = v; /* 版 678: 新しい名前 (前の保存値は使わず、初期値 80 から) */ if (get("uiX", &v) && v > -2000 && v < 2000) g_UiX = v; if (get("uiY", &v) && v > -2000 && v < 2000) g_UiY = v;
                 
                 { char nm[8] = { 'c', 'u', 'r', 'v', 'e', '0', 0, 0 }; for (int i = 0; i < 9; i++) { nm[5] = static_cast<char>('0' + i); if (get(nm, &v) && v >= -100 && v <= 100) g_AimCurveY[i] = v; } }
-                if (get("aimTune", &v) && v >= -50 && v <= 50) g_AimTune = v; if (get("newsSkip", &v)) g_NewsSkip = v != 0;
+                if (get("aimTune", &v) && v >= -50 && v <= 50) g_AimTune = v; if (get("newsSkip", &v)) g_NewsSkip = v != 0; if (get("recruitY", &v)) g_RecruitY = v != 0; if (get("aliasNotify", &v)) g_AliasNotify = v != 0;
                 if (get("aimbot", &v) && v) { g_LookSlot = 6; g_LookOn = true; g_EnScanNow = true; g_BalScanNow = true; }
             }
             KV kv[kKvMax]; const int m = cur(kv); u32 h = 2166136261u; for (int k = 0; k < m; k++) h = (h ^ static_cast<u32>(kv[k].v + 7919 * k)) * 16777619u; lastH = h; return;
@@ -10834,6 +10837,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynAimNow) { nm = T("今", "now"); st = -1; const float d = g_AimNowD; std::snprintf(vb, sizeof(vb), "%.1fm -> %.1f", static_cast<double>(d), static_cast<double>(AimUnitsFor(d) + static_cast<float>(g_AimTune))); }
                 else if (i == kDynSym) { nm = T("記号 (A で追加)", "Symbol (A: add)"); st = -1; vb[0] = 0; }
                 else if (i == kDynSymPend) { nm = T("入れる記号", "Symbols to insert"); st = -1; if (!g_SymN) std::snprintf(vb, sizeof(vb), "%s", T("なし", "none")); else vb[0] = 0; }
+                else if (i == kDynRecruitY) { nm = T("Y ですぐ募集 (プラベ)", "Instant recruit with Y"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent) std::snprintf(vb, sizeof(vb), T("%u回", "%ux"), static_cast<unsigned>(g_RecruitSent)); }
+                else if (i == kDynAliasNotify) { nm = T("募集通知を別名で", "Recruit with alias name"); st = g_AliasNotify ? 1 : 0; }
                 else if (i == kDynGameKb) { nm = T("ゲームのキーボードを自由入力に", "Free game keyboard"); st = g_GameKbFree ? 1 : 0; if (g_GameKbHits) std::snprintf(vb, sizeof(vb), T("%u回", "%ux"), static_cast<unsigned>(g_GameKbHits)); }
                 else if (i == kDynNewsSkip) { nm = T("広場のニュースを飛ばす", "Skip plaza news"); st = g_NewsSkip ? 1 : 0; }
                 else if (i == kDynGcLead) { nm = T("偏差射撃", "Lead Aim"); st = -1; if (g_LeadLv) std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_LeadLv)); else std::snprintf(vb, sizeof(vb), "OFF"); }
@@ -11684,7 +11689,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (SplashOn()) mix(static_cast<u32>((NowTick() - g_SplashT0) / 320000ull)); mix(SplashOn() ? 1u : 0u);
         if (HudWanted()) { mix(static_cast<u32>(NowTick() / 1920000ull)); for (int k = 0; k < 4; k++) { float a, dd; if (HudRel(k, &a, &dd)) { mix(static_cast<u32>(static_cast<int>(a) + 1000)); mix(static_cast<u32>(dd)); } } mix(g_CamFOk ? 1u : 0u); mix(g_CdOff >= 0 ? 1u : 0u); mix(LiveValid() ? 1u : 0u); } /* 方位計: 1 秒に 10 回まで描き直す */
         mix(static_cast<u32>(g_DsSc * 1000.0f)); mix((g_RstDoneT && NowTick() - g_RstDoneT < 3ull * 19200000ull) ? 1u : 0u); mix((g_SetRstT && NowTick() - g_SetRstT < 3ull * 19200000ull) ? 1u : 0u); mix(static_cast<u32>(g_RstDoneT >> 10)); mix(static_cast<u32>(g_SetRstT >> 10)); mix(g_DtStep); mix(g_DtSample); mix(g_WpType); mix(g_WpSel); mix(static_cast<u32>(g_PanQ)); if (g_MenuOpen && g_Cat == kWpCat) { const int wc = WpCur(); mix(static_cast<u32>(g_WxN)); mix(static_cast<u32>(g_WxPG)); mix(static_cast<u32>(g_WxPN)); mix(static_cast<u32>(g_SelCur)); mix(static_cast<u32>(g_SelScroll)); mix(static_cast<u32>(g_MenuSel)); for (int k = 0; k < 5; k++) mix(static_cast<u32>(g_WxKd[wc][k])); for (int p = wxd::kWPF[wc]; p < wxd::kWPF[wc + 1]; p++) mix(static_cast<u32>(g_WxPd[p])); } mix(g_WpScanSt); mix(g_WpTgN); mix(g_WpScanMB >> 10); mix(g_WpBad > 0 ? 1u : 0u);  mix((g_WpRstT && NowTick() - g_WpRstT < 3ull * 19200000ull) ? 1u : 0u); mix(static_cast<u32>(g_WpRstT >> 10)); mix((g_WpRstAllT && NowTick() - g_WpRstAllT < 3ull * 19200000ull) ? 1u : 0u); mix(static_cast<u32>(g_WpRstAllT >> 10)); mix(g_RstMsg && NowTick() - g_RstT < 57600000ull ? 1u : 0u); mix(g_FadeBusy ? static_cast<u32>(NowTick() / 192000ull) : 0u); mix(FuncVis() ? 1u : 0u); mix(g_MenuSel); mix(g_LightOn); mix(g_HopOn); mix(static_cast<u32>(g_HopSpd)); mix(static_cast<u32>(g_FlySpd)); mix(static_cast<u32>(g_UiOpa)); mix(g_CurlOn); mix(g_StgOn); mix(static_cast<u32>(g_ScnSel)); mix(static_cast<u32>(g_SgSel[0])); mix(static_cast<u32>(g_SgSel[1])); mix(static_cast<u32>(g_SgSel[2])); mix(g_BotOn); mix(static_cast<u32>(g_RivN)); mix(static_cast<u32>(g_RivMsg)); mix(static_cast<u32>(g_RivSeen)); mix(static_cast<u32>(g_RivAct)); mix(static_cast<u32>(g_ScnMsg)); mix(static_cast<u32>(g_ScnReq + 1)); mix(static_cast<u32>(g_StgDst)); mix(static_cast<u32>(g_StgN)); mix(static_cast<u32>(g_StgSwaps)); for (const char* q = g_StgSrc; *q; q++) mix(static_cast<u8>(*q)); for (const char* q = g_StgLast; *q; q++) mix(static_cast<u8>(*q)); mix(static_cast<u32>(g_CurlSpd)); mix(static_cast<u32>(g_TpAxis)); mix(static_cast<u32>(g_TpDest)); mix(static_cast<u32>(g_TpMsg)); mix(g_TpHave); for (int q = 0; q < 3; q++) { mix(static_cast<u32>(static_cast<int>(g_TpPos[q]))); mix(g_TpMemOk[q]); } mix(static_cast<u32>(g_FollowSel)); mix(g_ModeOn); mix(g_PatchEnabled); mix(g_DrawEnabled); mix(g_PchPanel); mix(g_PchSel); mix(g_PchScroll);
-        mix(static_cast<u32>(g_AimCurveSel)); mix(static_cast<u32>(g_AimTune)); for (int q = 0; q < 9; q++) mix(static_cast<u32>(g_AimCurveY[q])); mix(g_NewsSkip ? 1u : 0u); mix(g_GameKbFree ? 1u : 0u); mix(static_cast<u32>(g_SymSel)); mix(static_cast<u32>(g_SymN)); mix(g_GameKbHits); if (g_MenuOpen && g_Cat == 6) mix(static_cast<u32>(g_AimNowD * 10.0f));
+        mix(static_cast<u32>(g_AimCurveSel)); mix(static_cast<u32>(g_AimTune)); for (int q = 0; q < 9; q++) mix(static_cast<u32>(g_AimCurveY[q])); mix(g_NewsSkip ? 1u : 0u); mix(g_GameKbFree ? 1u : 0u); mix(g_RecruitY ? 1u : 0u); mix(g_AliasNotify ? 1u : 0u); mix(g_RecruitSent); mix(static_cast<u32>(g_SymSel)); mix(static_cast<u32>(g_SymN)); mix(g_GameKbHits); if (g_MenuOpen && g_Cat == 6) mix(static_cast<u32>(g_AimNowD * 10.0f));
         mix(g_NetBlk ? 1u : 0u); mix(g_DnsState); mix(g_DnsBlk); mix(g_DnsUnb); mix(g_DnsUnr); mix(g_DnsIdx); if (g_MenuOpen && (g_Cat == kCatUlt || (g_Cat < 0 && kTopOrder[g_MenuSel % kTopCount] == kCatUlt))) mix(static_cast<u32>(NowTick() / 3840000ull)); /* 版 680: 文字化けの文字を 0.2 秒ごとに描き直す */ mix(g_TextOn); mix(g_NameOn); mix(g_CrashArm && NowTick() - g_CrashArmT < 3ull * 19200000ull ? 1u : 0u); mix(g_NameRnd); mix(g_NameRndIv); mix(g_NickHooked); for (const char* q = g_NameU8; *q; q++) mix(static_cast<u8>(*q)); mix(g_TextK); mix(g_TextMsg); for (const char* q = g_TextU8; *q; q++) mix(static_cast<u8>(*q)); mix(g_UiMove); mix(g_MenuOpen); mix(g_Cat); mix(g_TrkStage); mix(g_Jump); mix(g_FuncOn); { char b[24][64]; const int n = BuildFuncList(b); for (int i = 0; i < n; i++) for (const char* q = b[i]; *q; q++) mix(static_cast<u8>(*q)); } mix(g_FillPushed); mix(g_FillSeen); for (int q = 0; q < 24; q++) mix(static_cast<u32>(g_Fx[q])); mix(g_Force60); mix(g_Gsp); mix(g_GspCalls); mix(g_GspIdx); mix(g_ScareOn); mix(g_ScareInt); mix(g_ScareN); mix(static_cast<u32>(g_IntervalGame)); mix(g_Bunny); mix(g_BunnyMode); mix(g_LaunchNw); mix(g_EmoteOn); mix(g_EmoFire); mix(g_SelPanel); mix(g_SelCur); mix(g_SelScroll); mix(g_ImgSel); mix(g_UzuStyle); mix(static_cast<u32>(g_FlyWalkD)); mix(g_LcState); if (g_AnimBusy) mix(static_cast<u32>(NowTick() / 480000ull)); if (g_MenuOpen && g_UiScale == 100) mix(static_cast<u32>(NowTick() / 1920000ull)); /* 光るふち: 1秒に10回 (透明のときは枠を別に描くので不要) */ mix(g_MenuSel); mix(g_HaveTmpl); mix(g_LaunchLeft > 0); mix(g_LaunchPend); mix(g_WarpOn); mix(g_WarpHas[0]); mix(g_WarpHas[1]); mix(g_WarpHas[2]); mix(g_WarpHas[3]); mix(g_WarpMark); mix(g_BoxOn ? 1u : 0u); mix(g_BalOn ? 1u : 0u); mix(static_cast<u32>(g_BalN)); mix(static_cast<u32>(g_GyroRange)); mix(static_cast<u32>(g_GaSt)); mix(g_AimTFound ? 1u : 0u); mix(g_AimTLock ? 1u : 0u); mix(g_GaLog.n / 10u); mix(g_GaLogHold ? 1u : 0u); mix(g_GaOn ? 1u : 0u); mix(static_cast<u32>(g_LookRange)); mix(g_LookActive ? 1u : 0u); mix(static_cast<u32>(g_LookWhy)); mix(g_LookOn); mix(g_LookMsg); mix(static_cast<u32>(g_ScanStep)); mix(static_cast<u32>(g_ScanMsg)); mix(static_cast<u32>(g_UpdState)); mix(static_cast<u32>(g_AsStep)); mix(static_cast<u32>(g_Ft2Step)); mix(static_cast<u32>(g_UpdState)); mix(static_cast<u32>(g_UpdSel)); mix(g_EnOn ? 1u : 0u); mix(static_cast<u32>(g_CircR)); mix(g_CircOn ? 1u : 0u); mix(g_LineOn ? 1u : 0u); mix(static_cast<u32>(g_LeadLv)); mix(static_cast<u32>(g_AimTgt)); mix(static_cast<u32>(g_Fx[4])); mix(static_cast<u32>(g_FovLv)); mix(static_cast<u32>(g_FovSel)); mix(static_cast<u32>(g_FovN)); mix(static_cast<u32>(g_EnWarpMsg)); mix(static_cast<u32>(g_WarpMsg)); mix(g_WarpReq ? 1u : 0u); mix(static_cast<u32>(g_WarpHold > 0)); mix(g_LookAHold ? 1u : 0u); mix(static_cast<u32>(g_LookRange)); mix(static_cast<u32>(g_LookSlot)); mix(static_cast<u32>(g_EnN)); mix(static_cast<u32>(g_Ft2Grp)); mix(g_Ft2Wait ? 1u : 0u); mix(static_cast<u32>(g_AsSample)); mix(static_cast<u32>(g_AsN)); mix(static_cast<u32>(g_UpdSel)); mix(static_cast<u32>(g_UpdGot / 16384u)); mix(static_cast<u32>(g_UpdMsg)); mix(static_cast<u32>(g_ScanRel)); mix(static_cast<u32>(g_LookSlot)); mix(g_ImgRot); mix(g_ResvHave); mix(g_ResvMsg); mix(g_ResvReq); mix(g_WarpMsg); mix(g_WarpHold > 0 || g_WarpHoldL > 0); mix(g_WarpReq || g_WarpSaveReq); mix(g_TrW); mix(g_TrP); mix(g_MenuCol); mix(g_MemPanel); mix(g_MemSel); mix(g_MemType); mix(static_cast<u32>(g_MemBase)); mix(static_cast<u32>(g_MemBase >> 32)); if (g_MemPanel) mix(static_cast<u32>(NowTick() / 3200000ull)); /* メモリサーチ中は 1 秒に 6 回描き直す */ mix(g_BlinkOn); mix(g_Genki); mix(g_CleanSel); mix(g_DrawTeam); mix(g_FreeCam); mix(g_RespawnState); mix(static_cast<u32>(g_RespIdx)); mix(g_ImgK); mix(g_InkSz); mix(static_cast<u32>(g_LogClrState)); mix(g_HSpd); mix(g_HState); mix(g_HCalls / 16u); mix(g_Trail ? 1u : 0u); mix(static_cast<u32>(g_TrailWhy)); mix(static_cast<u32>(g_TrailN / 8)); mix(static_cast<u32>(g_SpdMul * 100.0f)); mix(g_SpdObj != 0); mix(static_cast<u32>(g_SpdGrp)); mix(g_Flk ? 1u : 0u); mix(g_Wall ? 1u : 0u); mix(g_Ruler ? 1u : 0u); mix(g_CamFOk ? 1u : 0u); mix(g_UiScale); mix(g_AnimBusy ? 1u : 0u); mix(g_SlideBusy ? 1u : 0u); mix(W); mix(H);
         for (int i = 0; i < g_GrpN; i++) mix(g_Grp[i].on ? 1u : 0u);
         if (hsh == g_SwHash && g_ScaleRough && NowTick() - g_ScaleT >= 1920000ull) { g_ScaleRough = false; g_SwHash = hsh ^ 1u; } /* 止まったら、きれいな計算で 1 回描き直す */
@@ -12307,6 +12312,33 @@ namespace {
     }
 }
 /* tmt: セーブデータの入れ替え・削除の機能 (Inkdraw 版 700〜704) は入れない */
+/* tmt: プラベの募集 (12.0.0、IDA で確認)。
+   ・ロビーの毎フレーム処理 main+0x3900380 / +0x3900BD0 (a2 = 1 が通常の状態)。Y 長押しが終わると UI が 15 を返し、
+     部屋の情報 (sub_3269910 で作る → sub_32845D0(&k, 5) → sub_390C980) を sub_331C410(*(main+0x60FFCE0), 12, 情報, 0) で送る。
+     ここで Y を押した瞬間に同じ手順を呼ぶ (長押し・「前と同じ部屋なら送らない」の確認を通らない)。
+   ・通知のプレイヤー情報は sub_3579FC0(情報, a2, a3) で作る。a2 = 1 のときだけプラベ用の別名 (名前の種類 4) を使うが、
+     通知 (sub_331C410) は 0 で呼んでいる。通知の間だけ 1 にする */
+namespace { volatile int g_NotifyDepth = 0; u64 g_RecruitBtnPrev = 0;
+    void RecruitSendNow() {
+        const uintptr_t mb = MainBase(); const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(mb + 0x60FFCE0); if (!mgr) return;
+        alignas(16) static u8 obj[0x600]; int k = 0;
+        reinterpret_cast<void (*)(void*)>(mb + 0x3269910)(obj);
+        reinterpret_cast<void (*)(int*, int)>(mb + 0x32845D0)(&k, 5);
+        reinterpret_cast<void (*)(void*, int*)>(mb + 0x390C980)(obj, &k);
+        reinterpret_cast<void (*)(uintptr_t, int, void*, u8)>(mb + 0x331C410)(mgr, 12, obj, 0);
+        reinterpret_cast<void (*)(void*)>(mb + 0x331453C)(obj);
+        g_RecruitSent = g_RecruitSent + 1;
+    }
+    void RecruitTick(int st) {
+        const u64 b = g_BtnNow; const bool yEdge = (b & 8ull) && !(g_RecruitBtnPrev & 8ull); g_RecruitBtnPrev = b;
+        if (st != 1) return;
+        if ((g_RecruitY && yEdge && !g_MenuOpen) || g_RecruitReq) { g_RecruitReq = false; RecruitSendNow(); }
+    }
+}
+HOOK_DEFINE_TRAMPOLINE(LobbyHookA) { static u64 Callback(uintptr_t a1, int a2) { const u64 r = Orig(a1, a2); RecruitTick(a2); return r; } };
+HOOK_DEFINE_TRAMPOLINE(LobbyHookB) { static u64 Callback(uintptr_t a1, int a2) { const u64 r = Orig(a1, a2); RecruitTick(a2); return r; } };
+HOOK_DEFINE_TRAMPOLINE(NotifySendHook) { static u64 Callback(uintptr_t a1, int a2, uintptr_t a3, u8 a4) { g_NotifyDepth = g_NotifyDepth + 1; const u64 r = Orig(a1, a2, a3, a4); g_NotifyDepth = g_NotifyDepth - 1; return r; } };
+HOOK_DEFINE_TRAMPOLINE(PlayerInfoHook) { static u64 Callback(uintptr_t a1, u8 a2, u8 a3) { if (g_AliasNotify && g_NotifyDepth > 0) a2 = 1; return Orig(a1, a2, a3); } };
 /* tmt: ゲームが出すキーボード (nn::swkbd::ShowKeyboard)。名前の入力 (ユーザー名の設定・最大 10〜32 文字) だけ、
    ふつうのキーボード (かな漢字変換・文字の制限なし・改行あり) に変えて出す。番号 (最小 = 最大) や長い文章のときは触らない。
    出てきた文字は、全角の英数字・記号・空白を半角に直す */
@@ -12399,7 +12431,12 @@ extern "C" void exl_main(void* x0, void* x1) {
             NvnBootstrapHook::InstallAtPtr(sdk + 0x504480);
     }
     if (verOk) { const uintptr_t mb = exl::util::GetModuleInfo(exl::util::ModuleIndex::Main).m_Total.m_Start;
-        if ((*reinterpret_cast<const u32*>(mb + 0x4E989E0) & 0x9F00001Fu) == 0x90000010u) GameKbHook::InstallAtPtr(mb + 0x4E989E0); /* tmt: ゲームのキーボード */
+        if ((*reinterpret_cast<const u32*>(mb + 0x4E989E0) & 0x9F00001Fu) == 0x90000010u) GameKbHook::InstallAtPtr(mb + 0x4E989E0);
+        if (*reinterpret_cast<const u32*>(mb + 0x3900380) == 0xD10603FFu && *reinterpret_cast<const u32*>(mb + 0x3900BD0) == 0xD10643FFu
+            && *reinterpret_cast<const u32*>(mb + 0x3269910) == 0xD10343FFu && *reinterpret_cast<const u32*>(mb + 0x32845D0) == 0xD10083FFu
+            && *reinterpret_cast<const u32*>(mb + 0x390C980) == 0xA9BA7BFDu && *reinterpret_cast<const u32*>(mb + 0x331453C) == 0xA9BE7BFDu
+            && *reinterpret_cast<const u32*>(mb + 0x331C410) == 0xA9BB7BFDu) { LobbyHookA::InstallAtOffset(0x3900380); LobbyHookB::InstallAtOffset(0x3900BD0); NotifySendHook::InstallAtOffset(0x331C410); }
+        if (*reinterpret_cast<const u32*>(mb + 0x3579FC0) == 0xA9BA7BFDu) PlayerInfoHook::InstallAtOffset(0x3579FC0); /* tmt: プラベの募集 */ /* tmt: ゲームのキーボード */
         if ((*reinterpret_cast<const u32*>(mb + 0x4E980C0) & 0x9F00001Fu) == 0x90000010u) { NickHook::InstallAtPtr(mb + 0x4E980C0); g_NickHooked = true; } /* tmt: 名前 (GetNickname の PLT) は起動直後に */
         if (*reinterpret_cast<const u32*>(mb + 0x3B5717C) == 0xD100C3FFu && *reinterpret_cast<const u32*>(mb + 0x3B5718C) == 0xF9401408u) NewsHookA::InstallAtOffset(0x3B5717C);
         if (*reinterpret_cast<const u32*>(mb + 0x3B5845C) == 0xD100C3FFu && *reinterpret_cast<const u32*>(mb + 0x3B5846C) == 0xF9401408u) NewsHookB::InstallAtOffset(0x3B5845C); }

@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 136; /* tmt 1.1.26 (起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 137; /* tmt 1.1.27 (エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -4928,7 +4928,13 @@ namespace {
           if (!(fLast && tn - fLast < 960000ull) || j2 > 25.0f) { for (int q = 0; q < 3; q++) { fR[q] = Tt[q]; fV[q] = 0.0f; } fT = tn; }
           else if (j2 > 1e-6f) { const float dtS = static_cast<float>(tn - fT) / 19200000.0f; if (dtS > 0.004f) { for (int q = 0; q < 3; q++) { float vn = (Tt[q] - fR[q]) / dtS; if (vn > 30.0f) vn = 30.0f; if (vn < -30.0f) vn = -30.0f; fV[q] = fV[q] * 0.5f + vn * 0.5f; } } for (int q = 0; q < 3; q++) fR[q] = Tt[q]; fT = tn; }
           float age = static_cast<float>(tn - fT) / 19200000.0f; if (age > 0.14f) { for (int q = 0; q < 3; q++) fV[q] = 0.0f; age = 0.0f; } else if (age > 0.07f) age = 0.07f;
-          for (int q = 0; q < 3; q++) Ts[q] = fR[q] + fV[q] * age; fLast = tn; }
+          float Tr[3]; for (int q = 0; q < 3; q++) Tr[q] = fR[q] + fV[q] * age;
+          { static float sm[3] = {}; static bool smOk = false; /* 通信のたびの小さな飛びを、なめらかにならす (大きく飛んだ = 相手が変わった ときはそのまま) */
+            const float sx = Tr[0] - sm[0], sy = Tr[1] - sm[1], sz = Tr[2] - sm[2];
+            if (!smOk || !(fLast && tn - fLast < 960000ull) || j2 > 25.0f || sx * sx + sy * sy + sz * sz > 9.0f) { for (int q = 0; q < 3; q++) sm[q] = Tr[q]; smOk = true; }
+            else for (int q = 0; q < 3; q++) sm[q] += (Tr[q] - sm[q]) * 0.4f;
+            for (int q = 0; q < 3; q++) Ts[q] = sm[q]; }
+          fLast = tn; }
         const float* L = Lb; const float* T = Ts;
         /* 弾は体の右から出るので、地点から画面の左へ 0.35 だけずらした所を向く (弾道が地点のまん中を通るように) */
         const float hdRaw = __builtin_sqrtf((T[0] - L[0]) * (T[0] - L[0]) + (T[2] - L[2]) * (T[2] - L[2])), kAimLeft = 0.35f * (hdRaw < 4.0f ? hdRaw / 4.0f : 1.0f) /* 近いときは左へのずらしを小さく (近いと角度が大きくなり、はじかれていた) */, rgx = -c[2] / ch, rgz = c[0] / ch; /* 画面の右 (方位計と同じ) */
@@ -5028,8 +5034,8 @@ namespace {
                 { const float jx = T[0] - pTx, jz = T[2] - pTz; if (!tPrevI || now - tPrevI > 960000ull || jx * jx + jz * jz > 1.0f) yInt = 0.0f; pTx = T[0]; pTz = T[2]; tPrevI = now; } /* 相手が変わった / 止めていた: 足した分を捨てる */
                 const bool proven = g_VF.n > 0 && g_VF.idx[0] == g_VGoodI && g_VF.typ[0] == g_VGoodK; /* 一度ちゃんと効いた場所 */
                 if (proven && ady < 0.35f) { yInt += dyR * 0.3f; if (yInt > 0.06f) yInt = 0.06f; if (yInt < -0.06f) yInt = -0.06f; } else yInt = 0.0f; /* 大きく向き直っている間は足さない (足した分が残って、着いたときに行き過ぎていた) */
-                const bool bigTurn = proven && ady > 0.35f; const float oLim = bigTurn ? 0.30f : 0.17f; /* 敵を倒して次の敵へ向き直るとき: 確かめ済みの場所なら 1 フレームで大きく回す (ずれが 20 度を切ったら、今までのなめらかな動きに戻る) */
-                float off = dyR * (bigTurn ? 0.5f : gk) + (bigTurn ? 0.0f : ffYaw * D2R) + yInt; if (off > oLim) off = oLim; if (off < -oLim) off = -oLim; /* 大きく向き直るときも、なめらかに回る */
+                const bool bigTurn = proven && ady > 0.10f; const float oLim = 0.17f; /* 5.7 度以上ずれたら (敵を倒して次の敵へ): 制限なしで 1 フレームで向く */ /* 敵を倒して次の敵へ向き直るとき: 確かめ済みの場所なら 1 フレームで大きく回す (ずれが 20 度を切ったら、今までのなめらかな動きに戻る) */
+                float off = bigTurn ? dyR : dyR * (proven ? 1.0f : gk) + ffYaw * D2R + yInt; if (!bigTurn) { if (off > oLim) off = oLim; if (off < -oLim) off = -oLim; } /* 大きく向き直るときも、なめらかに回る */
                 { const float ao = offPrev < 0.0f ? -offPrev : offPrev; g_VecTolCos = proven ? __builtin_cosf((ao > 0.30f ? 0.30f : ao) + 0.063f) : 0.998f; } /* 確かめ中の場所は今までどおり厳しく見る */
                 const float yB = yNow + off; offPrev = off;
                 const float w[3] = { __builtin_sinf(yB) * cp, sp, __builtin_cosf(yB) * cp }; bool full = false; (void)hn;
@@ -10812,7 +10818,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         const int glowStep = static_cast<int>((NowTick() / 11520000ull) % 100ull); /* 0.6 秒ごとに 1 色 */
         static const float kMcH[6] = { 0.0f, 0.52f, 0.78f, 0.36f, 0.92f, 0.08f }; /* メニューの色: 虹 / 水色 / 紫 / 緑 / ピンク / オレンジ */
         const Col glowC = g_MenuCol % 6 == 0 ? HueCol(glowStep / 100.0f, 0.80f, 1.0f) : HueCol(kMcH[g_MenuCol % 6], 0.80f, 1.0f);
-        const int M = 4, MW = PchMenuW(), MWt = [] { const int a = 48 + U8W(T("プレイヤー","Player")) + 14, b = 18 + static_cast<int>(static_cast<float>(menu_text::kTITLE.w) * 0.62f) + 10 + U8W("Ver.0.0.0") + 34; return a > b ? a : b; }(), /* 中身ぴったりの幅 */ MWc0 = MW, rowC = 50, rowT = 34, head = 50, foot = 5, RW = 0, RG = 0, /* MWt: メインメニューの幅 (右の余白をけずった縦長)。MW: 2 個目のメニュー。foot: 下の余白 */ tyC = (rowC - font_glyphs::kLineH) / 2; (void)tyC; /* rowC: 2 つ目以降のメニューの行の高さ / rowT: 最上位のメニューの行の高さ (つめた) */
+        const int M = 4, MW = PchMenuW(), MWt = [] { const int a = 48 + U8W(T("プレイヤー","Player")) + 14, b = 18 + static_cast<int>(static_cast<float>(menu_text::kTITLE.w) * 0.62f) + 10 + U8W("Ver.0.0.0") + 34; return a > b ? a : b; }(), /* 中身ぴったりの幅 */ MWc0 = MW, rowC = 40, rowT = 34, head = 50, foot = 5, RW = 0, RG = 0, /* MWt: メインメニューの幅 (右の余白をけずった縦長)。MW: 2 個目のメニュー。foot: 下の余白 */ tyC = (rowC - font_glyphs::kLineH) / 2; (void)tyC; /* rowC: 2 つ目以降のメニューの行の高さ / rowT: 最上位のメニューの行の高さ (つめた) */
         const int cnt = PageCount();
         static int prevCat = -1; static int catLast = -1; static u64 catBackT = 0;
         {

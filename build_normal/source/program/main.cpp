@@ -348,6 +348,8 @@ namespace {
     using FnTeamSetUi = s64 (*)(unsigned int slot, unsigned int team);
     constexpr uintptr_t kTeamSetUiOff = 0x38C8A28;
     volatile int g_TeamReq[10] = { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 }; /* 各スロットの保留中の要求チーム (-1 なし) */
+    volatile int g_TmLobby = -1, g_TmStep = -1, g_TmGate = -1; volatile u32 g_TmCalls = 0; /* tmt 1.1.10: 診断 */
+    constexpr uintptr_t kOffLobbyStep = 0x5F2C8A0, kOffLobbyGate = 0x5F2DAA0;
     void TeamReqTick();
     volatile int g_RecruitSt = -1; volatile bool g_RecruitY = true, g_AliasNotify = true; volatile bool g_RecruitReq = false; volatile u32 g_RecruitSent = 0; /* tmt: プラベの募集 */
     volatile int g_SymSel = 0; volatile int g_SymN = 0; u16 g_SymPend[24] = {}; /* tmt: 選んだゲームの記号 (次のキーボードの入力欄に入れる) */ /* tmt: v771 の項目 */
@@ -357,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 119; /* tmt 1.1.9 (1.1.8 の TeamReqTick が無名名前空間外で未解決→null 呼び出しクラッシュを修正) */
+    constexpr int kInkVer = 120; /* tmt 1.1.10 (チーム変更の診断表示: 決定後どのガードで止まるか) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -2808,15 +2810,22 @@ namespace {
    無名名前空間に入れる (宣言と同じ結合にしないと @plt 未解決で null 呼び出しクラッシュ)。 */
 namespace {
 void TeamReqTick() {
-    if (g_OffPaintRequest != 0x37246F0 || !InLobbyNow()) return; /* ロビーのときだけ */
+    if (g_OffPaintRequest != 0x37246F0) return;
     const uintptr_t mb = MainBase();
+    auto ok = [](uintptr_t p) { return p >= 0x0000000800000000ull && p < 0x0000008000000000ull && (p & 7) == 0; };
+    /* 診断: どのガードで止まるかを見る (読むだけ) */
+    g_TmLobby = static_cast<int>(*reinterpret_cast<const volatile u8*>(mb + 0x61056D8));
+    g_TmStep = -1; g_TmGate = -1;
+    { const uintptr_t P = *reinterpret_cast<const uintptr_t*>(mb + kOffLobbyStep); if (ok(P) && Readable(P + 1224, 1)) g_TmStep = *reinterpret_cast<const u8*>(P + 1224); }
+    { const uintptr_t P = *reinterpret_cast<const uintptr_t*>(mb + kOffLobbyGate); if (ok(P) && Readable(P + 208, 4)) g_TmGate = *reinterpret_cast<const s32*>(P + 208); }
+    if (!InLobbyNow()) return; /* ロビーのときだけ実際に呼ぶ */
     if (*reinterpret_cast<const u32*>(mb + kTeamSetUiOff) != 0xA9BD7BFDu) return; /* 命令が想定どおりのときだけ */
     auto fn = reinterpret_cast<FnTeamSetUi>(mb + kTeamSetUiOff);
     for (int i = 0; i < 10; i++) {
         const int tv = g_TeamReq[i];
         if (tv < 0) continue;
         g_TeamReq[i] = -1;
-        if (tv <= 4) fn(static_cast<unsigned int>(i), static_cast<unsigned int>(tv));
+        if (tv <= 4) { fn(static_cast<unsigned int>(i), static_cast<unsigned int>(tv)); g_TmCalls++; }
     }
 }
 } // namespace
@@ -10947,7 +10956,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynSym) { nm = T("記号 (A で追加)", "Symbol (A: add)"); st = -1; vb[0] = 0; }
                 else if (i == kDynSymPend) { nm = T("入れる記号", "Symbols to insert"); st = -1; if (!g_SymN) std::snprintf(vb, sizeof(vb), "%s", T("なし", "none")); else vb[0] = 0; }
                 else if (i == kDynTeamC) { nm = T("チーム変更 (どちらのチームにも)", "Team change (either team)"); st = g_TeamC ? 1 : 0; if (g_TeamCState < 0) std::snprintf(vb, sizeof(vb), "%s", T("使えない", "unavailable")); }
-                else if (i >= kDynTeamP0 && i < kDynTeamP0 + 10) { const int pi = i - kDynTeamP0; static const char* const kTmNm[] = { "---", "Alpha", "Bravo", "Charlie", T("観戦","Spectator") }; const int tv = g_TeamPV[pi]; static const char* const kPnJa[] = { "P1 チーム", "P2 チーム", "P3 チーム", "P4 チーム", "P5 チーム", "P6 チーム", "P7 チーム", "P8 チーム", "P9 チーム", "P10 チーム" }; static const char* const kPnEn[] = { "P1 Team", "P2 Team", "P3 Team", "P4 Team", "P5 Team", "P6 Team", "P7 Team", "P8 Team", "P9 Team", "P10 Team" }; nm = kEn ? kPnEn[pi] : kPnJa[pi]; st = -1; if (tv >= 0 && tv <= 4) std::snprintf(vb, sizeof(vb), "%s", kTmNm[tv]); else std::snprintf(vb, sizeof(vb), T("不明","Unknown")); }
+                else if (i >= kDynTeamP0 && i < kDynTeamP0 + 10) { const int pi = i - kDynTeamP0; static const char* const kTmNm[] = { "---", "Alpha", "Bravo", "Charlie", T("観戦","Spectator") }; const int tv = g_TeamPV[pi]; static const char* const kPnJa[] = { "P1 チーム", "P2 チーム", "P3 チーム", "P4 チーム", "P5 チーム", "P6 チーム", "P7 チーム", "P8 チーム", "P9 チーム", "P10 チーム" }; static const char* const kPnEn[] = { "P1 Team", "P2 Team", "P3 Team", "P4 Team", "P5 Team", "P6 Team", "P7 Team", "P8 Team", "P9 Team", "P10 Team" }; nm = kEn ? kPnEn[pi] : kPnJa[pi]; st = -1; if (tv >= 0 && tv <= 4) std::snprintf(vb, sizeof(vb), "%s", kTmNm[tv]); else std::snprintf(vb, sizeof(vb), T("不明","Unknown"));
+                    if (pi == 0) { char dbg[48]; std::snprintf(dbg, sizeof(dbg), " [L%d S%d G%d C%u]", g_TmLobby, g_TmStep, g_TmGate, static_cast<unsigned>(g_TmCalls)); std::strncat(vb, dbg, sizeof(vb) - std::strlen(vb) - 1); } }
                 else if (i == kDynRecruitY) { nm = T("Y で募集 (押すたび・待ち時間なし)", "Recruit on each Y press"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent || g_RecruitSt >= 0) std::snprintf(vb, sizeof(vb), T("%u回 (状態%d)", "%ux (st %d)"), static_cast<unsigned>(g_RecruitSent), static_cast<int>(g_RecruitSt)); }
                 else if (i == kDynAliasNotify) { nm = T("募集通知を別名で", "Recruit with alias name"); st = g_AliasNotify ? 1 : 0; }
                 else if (i == kDynGameKb) { nm = T("ゲームのキーボードを自由入力に", "Free game keyboard"); st = g_GameKbFree ? 1 : 0; if (g_GameKbHits) std::snprintf(vb, sizeof(vb), T("%u回", "%ux"), static_cast<unsigned>(g_GameKbHits)); }

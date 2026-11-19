@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 135; /* tmt 1.1.25 (起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 136; /* tmt 1.1.26 (起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -10696,7 +10696,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (upd && !extT) extT = nw; if (!upd) extT = 0;
         static int su = 0; if (upd) su = (us == 0 && g_UpdManual) ? 1 : us; /* 消えていく間は、最後に出していた中身のまま */
         float ex = 0.0f; if (g_SplMan) ex = 1.0f; else if (extT) { float q = static_cast<float>(nw - extT) / 7680000.0f; if (q > 1.0f) q = 1.0f; ex = 1.0f - (1.0f - q) * (1.0f - q) * (1.0f - q); } /* 0.4 秒でのびる */
-        const int BW = 820, BH0 = 130, EH = static_cast<int>(100.0f * ex), BH = BH0 + EH, PAD = kSplPad; /* PAD: 板の外 (葉が板の外へはみ出す所) */
+        const int BW = 820, BH0 = 160, EH = 0 * static_cast<int>(100.0f * ex), BH = BH0 + EH, /* 板は固定の高さ (アップデートの表示も、この中に入れる) */ PAD = kSplPad; /* PAD: 板の外 (葉が板の外へはみ出す所) */
         g_SplBW = BW + 2 * PAD; g_SplBH = BH + 2 * PAD; g_SplR = 28;
         Cv v { g_SplBase, BW + 2 * PAD, BH + 2 * PAD, -PAD, -PAD }; /* 描く座標は板の左上が (0,0) */
         for (int k = 0; k < (BW + 2 * PAD) * (BH + 2 * PAD); k++) g_SplBase[k] = 0x00FFFFFFu; /* 透明 (色は白) */
@@ -10715,7 +10715,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (g_SplPa) { const Spr sa { g_SplPa, kSaW, kSaH }; const int clip[5] = { 2, 2, BW - 4, BH - 4, 26 }; SprBlit(v, sa, kSaX, 0, clip); } /* tmt 1.1.21: 淡いローポリの下地 + 鳥 (板の中) */
         /* ロゴ「Inkdraw」+ すぐ右にバージョン (枠なし)。読み込みのバーは板の下の方に置き、アップデートの文字が出るときは、その区切りの線になる */
         const menu_text::Str& T = menu_text::kTITLEBIG;
-        const int tx = 64, ly = BH0 - 32, ty = (ly - T.h) / 2; /* ロゴの上の余白と、ロゴからバーまでの余白を同じに */
+        const int tx = 64, ly = 86, ty = (ly - T.h) / 2; /* バーは真ん中より下、ロゴはその上、アップデートの文字はバーの下 (板の下の方) */ /* ロゴの上の余白と、ロゴからバーまでの余白を同じに */
         SwStr(v, T, tx, ty, white);
         { char vd[16]; FmtVerDigits(vd, sizeof(vd), kInkVer); char vt[48]; std::snprintf(vt, sizeof(vt), "%sVer.%s", kInkKind[0] == 'd' ? "dev " : "", vd);
           SwHDS(v, vt, tx + T.w + 14, ty + T.h - 18, 1, dimc, kHdSc); } /* 文字の下の線 (ベースライン) をロゴにそろえる */
@@ -10728,9 +10728,9 @@ constexpr unsigned char kIconA[6][32*32] = {
             SwRRect(v, bx, ly, bw, 4, 2.0f, Col { 0.87f, 0.88f, 0.91f });
             for (int x = 0; x < len; x++) { const float k = static_cast<float>(x) / static_cast<float>(bw > 1 ? bw - 1 : 1); SwRect(v, bx + x, ly, 1, 4, Col { 0.39f - 0.06f * k, 0.40f + 0.30f * k, 0.95f - 0.03f * k }); }
         }
-        if (EH > 6) { /* のびた所: アップデートの流れ。左に見出し (28px)、右に操作 (A / B) やエラーの番号 (20px)。説明が要るときだけ見出しの下に 1 行 */
+        { /* バーの下: : アップデートの流れ。左に見出し (28px)、右に操作 (A / B) やエラーの番号 (20px)。説明が要るときだけ見出しの下に 1 行 */
             const int y0 = ly + 4, EA = BH - 8 - y0; /* 区切りの線は出さない (読み込みのバーがその代わり)。文字は、バーの下から板の下までのまん中に */
-            if (EH > 40) {
+            {
                 const Col okc { 0.17f, 0.60f, 0.33f }, ngc { 0.84f, 0.33f, 0.28f }, bgc { 0.955f, 0.965f, 0.980f };
                 auto drawSt = [&](int st, float al, int oy) { /* st の中身を、濃さ al (0〜1、板の色へ混ぜる)、上下に oy ずらして描く */
                     auto mixc = [&](Col c) { return Col { bgc.r + (c.r - bgc.r) * al, bgc.g + (c.g - bgc.g) * al, bgc.b + (c.b - bgc.b) * al }; };
@@ -10748,7 +10748,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                     SwHDS(v, h1, 64, hy, 0, mixc(hc), kHdSc);
                     if (ln[0]) SwHDS(v, ln, 64, hy + hh + 4, 1, mixc(dimc), kHdSc);
                     if (rt[0]) SwHDS(v, rt, BW - 64 - HdWS(rt, 1, kHdSc), cy - sh / 2, 1, mixc(dimc), kHdSc); /* 右: エラーの番号 / ダウンロードの量 */
-                    if (ask && EH > 80) { /* 右: A はい  B いいえ (ボタンの丸 + 文字) */
+                    if (ask) { /* 右: A はい  B いいえ (ボタンの丸 + 文字) */
                         auto key = [&](int x, const char* k, const char* t, Col tc) -> int { const int r = 14, cx = x + r; SwRRect(v, x, cy - r, 2 * r, 2 * r, static_cast<float>(r), mixc(Col { 0.16f, 0.17f, 0.21f }));
                             SwHDS(v, k, cx - HdWS(k, 1, kHdSc) / 2, cy - sh / 2, 1, mixc(Col { 0.97f, 0.97f, 0.98f }), kHdSc); SwHDS(v, t, x + 2 * r + 8, cy - sh / 2, 1, mixc(tc), kHdSc); return 2 * r + 8 + HdWS(t, 1, kHdSc); };
                         const int wA = 28 + 8 + HdWS(T("はい","Yes"), 1, kHdSc), wB = 28 + 8 + HdWS(T("いいえ","No"), 1, kHdSc), gapK = 22;
@@ -11990,7 +11990,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 /* 版 684: 展開したメニューが広いほど、背景の混ぜ直しを減らして粗くする (lod 0〜3)。変わっていないとき (bad == 0) だけ、2〜3 フレームに 1 回に間引く */
                 { long long area = 0; for (int k = 0; k < g_SwRectN; k++) area += static_cast<long long>(g_SwRects[k].w) * g_SwRects[k].h;
                   g_BlLod = 3 /* 背景は、ぼやけてよいので、いつもいちばん粗く (軽く) */;
-                  static const u32 kIv[4] = { 1, 2, 2, 3 }; skipF = bad <= 0 && kIv[g_BlLod] > 1 && (s_Frame % kIv[g_BlLod]) != 0; }
+                  static const u32 kIv[4] = { 1, 2, 2, 4 }; skipF = bad <= 0 && kIv[g_BlLod] > 1 && (s_Frame % kIv[g_BlLod]) != 0; }
                 if (!skipF && g_Rb.ok && g_Rb.off >= g_PixHi && g_Rb.w > 0 && g_Rb.rows > 0) {
                     const int rw = g_Rb.w, rn = g_Rb.rows, st = g_Rb.step;
                     u32* rb = reinterpret_cast<u32*>(g_PixStorage + g_Rb.off);
@@ -12015,7 +12015,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                                 const u32 m = sr[x]; const u32 c = InkLv(m);
                                 u32 kA = A; if (c > 120) { u32 t = (c - 120) * 4; if (t > 256) t = 256; kA = A + (((256 - A) * t) >> 8); }
                                 if (kA >= 256) { dr[x] = m; continue; }
-                                u32 bgp; if (g_BlLod >= 2 && (x & (g_BlLod >= 3 ? 3 : 1)) && bgX >= x - (g_BlLod >= 3 ? 3 : 1) && bgX < x) bgp = bgV; /* 粗いとき: 横 2 画素 (いちばん粗いときは 4 画素) で背景を共有 */
+                                u32 bgp; if (g_BlLod >= 2 && (x & (g_BlLod >= 3 ? 7 : 1)) && bgX >= x - (g_BlLod >= 3 ? 7 : 1) && bgX < x) bgp = bgV; /* 粗いとき: 横 2 画素 (いちばん粗いときは 8 画素) で背景を共有 */
                                 else { int bx = x + g_SwX - g_Rb.x; if (bx < 0) bx = 0; if (bx >= rw) bx = rw - 1; bgp = tw ? LerpPx(bg[bx], bg1[bx], tw) : bg[bx]; bgV = bgp; bgX = x; }
                                 dr[x] = (LerpPx(bgp, m, kA) & 0x00FFFFFFu) | 0xFF000000u;
                             }
@@ -12032,8 +12032,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                 const int rw = rx1 - rx, rh = ry1 - ry;
                 const size_t barOff = kPixBytes - static_cast<size_t>(16 * 64 * 4);
                 const size_t used = (g_PixHi + 255u) & ~static_cast<size_t>(255u);
-                static const int kSt[5] = { 2, 3, 4, 6, 8 }; /* 版 646: 粗くして軽く。版 684: メニューが広いほど粗い行から始める */
-                if (rw > 0 && rh > 0 && rw <= kOvW) for (int si = (g_BlLod < 4 ? g_BlLod : 3); si < 5; si++) {
+                static const int kSt[7] = { 2, 3, 4, 6, 8, 12, 16 }; /* 版 646: 粗くして軽く。版 684: メニューが広いほど粗い行から始める */
+                if (rw > 0 && rh > 0 && rw <= kOvW) for (int si = 5; si < 7; si++) { /* いちばん粗い行間隔 (12 行ごと) から */
                     const int stp = kSt[si], rows = (rh + stp - 1) / stp; const size_t need = static_cast<size_t>(rows) * rw * 4u;
                     if (need + used > barOff) continue;
                     const size_t off = (barOff - need) & ~static_cast<size_t>(255u);

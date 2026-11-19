@@ -341,6 +341,14 @@ namespace {
     using FnTeamChangeChild = s64 (*)(unsigned int playerIndex, unsigned int teamId);
     constexpr uintptr_t kTeamChangeChildOff = 0x390BDC0; /* sub_390BDC0: TeamChangeChild (UI + イベント発火) */
     constexpr uintptr_t kTeamDataPtrOff     = 0x5F3A780; /* off_5F3A780: チームデータへのポインタ */
+    /* tmt 1.1.8: 決定後も効くチーム変更。ゲーム自身の sub_38C8A28(slot, team) を呼ぶ。
+       内部で各プレイヤーのチーム状態オブジェクトを解決し SetTeam (+588) を呼び、イベントを発火する。
+       決定前は v2[267] が、決定後は SetTeam(+588) が効く。入力スレッドからは呼ばず、要求だけ立てて
+       FrameHook (ゲームスレッド) で実行する (ゲームの UI ボタンと同じスレッド)。 */
+    using FnTeamSetUi = s64 (*)(unsigned int slot, unsigned int team);
+    constexpr uintptr_t kTeamSetUiOff = 0x38C8A28;
+    volatile int g_TeamReq[10] = { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1 }; /* 各スロットの保留中の要求チーム (-1 なし) */
+    void TeamReqTick();
     volatile int g_RecruitSt = -1; volatile bool g_RecruitY = true, g_AliasNotify = true; volatile bool g_RecruitReq = false; volatile u32 g_RecruitSent = 0; /* tmt: プラベの募集 */
     volatile int g_SymSel = 0; volatile int g_SymN = 0; u16 g_SymPend[24] = {}; /* tmt: 選んだゲームの記号 (次のキーボードの入力欄に入れる) */ /* tmt: v771 の項目 */
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
@@ -349,7 +357,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 117; /* tmt 1.1.7 (浮遊の同期を削除: 送信側だけでは他人に浮遊を見せられないため) */
+    constexpr int kInkVer = 118; /* tmt 1.1.8 (チーム変更: 決定後も効くよう sub_38C8A28 をゲームスレッドで呼ぶ) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -1289,6 +1297,7 @@ namespace {
                         }
                     }
                 }
+                g_TeamReq[pi] = tv; /* tmt 1.1.8: 決定後も効くよう、ゲームスレッドで SetTeam を呼んでもらう */
             }
             return;
         }
@@ -2695,6 +2704,7 @@ HOOK_DEFINE_TRAMPOLINE(FrameHook) {
         FovApply();
         ScnTick();
         g_FrameT = NowTick(); LookTick(); /* 毎フレーム 1 回: 相手と自分とカメラの、このフレームの座標で向きを決める */
+        TeamReqTick(); /* tmt 1.1.8: 保留中のチーム変更を実行 */
         if (g_DriveFn) g_DriveFn();
         return r;
     }
@@ -2791,6 +2801,20 @@ namespace {
         g_EnHkT[k] = now; g_EnHkLastT = now; g_EnHkNotes = g_EnHkNotes + 1;
         if (selfC && selfC == a1) { g_EnHkSelf = ob; g_EnHkSelfT = now; }
         EnHkUnlock();
+    }
+}
+/* tmt 1.1.8: 保留中のチーム変更要求を、ゲームスレッドで実行する。
+   ゲーム自身の sub_38C8A28(slot, team) を呼ぶ (UI ボタンと同じ経路)。内部でステップ判定・null 判定あり。 */
+void TeamReqTick() {
+    if (g_OffPaintRequest != 0x37246F0 || !InLobbyNow()) return; /* ロビーのときだけ */
+    const uintptr_t mb = MainBase();
+    if (*reinterpret_cast<const u32*>(mb + kTeamSetUiOff) != 0xA9BD7BFDu) return; /* 命令が想定どおりのときだけ */
+    auto fn = reinterpret_cast<FnTeamSetUi>(mb + kTeamSetUiOff);
+    for (int i = 0; i < 10; i++) {
+        const int tv = g_TeamReq[i];
+        if (tv < 0) continue;
+        g_TeamReq[i] = -1;
+        if (tv <= 4) fn(static_cast<unsigned int>(i), static_cast<unsigned int>(tv));
     }
 }
 HOOK_DEFINE_TRAMPOLINE(BodyCalcHook) {

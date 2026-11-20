@@ -77,23 +77,26 @@ inline void DecoLeaf(Cv& v, float bx, float by, float angDeg, float ln, float wd
     DecoFacet(v, x0, y0, xl, yl, xm, ym, (m & 1) != 0); DecoFacet(v, xm, ym, xl, yl, xt, yt, (m & 2) != 0);
     DecoFacet(v, x0, y0, xr, yr, xm, ym, (m & 4) != 0); DecoFacet(v, xm, ym, xr, yr, xt, yt, (m & 8) != 0);
 }
+/* 起動のときの組み立て: 0〜1 の進み具合 prog のうち、delay から span のあいだに、部品が枠の外から寄ってくる (0 = 遠い、1 = 定位置) */
+inline float DecoEase(float prog, float delay, float span = 0.40f) { float t = (prog - delay) / span; if (t < 0.0f) t = 0.0f; if (t > 1.0f) t = 1.0f; const float q = 1.0f - t; return 1.0f - q * q * q; }
 /* 枝: 根もとから、ゆるく曲がる茎に、左右互い違いに葉を付ける */
-inline void DecoSprig(Cv& v, float bx, float by, float angDeg, float len, float leaf, int n, int seed, float bend) {
+inline void DecoSprig(Cv& v, float bx, float by, float angDeg, float len, float leaf, int n, int seed, float bend, float prog = 1.0f, float odx = 0.0f, float ody = 0.0f) {
     float x = bx, y = by, ang = angDeg; const float seg = len / static_cast<float>(n);
     for (int i = 0; i < n; i++) {
         const float a = ang * 0.017453293f, nx = x + seg * __builtin_cosf(a), ny = y + seg * __builtin_sinf(a);
-        DecoSeg(v, x, y, nx, ny, 1.8f, decoc::kK);
+        Cv w = v; { const float e = DecoEase(prog, 0.05f + 0.07f * static_cast<float>(i)), sh = (1.0f - e) * 110.0f; w.ox -= static_cast<int>(odx * sh); w.oy -= static_cast<int>(ody * sh); if (prog < 1.0f && e <= 0.01f) { x = nx; y = ny; ang += bend; continue; } } /* i 番目の茎と葉は、枠の外から寄ってくる */
+        DecoSeg(w, x, y, nx, ny, 1.8f, decoc::kK);
         const float side = (i & 1) ? 1.0f : -1.0f, sz = leaf * (1.0f - 0.40f * static_cast<float>(i) / static_cast<float>(n)) * (0.9f + 0.2f * DecoRnd(seed + i));
-        DecoLeaf(v, nx, ny, ang + side * (36.0f + 16.0f * DecoRnd(seed * 3 + i)), sz, sz * 0.46f, seed + i * 5);
+        DecoLeaf(w, nx, ny, ang + side * (36.0f + 16.0f * DecoRnd(seed * 3 + i)), sz, sz * 0.46f, seed + i * 5);
         x = nx; y = ny; ang += bend;
     }
-    DecoLeaf(v, x, y, ang, leaf * 0.7f, leaf * 0.32f, seed + 99);
+    { Cv w = v; const float e = DecoEase(prog, 0.05f + 0.07f * static_cast<float>(n)), sh = (1.0f - e) * 110.0f; w.ox -= static_cast<int>(odx * sh); w.oy -= static_cast<int>(ody * sh); if (prog >= 1.0f || e > 0.01f) DecoLeaf(w, x, y, ang, leaf * 0.7f, leaf * 0.32f, seed + 99); }
 }
 
 /* ---- 鳥: ほんの十数枚の三角だけ。鳥だと分かる人にも、折り紙や破片に見える人にも読めるように ---- */
 struct DecoTr { float cx, cy, sc, ca, sa, mx; };
 inline void DecoTrApply(const DecoTr& t, float x, float y, float& ox, float& oy) { const float fx = x * t.mx; ox = t.cx + (fx * t.ca - y * t.sa) * t.sc; oy = t.cy + (fx * t.sa + y * t.ca) * t.sc; }
-inline void DecoBird(Cv& v, float cx, float cy, float sc, float rotDeg, bool mirror) {
+inline void DecoBird(Cv& v, float cx, float cy, float sc, float rotDeg, bool mirror, float prog = 1.0f) {
     const DecoTr t { cx, cy, sc, __builtin_cosf(rotDeg * 0.017453293f), __builtin_sinf(rotDeg * 0.017453293f), mirror ? -1.0f : 1.0f };
     static const short F[][7] = { /* 三角 3 点 + 黒(1)/白(0) */
         { -26, 14, -62, 70, 14, 52, 0 },                                   /* 遠い方の羽 */
@@ -102,7 +105,10 @@ inline void DecoBird(Cv& v, float cx, float cy, float sc, float rotDeg, bool mir
         { -70, -32, -60, -2, -8, -28, 0 }, { -60, -2, -8, -28, 6, 22, 1 }, { -8, -28, 6, 22, 52, -4, 0 }, /* 体 */
         { -16, -26, 24, -128, 62, -36, 1 }, { 24, -128, 62, -36, 90, -88, 0 }, /* 近い方の羽 */
     };
-    for (const auto& f : F) { float ax, ay, bx, by, qx, qy; DecoTrApply(t, f[0], f[1], ax, ay); DecoTrApply(t, f[2], f[3], bx, by); DecoTrApply(t, f[4], f[5], qx, qy); DecoFacet(v, ax, ay, bx, by, qx, qy, f[6] != 0, 1.2f + 0.8f * t.sc); }
+    int fi = 0;
+    for (const auto& f : F) { float ax, ay, bx, by, qx, qy; DecoTrApply(t, f[0], f[1], ax, ay); DecoTrApply(t, f[2], f[3], bx, by); DecoTrApply(t, f[4], f[5], qx, qy);
+        if (prog < 1.0f) { const float e = DecoEase(prog, 0.22f + 0.045f * static_cast<float>(fi)); fi++; if (e <= 0.01f) continue; const float mx = (ax + bx + qx) / 3.0f - cx, my = (ay + by + qy) / 3.0f - cy; float L = __builtin_sqrtf(mx * mx + my * my); if (L < 1.0f) L = 1.0f; const float sh = (1.0f - e) * 170.0f, sx = mx / L * sh, sy = my / L * sh; ax += sx; bx += sx; qx += sx; ay += sy; by += sy; qy += sy; }
+        DecoFacet(v, ax, ay, bx, by, qx, qy, f[6] != 0, 1.2f + 0.8f * t.sc); }
 }
 
 /* ---- 小さな絵 (スプライト): 一度だけ描いて、あとは貼るだけ ---- */
@@ -144,7 +150,7 @@ inline void DecoMenuBird(Spr& s) {
 
 /* スプラッシュの飾り。板は (0,0)-(BW,BH) */
 constexpr int kSaX = 270, kSaW = 550, kSaH = 160; /* 右側の絵: 板の x = 300 から右 */
-inline void DecoSplashArt(Spr& s, int BW) {
+inline void DecoSplashArt(Spr& s, int BW, float prog = 1.0f) {
     using namespace decoc;
     Cv v { s.px, s.w, s.h, kSaX, 0 }; SprClear(s); (void)BW;
     /* 細い線のローポリの下地 (右へ行くほど密) */
@@ -156,29 +162,34 @@ inline void DecoSplashArt(Spr& s, int BW) {
     for (int j = 0; j < gy; j++) for (int i = 0; i < gx; i++) {
         /* 「tmt Ver.…」の右あたりで見えなくなるまで、左へ向かって少しずつ薄く (鳥のうしろでも、濃くなりすぎない) */
         const float xm = static_cast<float>(kSaX) + cw * (static_cast<float>(i) + 0.5f); float f = (xm - 285.0f) / (800.0f - 285.0f); f = f < 0.0f ? 0.0f : (f > 1.0f ? 1.0f : f);
-        const float al = 0.50f * f * f * (3.0f - 2.0f * f) * 0.9f + 0.04f * f; if (al < 0.01f) continue;
+        float al = 0.50f * f * f * (3.0f - 2.0f * f) * 0.9f + 0.04f * f; if (al < 0.01f) continue;
+        Cv v0 = v; if (prog < 1.0f) { /* 起動: この区画の線は、枠の外から寄ってきて、濃くなる */
+            const float e = DecoEase(prog, 0.50f * DecoRnd(j * 13 + i * 5 + 300), 0.50f); if (e <= 0.01f) continue; al *= e;
+            const float dx = xm - (static_cast<float>(kSaX) + 0.55f * kSaW), dy = ch * (static_cast<float>(j) + 0.5f) - 0.5f * kSaH; float L = __builtin_sqrtf(dx * dx + dy * dy); if (L < 1.0f) L = 1.0f; const float sh = (1.0f - e) * 150.0f; v.ox -= static_cast<int>(dx / L * sh); v.oy -= static_cast<int>(dy / L * sh); }
         if (DecoRnd(j * 53 + i * 7 + 900) < 0.7f) DecoSeg(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], 0.9f, kK, al);
         if (DecoRnd(j * 29 + i * 11 + 950) < 0.7f) DecoSeg(v, PX[j][i], PY[j][i], PX[j + 1][i], PY[j + 1][i], 0.9f, kK, al);
         if (DecoRnd(j * 41 + i * 3 + 990) < 0.7f) DecoSeg(v, PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], 0.9f, kK, al);
         if (f > 0.5f && DecoRnd(j * 19 + i * 23 + 1100) > 0.86f) DecoTri(v, PX[j][i], PY[j][i], PX[j][i + 1], PY[j][i + 1], PX[j + 1][i], PY[j + 1][i], kK, al * 0.55f, 0.3f); /* ところどころ薄く塗る */
+        v = v0;
     }
-    DecoBird(v, 650.0f, 54.0f, 0.38f, -6.0f, false); /* バーより上に収まる大きさ */
+    DecoBird(v, 650.0f, 54.0f, 0.38f, -6.0f, false, prog); /* バーより上に収まる大きさ */
     static const float SH[7][6] = { { 732, 30, 752, 24, 742, 42 }, { 764, 66, 782, 62, 772, 78 }, { 716, 80, 730, 76, 722, 90 }, { 770, 112, 782, 108, 776, 120 }, { 744, 138, 758, 136, 750, 148 }, { 690, 150, 702, 146, 696, 158 }, { 700, 22, 710, 18, 706, 30 } };
-    for (int i = 0; i < 7; i++) DecoFacet(v, SH[i][0], SH[i][1] * 0.42f + 4.0f, SH[i][2], SH[i][3] * 0.42f + 4.0f, SH[i][4], SH[i][5] * 0.42f + 4.0f, (i & 1) == 0, 1.0f);
+    for (int i = 0; i < 7; i++) { Cv w = v; if (prog < 1.0f) { const float e = DecoEase(prog, 0.35f + 0.06f * static_cast<float>(i)); if (e <= 0.01f) continue; const float sh = (1.0f - e) * 150.0f; w.ox -= static_cast<int>(sh * ((i & 1) ? 1.0f : 0.6f)); w.oy -= static_cast<int>(sh * ((i & 2) ? 0.8f : -0.8f)); }
+        DecoFacet(w, SH[i][0], SH[i][1] * 0.42f + 4.0f, SH[i][2], SH[i][3] * 0.42f + 4.0f, SH[i][4], SH[i][5] * 0.42f + 4.0f, (i & 1) == 0, 1.0f); }
 }
 /* 右上の角 (板の右上 = (kStrCx, kStrCy)) に、枠の外へ付く枝と葉 */
 constexpr int kStrW = 260, kStrH = 170, kStrCx = 190, kStrCy = 60;
-inline void DecoSplashTR(Spr& s) {
+inline void DecoSplashTR(Spr& s, float prog = 1.0f) {
     Cv v { s.px, s.w, s.h, 0, 0 }; SprClear(s);
     const float cx = static_cast<float>(kStrCx), cy = static_cast<float>(kStrCy);
-    DecoSprig(v, cx + 24.0f, cy - 12.0f, 172.0f, 140.0f, 34.0f, 4, 21, -3.5f);
-    DecoSprig(v, cx + 10.0f, cy - 6.0f, 98.0f, 90.0f, 28.0f, 3, 61, 4.0f);
+    DecoSprig(v, cx + 24.0f, cy - 12.0f, 172.0f, 140.0f, 34.0f, 4, 21, -3.5f, prog, 0.7f, -0.7f);
+    DecoSprig(v, cx + 10.0f, cy - 6.0f, 98.0f, 90.0f, 28.0f, 3, 61, 4.0f, prog, 0.7f, -0.7f);
 }
 /* 左下の角 (板の左下 = (kSblCx, kSblCy)) */
 constexpr int kSblW = 260, kSblH = 170, kSblCx = 60, kSblCy = 110;
-inline void DecoSplashBL(Spr& s) {
+inline void DecoSplashBL(Spr& s, float prog = 1.0f) {
     Cv v { s.px, s.w, s.h, 0, 0 }; SprClear(s);
     const float cx = static_cast<float>(kSblCx), cy = static_cast<float>(kSblCy);
-    DecoSprig(v, cx - 24.0f, cy + 12.0f, -8.0f, 140.0f, 34.0f, 4, 121, 3.5f);
-    DecoSprig(v, cx - 10.0f, cy + 6.0f, -82.0f, 90.0f, 28.0f, 3, 161, -4.0f);
+    DecoSprig(v, cx - 24.0f, cy + 12.0f, -8.0f, 140.0f, 34.0f, 4, 121, 3.5f, prog, -0.7f, 0.7f);
+    DecoSprig(v, cx - 10.0f, cy + 6.0f, -82.0f, 90.0f, 28.0f, 3, 161, -4.0f, prog, -0.7f, 0.7f);
 }

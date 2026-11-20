@@ -201,19 +201,26 @@ inline void DecoEll(Cv& v, float cx, float cy, float rx, float ry, Col k) {
         const float dx = (static_cast<float>(x) + 0.5f - cx) / rx, dy = (static_cast<float>(y) + 0.5f - cy) / ry, d2 = dx * dx + dy * dy; if (d2 > 1.12f) continue;
         float al = (1.06f - d2) * 6.0f; if (al > 1.0f) al = 1.0f; if (al > 0.0f) Blend(v, x, y, k, al); }
 }
-inline void DecoCat(Cv& v, float t, float drop) {
-    using namespace decoc;
+inline void DecoCatBody(Cv& v, float t, float drop, Col kK, float gr) {
     const float br = 0.8f * __builtin_sinf(t * 3.0f), dy = -drop; /* 息 */
     DecoEll(v, 132.0f, -13.0f + dy, 52.0f, 13.0f + br * 0.5f, kK);       /* 胴 */
     DecoEll(v, 168.0f, -15.0f + dy, 26.0f, 15.0f + br * 0.5f, kK);       /* おしり */
     DecoEll(v, 82.0f, -11.0f + dy, 15.0f, 12.0f, kK);                    /* 頭 */
     DecoTri(v, 70.0f, -18.0f + dy, 72.0f, -36.0f + dy, 83.0f, -22.0f + dy, kK); /* 耳 */
     DecoTri(v, 82.0f, -22.0f + dy, 94.0f, -35.0f + dy, 95.0f, -16.0f + dy, kK);
-    if (drop < 1.0f) { /* 前足: 枠のふちから下へ垂れる */
-        DecoEll(v, 76.0f, 6.0f + dy, 5.0f, 9.0f, kK); DecoEll(v, 90.0f, 5.0f + dy, 5.0f, 8.0f, kK); }
+    DecoEll(v, 76.0f, 6.0f + dy, 5.0f + gr, 9.0f + gr, kK); DecoEll(v, 90.0f, 5.0f + dy, 5.0f + gr, 8.0f + gr, kK); /* 前足: 体と同時に、枠のふちから下へ垂れる */
     { /* しっぽ: おしりから枠の上へ垂れて、ゆらゆら振る */
         float x = 190.0f, y = -8.0f + dy; const float sw = __builtin_sinf(t * 6.5f);
         for (int i = 0; i < 7; i++) { const float a = 1.5707963f - 0.20f + sw * (0.12f + 0.11f * static_cast<float>(i)) + 0.05f * static_cast<float>(i), nx = x + 8.0f * __builtin_cosf(a), ny = y + 8.0f * __builtin_sinf(a);
             DecoSeg(v, x, y, nx, ny, 7.5f - 0.5f * static_cast<float>(i), kK); DecoDisc(v, nx, ny, 3.8f - 0.25f * static_cast<float>(i), kK); x = nx; y = ny; }
     }
+}
+/* 白でふちどってから黒で描く (暗い背景でも見える) */
+inline void DecoCat(Cv& v, float t, float drop) {
+    const Col W { 1.0f, 1.0f, 1.0f }, K { 0.0f, 0.0f, 0.0f };
+    static const float O[8][2] = { { 2, 0 }, { -2, 0 }, { 0, 2 }, { 0, -2 }, { 1.5f, 1.5f }, { -1.5f, 1.5f }, { 1.5f, -1.5f }, { -1.5f, -1.5f } };
+    for (int i = 0; i < 8; i++) { Cv w = v; w.ox -= static_cast<int>(O[i][0] * 1.0f + (O[i][0] < 0 ? -0.5f : 0.5f)); w.oy -= static_cast<int>(O[i][1] * 1.0f + (O[i][1] < 0 ? -0.5f : 0.5f)); DecoCatBody(w, t, drop, W, 0.0f); }
+    DecoCatBody(v, t, drop, K, 0.0f);
+    /* 白: 目 (閉じた線) としっぽの先 */
+    DecoSeg(v, 74.0f, -12.0f - drop, 80.0f, -9.5f - drop, 1.4f, W); DecoSeg(v, 86.0f, -9.5f - drop, 92.0f, -12.0f - drop, 1.4f, W);
 }

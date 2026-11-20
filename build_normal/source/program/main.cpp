@@ -352,7 +352,7 @@ namespace {
     volatile int g_TmLobby = -1, g_TmStep = -1, g_TmGate = -1, g_TmReady = -1; volatile u32 g_TmCalls = 0, g_TmInput = 0; /* tmt 1.1.10: 診断 */
     constexpr uintptr_t kOffLobbyStep = 0x5F2C8A0, kOffLobbyGate = 0x5F2DAA0, kOffTeamSeq = 0x5F46808, kOffTeamMgr = 0x5F2DB40;
     void TeamReqTick();
-    volatile bool g_PetOn = false, g_PetFlip = false; volatile int g_PetKind = 3, g_PetCol = 1, g_PetNum = 4, g_PetSpd = 5; /* tmt 1.1.53: 舞う花びら・羽根・きらめき (画面に重ねる) */
+    volatile bool g_PetOn = false, g_PetFlip = false; volatile int g_PetKind = 7, g_PetCol = 1, g_PetNum = 4, g_PetSpd = 5; /* tmt 1.1.53: 舞う花びら・羽根・きらめき (画面に重ねる) */
     volatile int g_RecruitSt = -1; volatile bool g_RecruitY = true, g_AliasNotify = true; volatile bool g_RecruitReq = false; volatile u32 g_RecruitSent = 0; /* tmt: プラベの募集 */
     volatile int g_SymSel = 0; volatile int g_SymN = 0; u16 g_SymPend[24] = {}; /* tmt: 選んだゲームの記号 (次のキーボードの入力欄に入れる) */ /* tmt: v771 の項目 */
     extern volatile int g_AimCurveY[9]; extern volatile int g_AimTune; extern volatile float g_AimNowD; extern volatile int g_AimCurveSel; float AimUnitsFor(float d); /* 定義は GaTick の近く */
@@ -361,7 +361,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 163; /* tmt 1.1.53 (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 164; /* tmt 1.1.54 (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -1330,8 +1330,8 @@ namespace {
         if (it == kDynRecruitY) { if (act || lf || rt) g_RecruitY = !g_RecruitY; return; }
         if (it == kDynPetOn) { if (act || lf || rt) g_PetOn = !g_PetOn; return; }
         if (it == kDynPetFlip) { if (act || lf || rt) g_PetFlip = !g_PetFlip; return; }
-        if (it == kDynPetKind) { int k = g_PetKind; if (lf) k = (k + 3) & 3; else if (rt || act) k = (k + 1) & 3; g_PetKind = k; return; }
-        if (it == kDynPetCol) { int k = g_PetCol; if (lf) k = (k + 6) % 7; else if (rt || act) k = (k + 1) % 7; g_PetCol = k; return; }
+        if (it == kDynPetKind) { int k = g_PetKind; if (lf) k = (k + 7) & 7; else if (rt || act) k = (k + 1) & 7; g_PetKind = k; return; }
+        if (it == kDynPetCol) { int k = g_PetCol; if (lf) k = (k + 7) & 7; else if (rt || act) k = (k + 1) & 7; g_PetCol = k; return; }
         if (it == kDynPetNum) { int k = g_PetNum; if (lf && k > 1) k--; if (rt && k < 8) k++; if (act) k = k >= 8 ? 1 : k + 1; g_PetNum = k; return; }
         if (it == kDynPetSpd) { int k = g_PetSpd; if (lf && k > 1) k--; if (rt && k < 10) k++; if (act) k = k >= 10 ? 1 : k + 1; g_PetSpd = k; return; }
         if (it == kDynAliasNotify) { if (act || lf || rt) g_AliasNotify = !g_AliasNotify; return; }
@@ -7100,7 +7100,7 @@ namespace {
                 if (get("pchtxtOn", &v) && (v != 0) != g_PatchEnabled) { g_PatchEnabled = v != 0; g_ReqPatchApply = true; } if (get("panQ", &v) && v >= 1 && v <= 4) g_PanQ = 4; /* 版 675: 縞になるので固定 */ if (get("emSel", &v) && v >= 0 && v < kEmN) g_EmSel = v; if (get("emOn", &v)) g_EmOn = v != 0; if (get("macroOn", &v)) g_MacroOn = v != 0; if (get("macroBtn", &v) && v >= 0 && v < kMacroN) g_MacroBtn = v; if (get("macroIv", &v) && v >= 20 && v <= 2000) g_MacroIv = v; if (get("tmtScale", &v) && v >= 50 && v <= 150) g_UiScale = v; if (get("tmtOpa2", &v) && v >= 20 && v <= 100) g_UiOpa = v; /* 版 678: 新しい名前 (前の保存値は使わず、初期値 80 から) */ if (get("uiX", &v) && v > -2000 && v < 2000) g_UiX = v; if (get("uiY", &v) && v > -2000 && v < 2000) g_UiY = v;
                 
                 { char nm[8] = { 'c', 'u', 'r', 'v', 'e', '0', 0, 0 }; for (int i = 0; i < 9; i++) { nm[5] = static_cast<char>('0' + i); if (get(nm, &v) && v >= -100 && v <= 100) g_AimCurveY[i] = v; } }
-                if (get("aimTune", &v) && v >= -50 && v <= 50) g_AimTune = v; if (get("newsSkip", &v)) g_NewsSkip = v != 0; if (get("recruitY", &v)) g_RecruitY = v != 0; if (get("aliasNotify", &v)) g_AliasNotify = v != 0; if (get("petOn", &v)) g_PetOn = v != 0; if (get("petFlip", &v)) g_PetFlip = v != 0; if (get("petKind", &v) && v >= 0 && v < 4) g_PetKind = v; if (get("petCol", &v) && v >= 0 && v < 7) g_PetCol = v; if (get("petNum", &v) && v >= 1 && v <= 8) g_PetNum = v; if (get("petSpd", &v) && v >= 1 && v <= 10) g_PetSpd = v;
+                if (get("aimTune", &v) && v >= -50 && v <= 50) g_AimTune = v; if (get("newsSkip", &v)) g_NewsSkip = v != 0; if (get("recruitY", &v)) g_RecruitY = v != 0; if (get("aliasNotify", &v)) g_AliasNotify = v != 0; if (get("petOn", &v)) g_PetOn = v != 0; if (get("petFlip", &v)) g_PetFlip = v != 0; if (get("petKind", &v) && v >= 0 && v < 8) g_PetKind = v; if (get("petCol", &v) && v >= 0 && v < 8) g_PetCol = v; if (get("petNum", &v) && v >= 1 && v <= 8) g_PetNum = v; if (get("petSpd", &v) && v >= 1 && v <= 10) g_PetSpd = v;
                 if (get("aimbot", &v) && v) { g_LookSlot = 6; g_LookOn = true; g_EnScanNow = true; g_BalScanNow = true; }
             }
             KV kv[kKvMax]; const int m = cur(kv); u32 h = 2166136261u; for (int k = 0; k < m; k++) h = (h ^ static_cast<u32>(kv[k].v + 7919 * k)) * 16777619u; lastH = h; return;
@@ -11067,8 +11067,8 @@ constexpr unsigned char kIconA[6][32*32] = {
                     if (pi == 0) { char dbg[56]; std::snprintf(dbg, sizeof(dbg), " [I%u R%d C%u Q%d]", static_cast<unsigned>(g_TmInput), g_TmReady, static_cast<unsigned>(g_TmCalls), g_TeamReq[0]); std::strncat(vb, dbg, sizeof(vb) - std::strlen(vb) - 1); } }
                 else if (i == kDynRecruitY) { nm = T("Y で募集 (押すたび・待ち時間なし)", "Recruit on each Y press"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent || g_RecruitSt >= 0) std::snprintf(vb, sizeof(vb), T("%u回 (状態%d)", "%ux (st %d)"), static_cast<unsigned>(g_RecruitSent), static_cast<int>(g_RecruitSt)); }
                 else if (i == kDynPetOn) { nm = T("舞う花びら・羽根", "Floating Petals"); st = g_PetOn ? 1 : 0; }
-                else if (i == kDynPetKind) { static const char* const kN[4] = { T("花びら","Petals"), T("羽根","Feathers"), T("きらめき","Sparkles"), T("まぜる","Mixed") }; nm = T("形", "Shape"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetKind & 3]); }
-                else if (i == kDynPetCol) { static const char* const kN[7] = { T("白","White"), T("桜","Sakura"), T("水色","Aqua"), T("金","Gold"), T("緑","Green"), T("紫","Violet"), T("にじ","Rainbow") }; nm = T("色", "Color"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetCol % 7]); }
+                else if (i == kDynPetKind) { static const char* const kN[8] = { T("花びら","Petals"), T("羽根","Feathers"), T("きらめき","Sparkles"), T("蝶","Butterflies"), T("火の粉","Embers"), T("炎の帯","Flames"), T("灰の葉","Ash"), T("まぜる","Mixed") }; nm = T("形", "Shape"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetKind & 7]); }
+                else if (i == kDynPetCol) { static const char* const kN[8] = { T("白","White"), T("桜","Sakura"), T("水色","Aqua"), T("金","Gold"), T("緑","Green"), T("紫","Violet"), T("にじ","Rainbow"), T("炎","Fire") }; nm = T("色", "Color"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetCol & 7]); }
                 else if (i == kDynPetNum) { nm = T("量", "Amount"); st = -1; std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_PetNum)); }
                 else if (i == kDynPetSpd) { nm = T("速さ", "Speed"); st = -1; std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_PetSpd)); }
                 else if (i == kDynPetFlip) { nm = T("左右反転 (動きが逆のとき)", "Flip left/right"); st = g_PetFlip ? 1 : 0; }
@@ -11966,9 +11966,10 @@ constexpr unsigned char kIconA[6][32*32] = {
     }
 
 namespace {
-    struct PetP { float p[3]; float ph, sz, fall; int kind, ci; };
-    /* tmt 1.1.53: 舞う花びら・羽根・きらめき。カメラの目と向きから、空間の点を画面の位置にして、小さな色の四角を並べて描く
-       (縦の画角は 55 度 (視野の設定があればそれ)。壁のうしろにも透けて見える)。粒の位置は世界の座標で持つので、視点を動かすと遠近もついてくる */
+    struct PetP { float p[3]; float ph, sz, fall, r, ang, h, w, rise, len; int kind, ci, ci2, ci3; };
+    /* tmt 1.1.54: 舞う花びら・羽根・きらめき・蝶・火の粉・炎の帯・灰の葉。カメラの目と向きから、空間の点を画面の位置にして、小さな色の四角を並べて描く
+       (縦の画角は 55 度 (視野の設定があればそれ)。壁のうしろにも透けて見える)。粒の位置は世界の座標で持つので、視点を動かすと遠近もついてくる。
+       色「炎」のときは、自分 (足元) のまわりを渦を巻いてのぼる (火の粉・炎の帯・灰・蝶)。色は 16 色の帯 + 炎用の 16 色の帯 (ci 16〜) */
     template <class F> void PetDraw(F& rct, int W, int H) {
         static PetP P[160]; static int sel = -1; static u64 lastT = 0; static u32 rs = 20251120u;
         auto rnd = [&]() -> float { rs = rs * 1664525u + 1013904223u; return static_cast<float>((rs >> 8) & 0xFFFFu) / 65535.0f; };
@@ -11980,20 +11981,45 @@ namespace {
         const float ch = __builtin_sqrtf(fx * fx + fz * fz); float rx = 1.0f, rz = 0.0f; if (ch > 0.05f) { rx = -fz / ch; rz = fx / ch; }
         if (g_PetFlip) { rx = -rx; rz = -rz; }
         const float ux = -rz * fy, uy = rz * fx - rx * fz, uz = rx * fy; /* 上 = 右 x 前 */
-        const int kind = g_PetKind & 3, col = g_PetCol % 7, nSel = kind * 10 + col;
+        const int kind = g_PetKind & 7, col = g_PetCol & 7, nSel = kind * 10 + col; const bool fire = col == 7;
         const int n = 16 * g_PetNum + 8; /* 24〜136 */
         static const int kCi[7][2] = { {4, 4}, {1, 4}, {0, 4}, {10, 2}, {3, 11}, {14, 13}, {1, 10} };
         static const int kRb[6] = { 1, 10, 3, 0, 13, 15 };
+        float C[3] = { f[0] + fx * 3.5f, f[1] - 1.3f, f[2] + fz * 3.5f }; /* 渦の中心: 自分の足元 (分からないときは、カメラの前 3.5m) */
+        { const uintptr_t fp = g_FootPos; if (fp && FootValid() && Readable(fp, 12)) { float q3[3]; std::memcpy(q3, reinterpret_cast<const void*>(fp), 12); if (q3[0] == q3[0] && q3[1] == q3[1] && q3[2] == q3[2]) { const float ddx = q3[0] - f[0], ddy = q3[1] - f[1], ddz = q3[2] - f[2]; if (ddx * ddx + ddy * ddy + ddz * ddz < 900.0f) { C[0] = q3[0]; C[1] = q3[1]; C[2] = q3[2]; } } } }
         const u64 now = NowTick(); float dt = lastT ? static_cast<float>(now - lastT) / 19200000.0f : 0.0f; lastT = now; if (dt > 0.1f) dt = 0.1f; if (dt < 0.0f) dt = 0.0f;
         const float hd = ch > 0.05f ? __builtin_atan2f(fz, fx) : 0.0f;
+        auto sgn = [&]() -> float { return rnd() < 0.5f ? -1.0f : 1.0f; };
         auto spawn = [&](PetP& q, bool first) {
-            const float ang = (rnd() < 0.75f) ? hd + (rnd() - 0.5f) * 1.7f : rnd() * 6.2831853f; const float r = 2.0f + 13.0f * rnd();
-            q.p[0] = f[0] + r * __builtin_cosf(ang); q.p[2] = f[2] + r * __builtin_sinf(ang); q.p[1] = f[1] + (first ? -2.5f + 8.0f * rnd() : 1.0f + 5.0f * rnd());
-            q.ph = rnd() * 6.2831853f; q.kind = kind == 3 ? static_cast<int>(rnd() * 2.99f) : kind;
-            q.ci = col == 6 ? kRb[static_cast<int>(rnd() * 5.99f)] : kCi[col][rnd() < 0.7f ? 0 : 1];
-            if (q.kind == 0) { q.sz = 0.10f + 0.10f * rnd(); q.fall = 0.5f + 0.5f * rnd(); }
-            else if (q.kind == 1) { q.sz = 0.20f + 0.14f * rnd(); q.fall = 0.3f + 0.3f * rnd(); q.ci = 4; }
-            else { q.sz = 0.06f + 0.06f * rnd(); q.fall = 0.02f + 0.08f * rnd(); }
+            int kd = kind;
+            if (kind == 7) { const float u = rnd(); if (fire) kd = u < 0.42f ? 4 : (u < 0.54f ? 3 : (u < 0.64f ? 5 : (u < 0.84f ? 6 : (u < 0.92f ? 2 : 0)))); else kd = u < 0.4f ? 0 : (u < 0.6f ? 1 : (u < 0.8f ? 2 : (u < 0.9f ? 3 : 4))); }
+            q.kind = kd; q.ph = rnd() * 6.2831853f; q.len = 0.35f + 0.35f * rnd();
+            const int c0 = col == 6 ? kRb[static_cast<int>(rnd() * 5.99f)] : (fire ? 0 : kCi[col][rnd() < 0.7f ? 0 : 1]);
+            q.ci = c0; q.ci2 = fire ? 0 : kCi[col == 6 ? 0 : col][1]; q.ci3 = 4;
+            if (fire) {
+                static const int kOut[4] = { 18, 19, 19, 20 }, kBut[2] = { 26, 26 }; (void)kBut;
+                q.ang = rnd() * 6.2831853f; q.fall = 0.0f;
+                switch (kd) {
+                case 4: q.ci = kOut[static_cast<int>(rnd() * 3.99f)]; q.ci2 = 21; q.ci3 = 23; q.r = 0.6f + 4.5f * rnd(); q.h = first ? 7.0f * rnd() : -0.2f + 0.8f * rnd(); q.rise = 0.8f + 1.6f * rnd(); q.w = sgn() * (0.4f + 0.8f * rnd()); q.sz = 0.05f + 0.07f * rnd(); break;
+                case 3: q.ci = 26; q.ci2 = 25; q.ci3 = 16; q.r = 1.0f + 4.5f * rnd(); q.h = 0.3f + 2.5f * rnd(); q.rise = 0.0f; q.w = sgn() * (0.15f + 0.3f * rnd()); q.sz = 0.28f + 0.2f * rnd(); break;
+                case 5: q.ci = kOut[static_cast<int>(rnd() * 3.99f)]; q.ci2 = rnd() < 0.5f ? 21 : 22; q.ci3 = 23; q.r = 0.8f + 3.5f * rnd(); q.h = first ? 4.0f * rnd() : -0.2f + 0.5f * rnd(); q.rise = 1.0f + 1.8f * rnd(); q.w = sgn() * (1.2f + 1.6f * rnd()); q.sz = 0.12f + 0.12f * rnd(); break;
+                case 6: q.ci = rnd() < 0.6f ? 16 : 17; q.ci2 = q.ci; q.ci3 = q.ci; q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.07f + 0.08f * rnd(); break;
+                case 2: q.ci = 22; q.ci2 = 23; q.ci3 = 23; q.r = 0.5f + 5.0f * rnd(); q.h = 0.2f + 4.0f * rnd(); q.rise = 0.3f; q.w = sgn() * 0.2f; q.sz = 0.10f + 0.10f * rnd(); break;
+                default: q.ci = 19 + static_cast<int>(rnd() * 2.99f); q.ci2 = 21; q.ci3 = 23; q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.10f + 0.10f * rnd(); break;
+                }
+            } else {
+                const float ang = (rnd() < 0.75f) ? hd + (rnd() - 0.5f) * 1.7f : rnd() * 6.2831853f; const float r = 2.0f + 13.0f * rnd();
+                q.p[0] = f[0] + r * __builtin_cosf(ang); q.p[2] = f[2] + r * __builtin_sinf(ang); q.p[1] = f[1] + (first ? -2.5f + 8.0f * rnd() : 1.0f + 5.0f * rnd());
+                switch (kd) {
+                case 0: q.sz = 0.10f + 0.10f * rnd(); q.fall = 0.5f + 0.5f * rnd(); break;
+                case 1: q.sz = 0.20f + 0.14f * rnd(); q.fall = 0.3f + 0.3f * rnd(); q.ci = 4; break;
+                case 2: q.sz = 0.06f + 0.06f * rnd(); q.fall = 0.02f + 0.08f * rnd(); break;
+                case 3: q.sz = 0.22f + 0.14f * rnd(); q.fall = 0.05f + 0.1f * rnd(); break;
+                case 4: q.sz = 0.05f + 0.05f * rnd(); q.fall = -0.15f - 0.2f * rnd(); break;
+                case 5: q.sz = 0.05f + 0.04f * rnd(); q.fall = 1.5f + 1.0f * rnd(); break;
+                default: q.sz = 0.07f + 0.06f * rnd(); q.fall = 0.6f + 0.5f * rnd(); break;
+                }
+            }
         };
         if (sel != nSel) { sel = nSel; for (int i = 0; i < 160; i++) spawn(P[i], true); }
         const float sp = 0.3f + 0.2f * static_cast<float>(g_PetSpd);
@@ -12001,26 +12027,54 @@ namespace {
         const float kpx = static_cast<float>(H) * 0.5f * __builtin_cosf(vh) / __builtin_sinf(vh);
         const float cx = static_cast<float>(W) * 0.5f, cy = static_cast<float>(H) * 0.5f;
         auto fill = [&](int x, int y, int w, int h, int ci) { if (h < 1) h = 1; if (h > 8) h = 8; const int mw = 64 / h; while (w > 0) { const int c = w < mw ? w : mw; rct(x, y, c, h, ci); x += c; w -= c; } };
+        auto box = [&](int x, int y, int w, int h, int ci) { if (w < 1) w = 1; if (h < 1) h = 1; for (int yy = 0; yy < h; yy += 8) { const int hh = h - yy < 8 ? h - yy : 8; for (int xx = 0; xx < w; xx += 8) rct(x + xx, y + yy, w - xx < 8 ? w - xx : 8, hh, ci); } };
+        auto ell = [&](int px, int py, int hw, int hh, int ci, float tilt) { if (hw < 1) hw = 1; if (hh < 1) hh = 1; const int stp = hh > 3 ? 2 : 1; for (int r = -hh; r <= hh; r += stp) { const float t = static_cast<float>(r) / (static_cast<float>(hh) + 0.5f); const int ww = static_cast<int>(2.0f * static_cast<float>(hw) * __builtin_sqrtf(1.0f - t * t)); fill(px - ww / 2 + static_cast<int>(tilt * static_cast<float>(r)), py + r, ww < 1 ? 1 : ww, stp, ci); } };
+        auto proj = [&](float X, float Y, float Z, int& px, int& py) -> float { const float dx = X - f[0], dy = Y - f[1], dz = Z - f[2]; const float z = dx * fx + dy * fy + dz * fz; if (z < 0.7f) return -1.0f; const float xr = dx * rx + dz * rz, yu = dx * ux + dy * uy + dz * uz; px = static_cast<int>(cx + xr / z * kpx); py = static_cast<int>(cy - yu / z * kpx); return z; };
         for (int i = 0; i < n; i++) {
             PetP& q = P[i];
             q.ph += dt * sp * 1.6f;
-            q.p[0] += __builtin_cosf(q.ph) * 0.5f * sp * dt; q.p[2] += __builtin_sinf(q.ph * 0.9f) * 0.5f * sp * dt; q.p[1] -= q.fall * sp * dt;
-            const float dx = q.p[0] - f[0], dy = q.p[1] - f[1], dz = q.p[2] - f[2];
-            if (dy < -4.0f || dx * dx + dz * dz > 324.0f || dy > 9.0f) { spawn(q, false); continue; }
-            const float z = dx * fx + dy * fy + dz * fz; if (z < 0.7f) continue;
-            const float xr = dx * rx + dz * rz, yu = dx * ux + dy * uy + dz * uz;
-            const int px = static_cast<int>(cx + xr / z * kpx), py = static_cast<int>(cy - yu / z * kpx);
-            const float s = q.sz * kpx / z; if (s < 1.5f) continue; if (px < -40 || px > W + 40 || py < -40 || py > H + 40) continue;
-            if (q.kind == 0) { /* 花びら: 横長のだ円。揺れに合わせて傾ける */
-                const int hw = static_cast<int>(s * 0.5f) < 1 ? 1 : static_cast<int>(s * 0.5f), hh = static_cast<int>(s * 0.32f) < 1 ? 1 : static_cast<int>(s * 0.32f), stp = hh > 3 ? 2 : 1;
-                const float tilt = __builtin_sinf(q.ph * 1.3f) * 0.7f;
-                for (int r = -hh; r <= hh; r += stp) { const float t = static_cast<float>(r) / (static_cast<float>(hh) + 0.5f); const int ww = static_cast<int>(2.0f * static_cast<float>(hw) * __builtin_sqrtf(1.0f - t * t)); fill(px - ww / 2 + static_cast<int>(tilt * static_cast<float>(r)), py + r, ww < 1 ? 1 : ww, stp, q.ci); }
-            } else if (q.kind == 1) { /* 羽根: ななめの細い線 */
-                const int L = static_cast<int>(s) < 3 ? 3 : static_cast<int>(s); const float sl = __builtin_sinf(q.ph * 0.7f) * 0.6f + 0.3f;
-                for (int k = -L; k <= L; k += 2) fill(px + static_cast<int>(static_cast<float>(k) * sl), py + k / 2, 2, 2, q.ci);
-            } else { /* きらめき: 十字。ゆっくりまたたく */
-                const float tw = 0.5f + 0.5f * __builtin_sinf(q.ph * 3.0f); int a = static_cast<int>(s * (0.4f + 0.6f * tw)); if (a < 2) a = 2; if (a > 24) a = 24;
-                fill(px - a, py, 2 * a + 1, 1, q.ci); fill(px, py - a, 1, 2 * a + 1, q.ci); fill(px - 1, py - 1, 3, 3, q.ci == 4 ? 4 : q.ci);
+            float X, Y, Z, TX = 0, TY = 0, TZ = 0;
+            if (fire) {
+                q.ang += q.w * sp * dt; q.h += q.rise * sp * dt; q.r += __builtin_sinf(q.ph * 0.7f) * 0.3f * dt;
+                if (q.kind == 3) q.h += __builtin_sinf(q.ph * 1.3f) * 0.6f * dt;
+                if (q.h > (q.kind == 5 ? 4.5f : 7.5f) || q.r < 0.3f) { spawn(q, false); continue; }
+                const float ca = __builtin_cosf(q.ang), sa = __builtin_sinf(q.ang);
+                X = C[0] + q.r * ca; Y = C[1] + q.h; Z = C[2] + q.r * sa;
+                const float a2 = q.ang - (q.w < 0.0f ? -q.len : q.len); TX = C[0] + q.r * __builtin_cosf(a2); TY = Y - 0.45f; TZ = C[2] + q.r * __builtin_sinf(a2);
+            } else {
+                q.p[0] += __builtin_cosf(q.ph) * 0.5f * sp * dt; q.p[2] += __builtin_sinf(q.ph * 0.9f) * 0.5f * sp * dt; q.p[1] -= q.fall * sp * dt;
+                const float ddx = q.p[0] - f[0], ddy = q.p[1] - f[1], ddz = q.p[2] - f[2];
+                if (ddy < -4.0f || ddx * ddx + ddz * ddz > 324.0f || ddy > 9.0f) { spawn(q, false); continue; }
+                X = q.p[0]; Y = q.p[1]; Z = q.p[2]; TX = X + 0.25f * __builtin_cosf(q.ph); TY = Y + 0.9f; TZ = Z + 0.25f * __builtin_sinf(q.ph);
+            }
+            int px, py; const float z = proj(X, Y, Z, px, py); if (z < 0.0f) continue;
+            const float s = q.sz * kpx / z; if (s < 1.5f) continue; if (px < -60 || px > W + 60 || py < -60 || py > H + 60) continue;
+            switch (q.kind) {
+            case 0: { const int hw = static_cast<int>(s * 0.5f), hh = static_cast<int>(s * 0.32f); ell(px, py, hw, hh, q.ci, __builtin_sinf(q.ph * 1.3f) * 0.7f); break; } /* 花びら: 横長のだ円。揺れに合わせて傾ける */
+            case 1: { const int L = static_cast<int>(s) < 3 ? 3 : static_cast<int>(s); const float sl = __builtin_sinf(q.ph * 0.7f) * 0.6f + 0.3f; for (int k = -L; k <= L; k += 2) fill(px + static_cast<int>(static_cast<float>(k) * sl), py + k / 2, 2, 2, q.ci); break; } /* 羽根: ななめの細い線 */
+            case 2: { const float tw = 0.5f + 0.5f * __builtin_sinf(q.ph * 3.0f); int a = static_cast<int>(s * (0.4f + 0.6f * tw)); if (a < 2) a = 2; if (a > 24) a = 24; /* きらめき: 十字。ゆっくりまたたく */
+                fill(px - a, py, 2 * a + 1, 1, q.ci); fill(px, py - a, 1, 2 * a + 1, q.ci); fill(px - 1, py - 1, 3, 3, q.ci2); break; }
+            case 3: { /* 蝶: 羽ばたく (横の幅がはばたきで変わる)。外側を濃く、内側を明るく */
+                const float fl = __builtin_sinf(q.ph * 5.0f); const float af = fl < 0.0f ? -fl : fl; const int hw = static_cast<int>(s * 0.5f * (0.25f + 0.75f * af)), hh = static_cast<int>(s * 0.38f);
+                const int w1 = hw < 1 ? 1 : hw; ell(px - w1 / 2 - 1, py - hh / 3, w1 / 2 + 1, hh, q.ci, -0.4f); ell(px + w1 / 2 + 1, py - hh / 3, w1 / 2 + 1, hh, q.ci, 0.4f);
+                if (hh >= 3) { ell(px - w1 / 2 - 1, py - hh / 3, w1 / 3 + 1, hh / 2 + 1, q.ci2, -0.4f); ell(px + w1 / 2 + 1, py - hh / 3, w1 / 3 + 1, hh / 2 + 1, q.ci2, 0.4f); }
+                fill(px, py - hh / 2, 1, hh + 1, q.ci3 < 16 ? 4 : q.ci3); break; }
+            case 4: { /* 火の粉: 外が濃い橙、内側が明るく、中心が白っぽい (光って見える) */
+                int a = static_cast<int>(s); if (a < 2) a = 2; if (a > 10) a = 10; const int m = a * 6 / 10 < 1 ? 1 : a * 6 / 10, c = a * 3 / 10 < 1 ? 1 : a * 3 / 10;
+                box(px - a / 2, py - a / 2, a, a, q.ci); box(px - m / 2, py - m / 2, m, m, q.ci2); box(px - c / 2, py - c / 2, c, c, q.ci3); break; }
+            case 5: { /* 炎の帯: 頭から尾へ細くなる、曲がった帯。外が橙・赤、中が黄、頭に白っぽい芯 */
+                int tx, ty; const float zt = proj(TX, TY, TZ, tx, ty); if (zt < 0.0f) break;
+                const float dx = static_cast<float>(tx - px), dy = static_cast<float>(ty - py), dist = __builtin_sqrtf(dx * dx + dy * dy); if (dist < 3.0f || dist > 420.0f) break;
+                int N = static_cast<int>(dist / 7.0f); if (N < 3) N = 3; if (N > 16) N = 16; const float nx = -dy / dist, ny = dx / dist, cv = 0.25f * dist * __builtin_sinf(q.ph * 0.5f);
+                float w0 = s < 3.0f ? 3.0f : (s > 14.0f ? 14.0f : s);
+                for (int k = 0; k <= N; k++) { const float t = static_cast<float>(k) / static_cast<float>(N), bend = cv * __builtin_sinf(3.1415927f * t);
+                    const int ix = px + static_cast<int>(dx * t + nx * bend), iy = py + static_cast<int>(dy * t + ny * bend); int wd = static_cast<int>(w0 * (1.0f - 0.85f * t)); if (wd < 2) wd = 2;
+                    box(ix - wd / 2, iy - wd / 2, wd, wd, t > 0.6f ? 18 : q.ci);
+                    if (t < 0.75f) { const int w2 = wd * 55 / 100 < 1 ? 1 : wd * 55 / 100; box(ix - w2 / 2, iy - w2 / 2, w2, w2, q.ci2); }
+                    if (t < 0.35f) { const int w3 = wd * 28 / 100 < 1 ? 1 : wd * 28 / 100; box(ix - w3 / 2, iy - w3 / 2, w3, w3, q.ci3); } }
+                break; }
+            default: { /* 灰の葉: 黒っぽい小さな破片。回りながら落ちる/のぼる */
+                const float tl = __builtin_sinf(q.ph * 2.1f); const int hw = static_cast<int>(s * 0.5f * (0.4f + 0.6f * (tl < 0.0f ? -tl : tl))), hh = static_cast<int>(s * 0.3f); ell(px, py, hw, hh, q.ci, tl * 0.8f); break; }
             }
         }
     }
@@ -12048,8 +12102,8 @@ namespace {
         if (BoxOrCircle()) { /* 円: 画面のまん中に、エイムボットが向く範囲の円を出す。
                               カメラの目と向きから画面の位置を出し (縦の画角は 50 度とする)、線は小さな点を並べて描く (色をぬった帯 = バッファの最後 から写す) */
             static const u32 kBc[16] = { 0xFFFFF240u, 0xFFD959FFu, 0xFF40E0FFu, 0xFF80FF66u, 0xFFFFFFFFu, 0xFF2090FFu, 0xFF3030FFu, 0xFF9A8A8Au, 0xFF2828FFu, 0xFF28A0FFu, 0xFF28F0FFu, 0xFF40E040u, 0xFFF0E028u, 0xFFFF6030u, 0xFFFF3080u, 0xFFC030FFu }; /* 7: 壁の裏の敵 (グレー) */ /* 5: バルーン (オレンジ)、6: 敵 (赤) */
-            const size_t bOff = kPixBytes / 4 - static_cast<size_t>(16 * 64);
-            for (int bi = 0; bi < 2; bi++) { u32* sp = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(bi) * kPixSlot) + bOff; for (int q = 0; q < 16; q++) for (int t = 0; t < 64; t++) sp[q * 64 + t] = kBc[q]; DcClean(sp, 16 * 64 * 4); } /* 色ごとに 64 画素 (8x8 まで) */
+            const size_t bOff = kPixBytes / 4 - static_cast<size_t>(16 * 64), exOff = bOff - static_cast<size_t>(16 * 64); /* 炎用の 16 色 (ci 16〜) はその下 */
+            for (int bi = 0; bi < 2; bi++) { u32* sp = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(bi) * kPixSlot) + bOff; for (int q = 0; q < 16; q++) for (int t = 0; t < 64; t++) sp[q * 64 + t] = kBc[q]; DcClean(sp, 16 * 64 * 4); if (g_PetOn) { static const u32 kEx[16] = { 0xFF14162Au, 0xFF141C58u, 0xFF1034D8u, 0xFF106EFFu, 0xFF2096FFu, 0xFF38B8FFu, 0xFF60DCFFu, 0xFFB0F2FFu, 0xFF2840FFu, 0xFF58D0FFu, 0xFF1880E0u, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu }; u32* se = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(bi) * kPixSlot) + exOff; for (int q = 0; q < 16; q++) for (int t = 0; t < 64; t++) se[q * 64 + t] = kEx[q]; DcClean(se, 16 * 64 * 4); } } /* 色ごとに 64 画素 (8x8 まで) */
             /* 円は画面のまん中に描くだけなので、カメラが見つかっていなくても出す */
                         int budget = 1400, lastW = -1; /* 1 フレームで写す点の数の上限 (描く命令の入れ物をあふれさせない) */
                         auto rct = [&](int x, int y, int w, int h, int ci) { /* 長方形 (w*h は 64 まで) */
@@ -12057,7 +12111,7 @@ namespace {
                             if (w <= 0 || h <= 0) return; budget--;
                             if (w != lastW) { g_Sw.rowStride(cb, static_cast<ptrdiff_t>(w) * 4); lastW = w; }
                             struct RegB { int x, y, z, w, h, d; }; RegB rg { x, y, 0, w, h, 1 };
-                            g_Sw.copyB2T(cb, base + (bOff + static_cast<size_t>(ci) * 64) * 4, tex, nullptr, &rg, 0);
+                            g_Sw.copyB2T(cb, base + ((ci < 16 ? bOff + static_cast<size_t>(ci) * 64 : exOff + static_cast<size_t>(ci - 16) * 64)) * 4, tex, nullptr, &rg, 0);
                         };
                         if (g_CircOn) { /* 視点が向く円 (白い線、太さ 2)。画面のまん中に、半径 = 画面の高さの半分 × 大きさ/100。
                                                         横の帯ごとに、円の線がかかる所だけを横長の四角でぬる。
@@ -12090,7 +12144,7 @@ namespace {
             static u32 s_RowH[kOvH]; static u8 s_Ok[kOvH], s_In[kOvH];
             const size_t mbB = static_cast<size_t>(g_SwW) * static_cast<size_t>(g_SwH) * 4u;
             const size_t D = (g_PixHi + 4095u) & ~static_cast<size_t>(4095u);
-            const bool want = !gpu && BlendWant() && g_SwW > 0 && g_SwH > 0 && g_SwH <= kOvH && g_SwRectN > 0 && !ScanPause() && D + mbB <= kPixBytes - static_cast<size_t>(16 * 64 * 4);
+            const bool want = !gpu && BlendWant() && g_SwW > 0 && g_SwH > 0 && g_SwH <= kOvH && g_SwRectN > 0 && !ScanPause() && D + mbB <= kPixBytes - static_cast<size_t>(32 * 64 * 4);
             bool doRead = want; bool skipF = false;
             if (!want) { g_BlW = -1; g_BlLod = 0; }
             else {

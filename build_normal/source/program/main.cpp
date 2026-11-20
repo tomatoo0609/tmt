@@ -309,7 +309,7 @@ namespace {
     volatile bool g_FlyQuiet = false; /* 移動の機能が自動で座標の準備を始めたとき: B / ZL で浮かないようにする */
     volatile int g_TrW = 1, g_TrP = 0; /* 道の太さ 0=細 1=普通 2=太 / 道の模様 0=普通 1=点線 2=ジグザグ 3=二本線 */ volatile int g_MenuCol = 0; /* メニューの色 0=虹 */
     volatile bool g_FillAllReq = false; volatile bool g_FillActive = false; volatile int g_FillSeen = 0, g_FillPushed = 0; volatile int g_FillPending = 0; int g_FillMode = 0; volatile bool g_FlyRestart = false; volatile u32 g_BgClear = 0; /* 裏の流れが「ロード前の物だった」と分かった物: 1 カメラ 2 足元 4 自分の座標。ゲームの流れの方で 0 にする (裏で 0 にすると、使っている途中で 0 を読んで落ちた) */ extern volatile bool g_TrkPend; u64 g_FlyNext = 0; uintptr_t g_FlyLiveAddr = 0; float g_FlyStepPos[3] = {}; bool g_Hover = false; float g_HoverY = 0.0f; float g_HoverBase = 0.0f; /* 全塗り */ volatile bool g_FlyFast = false; /* true の間は、本体アドレスへ直接書く「すぐ飛べる」版が動いている */
-    volatile bool g_Invis = false; volatile u32 g_InvHits = 0, g_InvOwn = 0, g_InvDone = 0; uintptr_t g_InvPl = 0, g_InvSelf = 0; bool g_InvAppl = false; u64 g_InvPlT = 0; volatile bool g_Gsp = false; volatile int g_GspIdx = 1; volatile u32 g_GspCalls = 0, g_GspW1 = 0; volatile bool g_AnimBusy = false; float g_FlyWalkD = 0.0f; u64 g_FlyStickT = 0; volatile int g_UzuStyle = 0; volatile int g_SelPanel = 0, g_SelCur = 0, g_SelScroll = 0; uintptr_t g_TmplKey = 0, g_LiveKey = 0; int g_LcBad = 0; float g_LcConfPrev[3] = {}; bool g_LcConfHave = false; volatile int g_Cat = -1; volatile bool g_Spiral = false; bool g_SpiralRun = false; volatile int g_EmoFire = -1; bool g_DBaseHave = false; volatile bool g_LsSwallow = false; int g_FlyZero = 0;
+    volatile bool g_Invis = false; volatile u32 g_InvHits = 0, g_InvOwn = 0, g_InvDone = 0; uintptr_t g_InvPl = 0, g_InvSelf = 0; uintptr_t g_InvRing[8] = {}; volatile u32 g_InvRi = 0, g_InvLastO = 0; bool g_InvAppl = false; u64 g_InvPlT = 0; volatile bool g_Gsp = false; volatile int g_GspIdx = 1; volatile u32 g_GspCalls = 0, g_GspW1 = 0; volatile bool g_AnimBusy = false; float g_FlyWalkD = 0.0f; u64 g_FlyStickT = 0; volatile int g_UzuStyle = 0; volatile int g_SelPanel = 0, g_SelCur = 0, g_SelScroll = 0; uintptr_t g_TmplKey = 0, g_LiveKey = 0; int g_LcBad = 0; float g_LcConfPrev[3] = {}; bool g_LcConfHave = false; volatile int g_Cat = -1; volatile bool g_Spiral = false; bool g_SpiralRun = false; volatile int g_EmoFire = -1; bool g_DBaseHave = false; volatile bool g_LsSwallow = false; int g_FlyZero = 0;
     volatile int g_Jump = 0; volatile bool g_JumpReq = false, g_FuncOn = false; /* ジャンプ: 0 OFF / 1 エア / 2 ムーン / 3 両方 (フリーフライ) */
     volatile bool g_MemPanel = false; volatile uintptr_t g_MemBase = 0; volatile int g_MemSel = 0, g_MemType = 0, g_MemEditDir = 0; volatile bool g_MemEditReq = false;
     constexpr int kMemRows = (0x1000 - 0x4) / 4 + 1; /* +0x4 〜 +0x1000 を 4 バイトずつ */
@@ -362,7 +362,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 180; /* tmt 1.1.70 (自分を透明化 (プレイヤーのメニュー。写真モードで自分を隠すゲームの処理を使う・実験)。1.1.69: (胡桃の模様を半分の大きさに (起動時メモリ不足の対策)。1.1.68: (胡桃の描画用メモリを減らした (起動時のメモリ不足対策)。1.1.67: (プレイヤーのメニューに「ゲーム速度」を戻した (左右で 1〜50 倍・決定で入り切り)。1.1.66: (胡桃: きれいに描き直した (模様を 1 画素ずつ引く・陰影をなめらかに・絵の大きさの上限を 2 倍に)。1.1.65: (ちょうちょ・胡桃: 進むと自分より奥にずれるのを直した (カメラと自分の座標を、ゲームの更新が終わった瞬間に写した値で使う)。1.1.64: (胡桃: 2 倍の大きさ (2.6m)・体の向きは動いている向きに合わせる (視点では変わらない)・重いときは縦をあらくする・ロード直後 4 秒は描かない。1.1.63: (胡桃: 3D モデルをその場で描くようにした (向きがなめらかに 360 度・上下も変わる)・プレイヤーに重ねた。1.1.62: (胡桃: 黒い四角になるのを直した (コマの並びと透明部分)・自分の右どなりに立たせる。1.1.61: (胡桃: PMXモデルを8方向スプライトとして表示 (ビルボード・カメラ向きで切り替え)。蝶追従バグ: ロード後に古い座標でとびかかる問題を直した (g_LoadGenが変わったらlastCをリセット)。1.1.60: (蝶: 自分の場所の取り方を変えた (ゲームの自分の体 → 足元 → カメラの追従先、視点を上げても下がらない・ロードのあとも迷わない)。1.1.59: (蝶: 消えないように・ついてくる速さを上げた・鱗粉 (小さな光の粒) を追加。1.1.58: (ちょうちょだけにした: 自分の足元のまわりを飛ぶ・数を選べる・入り切りは 0.3 秒ではかなく消える・蝶のまわりの背景を細かく読んでぼやけ・モザイクをなくした。1.1.57: (舞う花びら: 大きな炎を追加・炎も空間に固定・蝶を作り直して減らした・四角のモザイクをなくした (粒のある所だけ帯にして写す)。1.1.56: (舞う花びら: 据え置き 1920x1080 でも出るように・メニューが出ていないときに古い絵の大きさで止まらないように。1.1.55: (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 181; /* tmt 1.1.71 (透明化: 部品を作った時に覚える方式にした。1.1.70: (自分を透明化 (プレイヤーのメニュー。写真モードで自分を隠すゲームの処理を使う・実験)。1.1.69: (胡桃の模様を半分の大きさに (起動時メモリ不足の対策)。1.1.68: (胡桃の描画用メモリを減らした (起動時のメモリ不足対策)。1.1.67: (プレイヤーのメニューに「ゲーム速度」を戻した (左右で 1〜50 倍・決定で入り切り)。1.1.66: (胡桃: きれいに描き直した (模様を 1 画素ずつ引く・陰影をなめらかに・絵の大きさの上限を 2 倍に)。1.1.65: (ちょうちょ・胡桃: 進むと自分より奥にずれるのを直した (カメラと自分の座標を、ゲームの更新が終わった瞬間に写した値で使う)。1.1.64: (胡桃: 2 倍の大きさ (2.6m)・体の向きは動いている向きに合わせる (視点では変わらない)・重いときは縦をあらくする・ロード直後 4 秒は描かない。1.1.63: (胡桃: 3D モデルをその場で描くようにした (向きがなめらかに 360 度・上下も変わる)・プレイヤーに重ねた。1.1.62: (胡桃: 黒い四角になるのを直した (コマの並びと透明部分)・自分の右どなりに立たせる。1.1.61: (胡桃: PMXモデルを8方向スプライトとして表示 (ビルボード・カメラ向きで切り替え)。蝶追従バグ: ロード後に古い座標でとびかかる問題を直した (g_LoadGenが変わったらlastCをリセット)。1.1.60: (蝶: 自分の場所の取り方を変えた (ゲームの自分の体 → 足元 → カメラの追従先、視点を上げても下がらない・ロードのあとも迷わない)。1.1.59: (蝶: 消えないように・ついてくる速さを上げた・鱗粉 (小さな光の粒) を追加。1.1.58: (ちょうちょだけにした: 自分の足元のまわりを飛ぶ・数を選べる・入り切りは 0.3 秒ではかなく消える・蝶のまわりの背景を細かく読んでぼやけ・モザイクをなくした。1.1.57: (舞う花びら: 大きな炎を追加・炎も空間に固定・蝶を作り直して減らした・四角のモザイクをなくした (粒のある所だけ帯にして写す)。1.1.56: (舞う花びら: 据え置き 1920x1080 でも出るように・メニューが出ていないときに古い絵の大きさで止まらないように。1.1.55: (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -395,7 +395,7 @@ namespace {
     volatile bool g_ScnOwn = false; volatile u64 g_ScnArmT = 0; char g_ScnOwnName[48] = {}; /* 版 663: 自分で移動したシーン (メニューから) だけで足す */ volatile int g_RivN = 0, g_RivMsg = 0, g_RivSeen = 0, g_RivAct = 0, g_RivErr = 0; volatile bool g_RivDone = false;
     void ScnGo(const char* n) { size_t L = 0; while (n[L] && L < 47) { g_ScnReqName[L] = n[L]; L++; } g_ScnReqName[L] = 0; g_ScnMsg = 0; g_ScnReq = 1; }
     volatile bool g_StgOn = false;
-    uintptr_t MainBase(); bool Readable(uintptr_t a, size_t n); void ScnTick(); char g_StgSrc[64] = {}; char g_StgLast[64] = {}; char g_StgDir[160] = {}; volatile int g_StgDst = 0, g_StgN = 0; char g_StgName[400][40] = {}; volatile int g_StgSwaps = 0, g_StgOpens = 0; volatile bool g_StgListed = false; void StgListDir();
+    uintptr_t MainBase(); bool Readable(uintptr_t a, size_t n); void InvisTick(); void ScnTick(); char g_StgSrc[64] = {}; char g_StgLast[64] = {}; char g_StgDir[160] = {}; volatile int g_StgDst = 0, g_StgN = 0; char g_StgName[400][40] = {}; volatile int g_StgSwaps = 0, g_StgOpens = 0; volatile bool g_StgListed = false; void StgListDir();
     /* 版 654: ステージの一覧を 3 つに分ける: 0 = バトル (Vss_)、1 = サーモンラン (Cop_)、2 = その他 (固定の行にあるものは除く) */
     int SgGroup(const char* n) { if (n[0] == 'V' && n[1] == 's' && n[2] == 's' && n[3] == '_') return 0; if (n[0] == 'C' && n[1] == 'o' && n[2] == 'p' && n[3] == '_') return 1;
         for (int k = 0; k < 6; k++) { const char* f = k == 0 ? "Plaza" : k == 1 ? "Lobby" : k == 2 ? "LobbyLocal" : k == 3 ? "ShootingRange" : k == 4 ? "LobbyCoop" : "Shop"; if (std::strcmp(n, f) == 0) return -1; } return 2; }
@@ -2887,7 +2887,7 @@ HOOK_DEFINE_TRAMPOLINE(BodyCalcHook) {
         const u64 r = Orig(a1);
         if (dgb) PdLeave(dgb, 3, dgf);
         g_BfCalls++; ScnTick(); /* 版 653 */
-        if ((g_Invis || g_InvAppl) && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) { const uintptr_t cb2 = *reinterpret_cast<const uintptr_t*>(a1 + 0x108); if (cb2 && Readable(cb2 + 0x11F38, 8)) g_InvPl = *reinterpret_cast<const uintptr_t*>(cb2 + 0x11F38); } /* 版 179: 自分の本体 */
+        if ((g_Invis || g_InvAppl) && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) { const uintptr_t cb2 = *reinterpret_cast<const uintptr_t*>(a1 + 0x108); if (cb2 && Readable(cb2 + 0x11F38, 8)) g_InvPl = *reinterpret_cast<const uintptr_t*>(cb2 + 0x11F38); InvisTick(); } /* 版 179: 自分の本体 */
         EnHkNote(a1); /* tmt: 敵の即検出 */
         if (g_CfWant && g_OffPlayerMgrPtr == 0x6057568 && BfSelfComp() == a1) { g_CfBody = *reinterpret_cast<const uintptr_t*>(a1 + 0x108); g_CfT = NowTick(); AsHookWrite();
             const int ar = g_ArmorReq;
@@ -11178,7 +11178,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 else if (i == kDynFlk) { nm = T("視点移動", "Free Look"); st = g_Flk ? 1 : 0; if (g_Flk) std::snprintf(vb, sizeof(vb), "%s", CamValid() ? T("十字","D-Pad") : T("カメラ探し中","Finding camera")); }
                 else if (i == kDynMark) { nm = T("自分マーキング", "Self Marking"); st = g_MarkOn ? 1 : 0; if (g_MarkOn) std::snprintf(vb, sizeof(vb), T("自%u 呼%u","Self%u Call%u"), static_cast<unsigned>(g_MarkSelfN), static_cast<unsigned>(g_MarkCalls)); }
                 else if (i == kDynFlow) { nm = T("イカフロー加点", "Squid Flow Bonus"); st = g_FlowOn ? 1 : 0; if (g_FlowOn) std::snprintf(vb, sizeof(vb), "%s", g_FlowN ? (g_FlowMode == 1 ? T("切替5秒","Switch 5s") : T("ずっと","Always")) : T("探し中","Searching")); }
-                else if (i == kDynInv) { nm = T("自分を透明化", "Hide Myself"); st = g_Invis ? 1 : 0; std::snprintf(vb, sizeof(vb), "%u/%u/%u", static_cast<unsigned>(g_InvHits), static_cast<unsigned>(g_InvOwn), static_cast<unsigned>(g_InvDone)); }
+                else if (i == kDynInv) { nm = T("自分を透明化", "Hide Myself"); st = g_Invis ? 1 : 0; std::snprintf(vb, sizeof(vb), "%u/%u/%u %x", static_cast<unsigned>(g_InvHits), static_cast<unsigned>(g_InvOwn), static_cast<unsigned>(g_InvDone), static_cast<unsigned>(g_InvLastO)); }
                 else if (i == kDynGsp) { nm = T("ゲーム速度", "Game Speed"); st = g_Gsp ? 1 : 0; GspText(vb, g_GspIdx); }
                 else if (i == kDynUzu) { nm = T("テンプレート", "Template"); const char* const* const kUn = PaintRequestHook::kTplNames; std::snprintf(vb, sizeof(vb), "<%s> %s", kUn[g_UzuStyle % kTplN], g_HaveTmpl ? T("L: 実行","L: Run") : T("先に撃つ","Shoot first")); }
                 else if (i >= kDynEmo && i < kDynEmo + 5) { static const char* const kEn[5] = { T("十字上のエモート","D-Pad Up Emote"), T("十字下のエモート","D-Pad Down Emote"), T("十字左のエモート","D-Pad Left Emote"), T("十字右のエモート","D-Pad Right Emote"), T("ランダムエモート","Random Emote") }; nm = kEn[i - kDynEmo]; std::snprintf(vb, sizeof(vb), "%s", g_EmoFire == i - kDynEmo ? T("閉じると出る","Shown on close") : T("L: 出す","L: Trigger")); }
@@ -12540,25 +12540,28 @@ HOOK_DEFINE_INLINE(MarkHookB) {
 /* 版 179: 自分を透明化。写真モードで自分を隠すときにゲームが使う部品 (main+0x266906C = メッセージ受け口、main+0x26E1E90 = 「InvisibleByPhotograph」の処理) を使う。
    部品の持ち主 (this[5]) が自分のプレイヤー本体なら、受け口の中 (ゲームのスレッド) で、隠す/戻すをゲーム自身の処理に頼む。古い部品を触らないよう、受け口に呼ばれたときだけ動く。
    メニューの数字 = 受け口に来た回数 / うち自分の部品だった回数 / 隠す・戻すを呼んだ回数 */
-HOOK_DEFINE_TRAMPOLINE(InvisHook) {
-    static u32 Callback(uintptr_t self, uintptr_t msg) {
-        g_InvHits = g_InvHits + 1;
-        if (self && g_InvPl && Readable(self + 40, 8) && *reinterpret_cast<const uintptr_t*>(self + 40) == g_InvPl) {
-            g_InvOwn = g_InvOwn + 1;
-            if (self != g_InvSelf) { g_InvSelf = self; g_InvAppl = false; }
-            const bool want = g_Invis;
-            if (want != g_InvAppl) {
-                const uintptr_t mb = MainBase();
-                if (*reinterpret_cast<const u32*>(mb + 0x26E1E90) == 0xD101C3FFu) {
-                    alignas(16) static u8 fm[128]; std::memset(fm, 0, sizeof(fm)); fm[64] = want ? 1 : 0;
-                    using Fn = uintptr_t (*)(uintptr_t, const void*); reinterpret_cast<Fn>(mb + 0x26E1E90)(self, fm);
-                    g_InvAppl = want; g_InvDone = g_InvDone + 1;
-                }
-            }
-        }
-        return Orig(self, msg);
-    }
+HOOK_DEFINE_INLINE(InvisNewHook) { /* 部品を作った直後 (main+0x26E1CE4: x0 = 新しい部品) の覚え */
+    static void Callback(exl::hook::InlineCtx* ctx) { g_InvRing[g_InvRi & 7] = static_cast<uintptr_t>(ctx->X[0]); g_InvRi = g_InvRi + 1; g_InvHits = g_InvRi; }
 };
+/* 自分の本体の部品を探して、隠す/戻すをゲームの処理に頼む (BodyCalcHook = ゲームのスレッドから毎フレーム)。部品は vtable が合い、this[5] が自分の本体のものだけ */
+void InvisTick() {
+    const uintptr_t mb = MainBase(); if (!g_InvPl) return;
+    const uintptr_t vt = mb + 0x5D28CF0;
+    for (int k = 0; k < 8; k++) {
+        const uintptr_t e = g_InvRing[k]; if (!e || !Readable(e, 0x70)) continue;
+        if (*reinterpret_cast<const uintptr_t*>(e) != vt) continue;
+        g_InvLastO = static_cast<u32>(*reinterpret_cast<const uintptr_t*>(e + 40) - g_InvPl);
+        if (*reinterpret_cast<const uintptr_t*>(e + 40) != g_InvPl) continue;
+        g_InvOwn = g_InvOwn + 1;
+        if (e != g_InvSelf) { g_InvSelf = e; g_InvAppl = false; }
+        const bool want = g_Invis;
+        if (want != g_InvAppl && *reinterpret_cast<const u32*>(mb + 0x26E1E90) == 0xD101C3FFu) {
+            alignas(16) static u8 fm[128]; std::memset(fm, 0, sizeof(fm)); fm[64] = want ? 1 : 0;
+            using Fn = uintptr_t (*)(uintptr_t, const void*); reinterpret_cast<Fn>(mb + 0x26E1E90)(e, fm);
+            g_InvAppl = want; g_InvDone = g_InvDone + 1;
+        }
+    }
+}
 HOOK_DEFINE_INLINE(GspHook) {
     static void Callback(exl::hook::InlineCtx* ctx) {
         const u32 w1 = ctx->W[1];
@@ -12958,7 +12961,7 @@ extern "C" void exl_main(void* x0, void* x1) {
               /* 版 645: 調べる用のフックは入れない */ } /* フリーフライ: プレイヤーの毎フレーム処理 (stp x29,x30,[sp,#-0x60]! / ldr w8,[x0,#0x10]) */
         if (*reinterpret_cast<const u32*>(mainBase + 0x2859C70) == 0xAA0603F3) /* mov x19, x6 (12.0.0 でも同じ) */
             X6Hook::InstallAtOffset(0x2859C70);
-        if (*reinterpret_cast<const u32*>(mainBase + 0x266906C) == 0xA9BE7BFDu && *reinterpret_cast<const u32*>(mainBase + 0x26E1E90) == 0xD101C3FFu) InvisHook::InstallAtOffset(0x266906C);
+        if (*reinterpret_cast<const u32*>(mainBase + 0x26E1CE4) == 0xA9027C1Fu && *reinterpret_cast<const u32*>(mainBase + 0x26E1E90) == 0xD101C3FFu) InvisNewHook::InstallAtOffset(0x26E1CE4);
         if (*reinterpret_cast<const u32*>(mainBase + 0x4D99FB0) == 0x1E220020) GspHook::InstallAtOffset(0x4D99FB0); /* scvtf s0, w1 */
         /* 版 645: HSpdHook (何もしない) は入れない */ /* fmul s8, s8, s0 */
         if (*reinterpret_cast<const u32*>(mainBase + 0x28464A0) == 0xAA1C03E0u) SpdHook::InstallAtOffset(0x28464A0); /* mov x0, x28 (移動速度の表) */

@@ -23,6 +23,7 @@ inline M34 RotX(float py, float pz, float th) { const float c = __builtin_cosf(t
 inline M34 RotZ(float px, float py, float ph) { const float c = __builtin_cosf(ph), s = __builtin_sinf(ph); return { { c, -s, 0, px - c * px + s * py, s, c, 0, py - s * px - c * py, 0, 0, 1, 0 } }; }
 inline void Pose(float ph, float amp, float knee, float arm, float elb, float lean, float bob) {
     if (!g_AV || !g_AN) { g_Anim = false; return; }
+    { static float lp[7] = { 1e9f }; const float np[7] = { ph, amp, knee, arm, elb, lean, bob }; bool same = g_Anim; for (int i = 0; i < 7; i++) if (np[i] != lp[i]) same = false; if (same) return; for (int i = 0; i < 7; i++) lp[i] = np[i]; } /* 同じ姿ならやり直さない */
     const float s = __builtin_sinf(ph), c = __builtin_cosf(ph);
     float px[9], py[9], pz[9]; for (int j = 1; j < 9; j++) { px[j] = kPiv[j * 3] * 0.001f; py[j] = kPiv[j * 3 + 1] * 0.001f - kCy; pz[j] = -kPiv[j * 3 + 2] * 0.001f; }
     M34 root = RotX(-kCy, 0.0f, lean); root.m[7] += bob;
@@ -30,7 +31,7 @@ inline void Pose(float ph, float amp, float knee, float arm, float elb, float le
     const float hipL = -amp * s, hipR = amp * s;                  /* 前に出す = 負の回転 */
     const float kL = knee * (c > 0.0f ? c : 0.0f), kR = knee * (c < 0.0f ? -c : 0.0f); /* ひざは足を前に出すときに曲がる */
     const float armL = arm * s, armR = -arm * s;                  /* 腕は反対の足と同じ向きに振る */
-    const float el = -elb, lowA = 1.15f;                          /* ひじは前に曲がる。腕を下ろす角度 (約 66 度) */
+    const float el = -elb, lowA = 0.95f;                          /* ひじは前に曲がる。腕を下ろす角度 (約 54 度。体から離す = 走ってもお腹に手が入らない) */
     const M34 hL = Mul(root, RotX(py[1], pz[1], hipL)), hR = Mul(root, RotX(py[3], pz[3], hipR));
     M[1] = hL; M[2] = Mul(hL, RotX(py[2], pz[2], kL)); M[3] = hR; M[4] = Mul(hR, RotX(py[4], pz[4], kR));
     /* 腕: 下ろす (左腕は x が正の側 = Z 軸まわりに負、右腕は正) → 肩で前後に振る。ひじは、下ろしたあとの位置で曲げる */

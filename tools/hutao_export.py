@@ -31,7 +31,7 @@ print('diffuse:', sorted(set(tuple(round(x,2) for x in m[0]) for m in mats)))
 alias = {'tex/发.png': 'tex/hair2.png'}
 # 使うテクスチャ: (PMX の番号 → 圧縮して入れる番号, 一辺)
 atlas = {}; order = []
-sizes = {'tex/面.png': 1024, 'tex/发.png': 512, 'tex/服.png': 1024}
+sizes = {'tex/面.png': 512, 'tex/发.png': 256, 'tex/服.png': 512}
 for i, t in enumerate(texn):
     if t in sizes and os.path.exists(alias.get(t, t)): atlas[i] = len(order); order.append((t, sizes[t]))
 imgs = {}

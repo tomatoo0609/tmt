@@ -1,4 +1,4 @@
-# tmt 引き継ぎ (2026-11-21 / 版 1.1.68 = kInkVer 178)
+# tmt 引き継ぎ (2026-11-21 / 版 1.1.69 = kInkVer 179)
 
 新しいチャットの最初に、この HANDOFF.md を読んでから作業を続けてください。
 
@@ -155,3 +155,4 @@ v176: 胡桃をきれいに: 模様は 1 画素ずつ BC1 (4 色固定・自作�
 
 v177: プレイヤーのメニュー (kCatItems[0]) の末尾に kDynGsp (ゲーム速度) を戻した。実体 (GspHook @ main+0x4D99FB0 scvtf s0,w1 の W1 を倍率で掛ける・行の描画・操作) は残っていた。実機未確認。
 v178: 1.1.66 で起動時に落ちた報告 (クラッシュログ: ゲームの HeapDef 読み込み直後の assert (udf) = 起動時メモリ不足の疑い)。tmt の BSS/rodata が 1.1.66 で増えた (rodata +1.3MB, g_z 600KB) ため、hutao::kBudget を 300000→160000 (g_z 320KB) に縮小。実機未確認。落ちるなら textures を 512 に落とす (tools/hutao_export.py の sizes)。
+v179: 1.1.68 でも起動時に同じ assert (HeapDef のサイズ検査 0x4c97f10 の失敗 = ゲームの確保サイズが使えるメモリを超える) で落ちた。胡桃の模様を半分 (512/256/512) に縮小 (tools/hutao_shrink.py)・kBudget 120000。rodata 3.59→2.71MB、BSS 26.50MB。実機未確認。これでも落ちるなら胡桃を丸ごと外すか、他の BSS (snapPx 1MB, g_WpTg 0.75MB, g_ScS 0.6MB) を削る。

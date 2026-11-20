@@ -5,7 +5,7 @@ namespace hutao {
 #include "hutao_mesh_data.h"
 #include "hutao_tex_data.h"
 constexpr float kCy = 9.75f; /* モデルの高さの半分 (単位) */
-constexpr int kBudget = 160000; /* 描く絵の画素数の上限 */
+constexpr int kBudget = 120000; /* 描く絵の画素数の上限 */
 static uint16_t g_z[kBudget];
 static int16_t g_sxy[kNV * 2]; /* 中心からの位置 (1/4 画素) */
 static uint16_t g_sd[kNV];
@@ -43,7 +43,7 @@ inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r
         float d = (kNv[i * 3] * lx + kNv[i * 3 + 1] * ly + kNv[i * 3 + 2] * lz) * (1.0f / 127.0f);
         float sh = 0.56f + 0.6f * d; if (sh < 0.45f) sh = 0.45f; if (sh > 1.12f) sh = 1.12f; g_vs[i] = static_cast<uint8_t>(sh * 128.0f);
     }
-    static const uint8_t* const kTp[3] = { kTex0, kTex1, kTex2 }; static const int kLg[3] = { 10, 9, 10 };
+    static const uint8_t* const kTp[3] = { kTex0, kTex1, kTex2 }; static const int kLg[3] = { 9, 8, 9 };
     for (int fi = 0; fi < kNF; fi++) {
         const float nx = kN[fi * 3] * (1.0f / 127.0f), ny = kN[fi * 3 + 1] * (1.0f / 127.0f), nz = kN[fi * 3 + 2] * (1.0f / 127.0f);
         const float nf = nx * f[0] + ny * f[1] + nz * f[2]; if (nf >= 0.0f) continue; /* 向こうを向いた面 */

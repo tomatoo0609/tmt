@@ -1,4 +1,4 @@
-# tmt 引き継ぎ (2026-11-21 / 版 1.1.75 = kInkVer 185)
+# tmt 引き継ぎ (2026-11-21 / 版 1.1.76 = kInkVer 186)
 
 新しいチャットの最初に、この HANDOFF.md を読んでから作業を続けてください。
 
@@ -162,3 +162,4 @@ v182: 1.1.71 が起動で落ちた (ログ: tmt+0x778d8 から PC=0 = BodyCalcHo
 v183: 透明化 実機結果 6/0/0/e82cc8 = 部品は 6 個作られたが this[5]!=pl (差 0xE82CC8)。this[5] を pl・カメラが追う物(cb)・BodyCalc部品(a1)・pl+0x29D8 の 4 候補と比べ、合った番号 (1..4) をメニュー末尾に出す。合わなければ this[5]-cb の下位 32 ビット。
 v184: 実機 9/0/0/f35ba0 (どの候補とも合わず・消えず)。this[5] は本体でない別物。pl の先頭 0x3000 バイトに部品 e へのポインタがあれば自分 (w=5)、this[5] の先頭 0x3000 に pl があれば自分 (w=6) とみなす。表示末尾 = w*0x10000+(その位置 or 差)。
 v185: 実機 9/0/0/f2eae8 (消えず)。調べる用: 透明化の行を切り替えると、部品 (輪の 8 個)・this[5]・this[12] の中身 (M+=main からの位置) を SD:/tmt/bin/invis.txt に書く (InvisDump→SwDrawMenu で SdWriteAsync)。これで this[5] の正体と、モデル一覧 (this[12]) から自分のモデルへの道を調べる。
+v186: ダンプが書けなかった: SD に tmt/bin フォルダが無く、UpdWrite はフォルダを作らない。書き先を tmt:/tmt/invis.txt に変更。注意: tmt/bin/ に書く他のデバッグ出力 (lookdbg.txt, aimstart.txt, gyroaim.bin, timing.txt) も同じ理由で書けていない可能性あり。

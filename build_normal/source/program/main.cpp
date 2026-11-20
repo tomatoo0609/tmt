@@ -361,7 +361,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 171; /* tmt 1.1.61 (胡桃: PMXモデルを8方向スプライトとして表示 (ビルボード・カメラ向きで切り替え)。蝶追従バグ: ロード後に古い座標でとびかかる問題を直した (g_LoadGenが変わったらlastCをリセット)。1.1.60: (蝶: 自分の場所の取り方を変えた (ゲームの自分の体 → 足元 → カメラの追従先、視点を上げても下がらない・ロードのあとも迷わない)。1.1.59: (蝶: 消えないように・ついてくる速さを上げた・鱗粉 (小さな光の粒) を追加。1.1.58: (ちょうちょだけにした: 自分の足元のまわりを飛ぶ・数を選べる・入り切りは 0.3 秒ではかなく消える・蝶のまわりの背景を細かく読んでぼやけ・モザイクをなくした。1.1.57: (舞う花びら: 大きな炎を追加・炎も空間に固定・蝶を作り直して減らした・四角のモザイクをなくした (粒のある所だけ帯にして写す)。1.1.56: (舞う花びら: 据え置き 1920x1080 でも出るように・メニューが出ていないときに古い絵の大きさで止まらないように。1.1.55: (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 172; /* tmt 1.1.62 (胡桃: 黒い四角になるのを直した (コマの並びと透明部分)・自分の右どなりに立たせる。1.1.61: (胡桃: PMXモデルを8方向スプライトとして表示 (ビルボード・カメラ向きで切り替え)。蝶追従バグ: ロード後に古い座標でとびかかる問題を直した (g_LoadGenが変わったらlastCをリセット)。1.1.60: (蝶: 自分の場所の取り方を変えた (ゲームの自分の体 → 足元 → カメラの追従先、視点を上げても下がらない・ロードのあとも迷わない)。1.1.59: (蝶: 消えないように・ついてくる速さを上げた・鱗粉 (小さな光の粒) を追加。1.1.58: (ちょうちょだけにした: 自分の足元のまわりを飛ぶ・数を選べる・入り切りは 0.3 秒ではかなく消える・蝶のまわりの背景を細かく読んでぼやけ・モザイクをなくした。1.1.57: (舞う花びら: 大きな炎を追加・炎も空間に固定・蝶を作り直して減らした・四角のモザイクをなくした (粒のある所だけ帯にして写す)。1.1.56: (舞う花びら: 据え置き 1920x1080 でも出るように・メニューが出ていないときに古い絵の大きさで止まらないように。1.1.55: (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -11988,8 +11988,8 @@ namespace {
         struct Reg { int x, y, z, w, h, d; };
         /* 胡桃スプライト: 8方向 128x192 RGBA zlib圧縮データ */
         static constexpr int kHW = 128, kHH = 192, kHN = 8;
-        static constexpr size_t kHSz = 49627;
-        static constexpr unsigned char kHData[49627] = {
+        static constexpr size_t kHSz = 59552;
+        static constexpr unsigned char kHData[59552] = {
 #include "hutao_bytes_inline.h"
         };
         static bool hutaoDone = false;
@@ -12135,60 +12135,32 @@ namespace {
             if (nd > 0) { DcClean(spb, 512); g_Sw.rowStride(cb, 16); for (int k = 0; k < nd; k++) { const int sh = dxy[k][2] >> 3, sz = dxy[k][2] & 7; Reg r { dxy[k][0], dxy[k][1], 0, sz, sz, 1 }; g_Sw.copyB2T(cb, base + spOff + static_cast<u64>(sh) * 64u, tex, nullptr, &r, 0); } }
         }
         if (ncp > 0) { DcClean(spb, spUsed); int lastPw = -1; for (int k = 0; k < ncp; k++) { const Cp& c = cps[k]; if (c.w != lastPw) { g_Sw.rowStride(cb, static_cast<ptrdiff_t>(c.w) * 4); lastPw = c.w; } Reg r { c.x, c.y, 0, c.w, c.h, 1 }; g_Sw.copyB2T(cb, base + c.off, tex, nullptr, &r, 0); } }
-        /* 胡桃スプライト: カメラの向きからY軸角度を計算して8方向のフレームを選択、足元の3D位置にビルボード表示 */
+        /* 胡桃スプライト: 自分の右どなりに立たせる (向きはカメラの向きで 8 方向から選ぶ)。透明な所は写さず、絵のある画素だけを 1 行ずつ写す */
         if (hutaoDone) {
-            /* カメラの前向きベクトル (fx, _, fz) からスプライトの向き番号を決める */
-            /* モデルの向き: frame0=正面(南)、frame1=南西、...を時計回りに */
-            /* カメラから見た角度: atan2(fz, fx) */
-            float camAngle = __builtin_atan2f(fz, fx); /* ラジアン、カメラが南を向いているとき≒0 */
-            /* 8方向: frame0 がカメラ正面、反時計回りに増える */
-            int frameIdx = static_cast<int>((camAngle / (2.0f * 3.14159265f) + 1.0f) * kHN + 0.5f) % kHN;
-            if (frameIdx < 0) frameIdx += kHN;
-            /* C (足元) をスクリーン座標に投影 */
-            float cpx, cpy; const float cz = proj(C[0], C[1] + 0.9f, C[2], cpx, cpy); /* キャラの中心高さ */
-            if (cz > 0.1f && cz < 50.0f) {
-                /* スプライトの高さをカメラ距離に合わせてスケール: 1.8m のキャラ、kpx でピクセル換算 */
-                const float charH = 1.8f * kpx / cz * fade; /* フェードも乗せる */
-                const int sw = static_cast<int>(charH * static_cast<float>(kHW) / static_cast<float>(kHH));
-                const int sh2 = static_cast<int>(charH);
-                if (sw >= 4 && sh2 >= 4 && sw <= W && sh2 <= H) {
-                    /* 描画領域 */
-                    int dx = static_cast<int>(cpx) - sw / 2, dy = static_cast<int>(cpy) - sh2 / 2;
-                    /* 画面クリップ */
-                    int srcX = 0, srcY = 0, dw2 = sw, dh2 = sh2;
-                    if (dx < 0) { srcX -= dx; dw2 += dx; dx = 0; }
-                    if (dy < 0) { srcY -= dy; dh2 += dy; dy = 0; }
-                    if (dx + dw2 > W) dw2 = W - dx;
-                    if (dy + dh2 > H) dh2 = H - dy;
-                    if (dw2 > 0 && dh2 > 0 && spUsed + static_cast<size_t>(dw2) * dh2 * 4 <= kPetSpBytes) {
-                        const u32* srcFrame = g_HutaoBuf + frameIdx * kHW * kHH;
-                        u32* obuf = spb + spUsed / 4;
-                        const int ia2 = static_cast<int>(fade * 240.0f); /* 半透明係数 */
-                        for (int y = 0; y < dh2; y++) {
-                            /* ソースのピクセル座標 (バイリニアなしの最近傍) */
-                            const int sy2 = (srcY + y) * kHH / sh2;
-                            const u32* srcRow = srcFrame + sy2 * kHW;
-                            u32* dstRow = obuf + y * dw2;
-                            for (int x = 0; x < dw2; x++) {
-                                const int sx2 = (srcX + x) * kHW / sw;
-                                const u32 spx = srcRow[sx2];
-                                const int sa = (spx >> 24) & 0xFF; /* ソースアルファ */
-                                if (sa < 8) { dstRow[x] = 0xFF000000u; continue; } /* 透明は背景塗り（後でreadbackで上書き） */
-                                const int a2 = sa * ia2 / 255;
-                                /* 背景を読んでブレンド (蝶と同様に prev[0] の背景を仮用) */
-                                /* 簡易版: 直接合成 */
-                                const int sr = spx & 0xFF, sg = (spx >> 8) & 0xFF, sb2 = (spx >> 16) & 0xFF;
-                                const int k2 = 256 - a2;
-                                /* テクスチャの R/G/B はPMXのRGBA順: R=spx&FF, G=(spx>>8)&FF, B=(spx>>16)&FF */
-                                /* NVN は BGRA (Blue 最上位) なので swap: 出力の [0]=B [1]=G [2]=R */
-                                dstRow[x] = 0xFF000000u | (static_cast<u32>(sr) << 16) | (static_cast<u32>(sg) << 8) | static_cast<u32>(sb2);
+            const float camAngle = __builtin_atan2f(fz, fx);
+            int frameIdx = static_cast<int>((camAngle / 6.2831853f + 1.0f) * kHN + 0.5f) % kHN; if (frameIdx < 0) frameIdx += kHN;
+            float cpx, cpy; const float cz = proj(C[0] + rx * 1.3f, C[1] + 0.85f, C[2] + rz * 1.3f, cpx, cpy);
+            if (cz > 0.7f && cz < 40.0f) {
+                int sh2 = static_cast<int>(1.7f * kpx / cz * (0.5f + 0.5f * fade)); if (sh2 > 480) sh2 = 480;
+                const int sw = sh2 * kHW / kHH;
+                if (sw >= 8 && sh2 >= 8) {
+                    const int dx0 = static_cast<int>(cpx) - sw / 2, dy0 = static_cast<int>(cpy) - sh2 / 2;
+                    const u32* src = g_HutaoBuf + static_cast<size_t>(frameIdx) * kHW * kHH;
+                    static short sxm[1024]; for (int x = 0; x < sw && x < 1024; x++) sxm[x] = static_cast<short>(x * kHW / sw);
+                    u32* obuf = spb + spUsed / 4; const size_t need = static_cast<size_t>(sw) * sh2 * 4u;
+                    if (sw <= 1024 && spUsed + need <= kPetSpBytes) {
+                        for (int y = 0; y < sh2; y++) { const u32* sr = src + (y * kHH / sh2) * kHW; u32* o = obuf + static_cast<size_t>(y) * sw; for (int x = 0; x < sw; x++) o[x] = sr[sxm[x]]; }
+                        DcClean(obuf, need); g_Sw.rowStride(cb, static_cast<ptrdiff_t>(sw) * 4); int ncopy = 0;
+                        for (int y = 0; y < sh2 && ncopy < 2400; y++) {
+                            const int yy = dy0 + y; if (yy < 0 || yy >= H) continue; const u32* o = obuf + static_cast<size_t>(y) * sw;
+                            int x = 0; while (x < sw) {
+                                while (x < sw && (o[x] >> 24) < 128) x++; int x1 = x; while (x1 < sw && (o[x1] >> 24) >= 128) x1++;
+                                int a0 = x, a1 = x1; if (dx0 + a0 < 0) a0 = -dx0; if (dx0 + a1 > W) a1 = W - dx0;
+                                if (a1 > a0) { Reg rh { dx0 + a0, yy, 0, a1 - a0, 1, 1 }; g_Sw.copyB2T(cb, base + spOff + spUsed + (static_cast<u64>(y) * sw + a0) * 4u, tex, nullptr, &rh, 0); ncopy++; }
+                                x = x1;
                             }
                         }
-                        DcClean(obuf, static_cast<size_t>(dw2) * dh2 * 4);
-                        g_Sw.rowStride(cb, static_cast<ptrdiff_t>(dw2) * 4);
-                        Reg rh { dx, dy, 0, dw2, dh2, 1 };
-                        g_Sw.copyB2T(cb, base + spOff + spUsed, tex, nullptr, &rh, 0);
-                        spUsed += static_cast<size_t>(dw2) * dh2 * 4;
+                        spUsed += need;
                     }
                 }
             }

@@ -10,10 +10,14 @@ def rs(p):
 p = 17
 for _ in range(4): _, p = rs(p)
 nv = struct.unpack_from('<i', data, p)[0]; p += 4
-V = np.zeros((nv,3), np.float32); N = np.zeros((nv,3), np.float32); UV = np.zeros((nv,2), np.float32)
+WB = []; V = np.zeros((nv,3), np.float32); N = np.zeros((nv,3), np.float32); UV = np.zeros((nv,2), np.float32)
 for i in range(nv):
     V[i] = struct.unpack_from('<3f', data, p); N[i] = struct.unpack_from('<3f', data, p+12); UV[i] = struct.unpack_from('<2f', data, p+24); p += 32 + auv*16
     wt = data[p]; p += 1
+    bf = {1:'<b',2:'<h',4:'<i'}[bis]
+    if wt == 0: WB.append(([struct.unpack_from(bf, data, p)[0]], [1.0]))
+    elif wt in (1, 3): w1 = struct.unpack_from('<f', data, p+2*bis)[0]; WB.append(([struct.unpack_from(bf, data, p)[0], struct.unpack_from(bf, data, p+bis)[0]], [w1, 1-w1]))
+    else: WB.append(([struct.unpack_from(bf, data, p+k*bis)[0] for k in range(4)], list(struct.unpack_from('<4f', data, p+4*bis))))
     p += [bis, bis*2+4, bis*4+16, bis*2+28][wt]; p += 4
 nfi = struct.unpack_from('<i', data, p)[0]; p += 4
 F = np.frombuffer(data, dtype={1:np.uint8,2:np.uint16,4:np.uint32}[vis], count=nfi, offset=p).reshape(-1,3).astype(np.int64); p += nfi*vis
@@ -27,6 +31,44 @@ for _ in range(nm):
     tf = data[p]; p += 1; p += 1 if tf else tis
     _, p = rs(p); fc = struct.unpack_from('<i', data, p)[0]; p += 4
     mats.append((dif, ti, fc//3))
+# --- ボーン (歩き・走りの動き用): 名前・親・位置だけ読む ---
+nb = struct.unpack_from('<i', data, p)[0]; p += 4; BN = []; BP = []; BPos = []
+bf = {1:'<b',2:'<h',4:'<i'}[bis]
+for _ in range(nb):
+    nme, p = rs(p); _, p = rs(p); pos = struct.unpack_from('<3f', data, p); p += 12
+    par = struct.unpack_from(bf, data, p)[0]; p += bis; p += 4
+    fl = struct.unpack_from('<H', data, p)[0]; p += 2
+    p += bis if fl & 1 else 12
+    if fl & 0x300: p += bis + 4
+    if fl & 0x400: p += 12
+    if fl & 0x800: p += 24
+    if fl & 0x2000: p += 4
+    if fl & 0x20:
+        p += bis + 4 + 4; lc = struct.unpack_from('<i', data, p)[0]; p += 4
+        for _ in range(lc):
+            p += bis; lim = data[p]; p += 1
+            if lim: p += 24
+    BN.append(nme); BP.append(par); BPos.append(pos)
+JN = ['', '左足D', '左ひざD', '右足D', '右ひざD', '左腕', '左ひじ', '右腕', '右ひじ']
+JB = [-1] + [BN.index(n) for n in JN[1:]]
+print('joint bones', [(JN[i], JB[i], [round(x, 2) for x in BPos[JB[i]]]) for i in range(1, 9)])
+def joint_of(b):
+    while b >= 0:
+        if b in JB[1:]: return JB.index(b)
+        b = BP[b]
+    return 0
+bj = [joint_of(b) for b in range(nb)]
+KJ = np.zeros((nv, 2), np.uint8); KW = np.zeros(nv, np.uint8)
+for i, (bb, ww) in enumerate(WB):
+    acc = {}
+    for b, w in zip(bb, ww):
+        if w > 0 and b >= 0: acc[bj[b]] = acc.get(bj[b], 0) + w
+    if not acc: acc = {0: 1.0}
+    it = sorted(acc.items(), key=lambda t: -t[1])[:2]; tot = sum(w for _, w in it)
+    j0 = it[0][0]; j1 = it[1][0] if len(it) > 1 else it[0][0]; w0 = it[0][1] / tot
+    KJ[i] = (j0, j1); KW[i] = int(round(w0 * 255))
+print('verts by joint', np.bincount(KJ[:, 0], minlength=9))
+KPiv = np.clip(np.round(np.array([[0, 0, 0]] + [BPos[JB[i]] for i in range(1, 9)], np.float32) * 1000), -32000, 32000).astype(np.int16)
 print('diffuse:', sorted(set(tuple(round(x,2) for x in m[0]) for m in mats)))
 alias = {'tex/发.png': 'tex/hair2.png'}
 # 使うテクスチャ: (PMX の番号 → 圧縮して入れる番号, 一辺)
@@ -39,7 +81,7 @@ for i, a in atlas.items():
     t, sz = order[a]; imgs[i] = np.array(Image.open(alias.get(t, t)).convert('RGBA'))
 def samp(im, u, v):
     h, w = im.shape[:2]; return im[int((v % 1.0)*(h-1)), int((u % 1.0)*(w-1))].astype(np.float32)
-keepF, colF, nrmF, texF = [], [], [], []; fi = 0
+keepF, colF, nrmF, texF, sgnF = [], [], [], [], []; fi = 0
 for dif, ti, fc in mats:
     for k in range(fi, fi+fc):
         a, b, c = F[k]
@@ -55,6 +97,7 @@ for dif, ti, fc in mats:
         n /= l
         if np.dot(n, N[a]+N[b]+N[c]) < 0: n = -n
         n[2] = -n[2]
+        cm = np.cross(np.array([V[b][0]-V[a][0], V[b][1]-V[a][1], -(V[b][2]-V[a][2])]), np.array([V[c][0]-V[a][0], V[c][1]-V[a][1], -(V[c][2]-V[a][2])])); sgnF.append(1 if np.dot(cm, n) >= 0 else 0)
         keepF.append((a, b, c)); colF.append(np.clip(col[:3], 0, 255).astype(np.uint8)); nrmF.append(np.clip(np.round(n*127), -127, 127).astype(np.int8)); texF.append(tid)
     fi += fc
 keepF = np.array(keepF, np.uint16); colF = np.array(colF, np.uint8); nrmF = np.array(nrmF, np.int8); texF = np.array(texF, np.uint8)
@@ -67,7 +110,7 @@ def arr(name, ty, a):
 with open(sys.argv[1], 'w') as o:
     o.write('constexpr int kNV = %d, kNF = %d;\n' % (nv, len(keepF)))
     o.write(arr('kV', 'int16_t', Vq)); o.write(arr('kU', 'int16_t', Uq)); o.write(arr('kNv', 'int8_t', Nq))
-    o.write(arr('kF', 'uint16_t', keepF)); o.write(arr('kC', 'uint8_t', colF)); o.write(arr('kN', 'int8_t', nrmF)); o.write(arr('kT', 'uint8_t', texF))
+    o.write(arr('kF', 'uint16_t', keepF)); o.write(arr('kC', 'uint8_t', colF)); o.write(arr('kN', 'int8_t', nrmF)); o.write(arr('kT', 'uint8_t', texF)); o.write(arr('kFs', 'uint8_t', np.array(sgnF, np.uint8))); o.write(arr('kJ', 'uint8_t', KJ)); o.write(arr('kW', 'uint8_t', KW)); o.write(arr('kPiv', 'int16_t', KPiv))
 # --- BC1 (4 色固定。端の色 2 つ + 間の 2 色、1 画素 2bit) ---
 def bc1(img):
     H, W = img.shape[:2]

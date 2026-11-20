@@ -9,6 +9,10 @@ int main(int argc, char** argv) {
     float f[3] = { cosf(pit) * cosf(yaw), sinf(pit), cosf(pit) * sinf(yaw) };
     float ch = sqrtf(f[0] * f[0] + f[2] * f[2]); float r[3] = { -f[2] / ch, 0, f[0] / ch };
     float u[3] = { r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0] };
+    static std::vector<uint16_t> zb(hutao::kBudget); static std::vector<float> av(hutao::kNV * 3); static std::vector<int8_t> an(hutao::kNV * 3);
+    hutao::g_Zp = zb.data(); hutao::g_AV = av.data(); hutao::g_AN = an.data();
+    if (argc > 5) { const float ph = atof(argv[5]), run = argc > 6 ? atof(argv[6]) : 0.0f; /* 歩き/走り (run 0..1) */
+        hutao::Pose(ph, 0.40f + 0.30f * run, 0.7f + 0.7f * run, 0.30f + 0.35f * run, 0.27f + 0.85f * run, 0.03f + run * 0.15f, (0.10f + 0.20f * run) * cosf(2 * ph)); }
     int mx, my, w, h; hutao::Project(up, up / q, r, u, f, mx, my, w, h); fprintf(stderr, "%dx%d q=%d px=%d (budget %d)\n", w, h, q, w * h, hutao::kBudget);
     std::vector<uint32_t> buf(w * h);
     auto t0 = std::chrono::steady_clock::now();

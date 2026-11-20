@@ -5,6 +5,8 @@ namespace hutao {
 #include "hutao_mesh_data.h"
 #include "hutao_tex_data.h"
 constexpr float kCy = 9.75f; /* モデルの高さの半分 (単位) */
+/* 版 194: SD の tmt/hutao/tex0..2.bin を読めたら、元の細かさ (1024/512/1024) の模様に差し替える (起動時のメモリを増やさないため、起動後に確保する) */
+inline const uint8_t* volatile g_Hi[3] = { nullptr, nullptr, nullptr }; inline volatile int g_HiLg[3] = { 10, 9, 10 };
 constexpr int kBudget = 120000; /* 描く絵の画素数の上限 */
 static uint16_t g_z[kBudget];
 static int16_t g_sxy[kNV * 2]; /* 中心からの位置 (1/4 画素) */
@@ -66,7 +68,7 @@ inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r
         int bx0 = static_cast<int>(x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2)), bx1 = static_cast<int>((x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2)) + 1.0f);
         int by0 = static_cast<int>(y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2)), by1 = static_cast<int>((y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2)) + 1.0f);
         if (bx0 < 0) bx0 = 0; if (by0 < 0) by0 = 0; if (bx1 > w - 1) bx1 = w - 1; if (by1 > h - 1) by1 = h - 1; if (bx0 > bx1 || by0 > by1) continue;
-        const float inv = 1.0f / area; const uint8_t* tp = tid == 255 ? nullptr : kTp[tid]; const int lg = tid == 255 ? 10 : kLg[tid]; const float tsz = static_cast<float>(1 << lg);
+        const float inv = 1.0f / area; const uint8_t* hi = tid == 255 ? nullptr : g_Hi[tid]; const uint8_t* tp = tid == 255 ? nullptr : (hi ? hi : kTp[tid]); const int lg = tid == 255 ? 10 : (hi ? g_HiLg[tid] : kLg[tid]); const float tsz = static_cast<float>(1 << lg);
         for (int y = by0; y <= by1; y++) {
             const float py = y + 0.5f;
             for (int x = bx0; x <= bx1; x++) {

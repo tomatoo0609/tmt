@@ -361,7 +361,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 166; /* tmt 1.1.56 (舞う花びら: 据え置き 1920x1080 でも出るように・メニューが出ていないときに古い絵の大きさで止まらないように。1.1.55: (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 167; /* tmt 1.1.57 (舞う花びら: 大きな炎を追加・炎も空間に固定・蝶を作り直して減らした・四角のモザイクをなくした (粒のある所だけ帯にして写す)。1.1.56: (舞う花びら: 据え置き 1920x1080 でも出るように・メニューが出ていないときに古い絵の大きさで止まらないように。1.1.55: (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -11067,7 +11067,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                     if (pi == 0) { char dbg[56]; std::snprintf(dbg, sizeof(dbg), " [I%u R%d C%u Q%d]", static_cast<unsigned>(g_TmInput), g_TmReady, static_cast<unsigned>(g_TmCalls), g_TeamReq[0]); std::strncat(vb, dbg, sizeof(vb) - std::strlen(vb) - 1); } }
                 else if (i == kDynRecruitY) { nm = T("Y で募集 (押すたび・待ち時間なし)", "Recruit on each Y press"); st = g_RecruitY ? 1 : 0; if (g_RecruitSent || g_RecruitSt >= 0) std::snprintf(vb, sizeof(vb), T("%u回 (状態%d)", "%ux (st %d)"), static_cast<unsigned>(g_RecruitSent), static_cast<int>(g_RecruitSt)); }
                 else if (i == kDynPetOn) { nm = T("舞う花びら・羽根", "Floating Petals"); st = g_PetOn ? 1 : 0; }
-                else if (i == kDynPetKind) { static const char* const kN[8] = { T("花びら","Petals"), T("羽根","Feathers"), T("きらめき","Sparkles"), T("蝶","Butterflies"), T("火の粉","Embers"), T("炎の帯","Flames"), T("灰の葉","Ash"), T("まぜる","Mixed") }; nm = T("形", "Shape"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetKind & 7]); }
+                else if (i == kDynPetKind) { static const char* const kN[8] = { T("花びら","Petals"), T("羽根","Feathers"), T("きらめき","Sparkles"), T("蝶","Butterflies"), T("火の粉","Embers"), T("大きな炎","Big flames"), T("灰の葉","Ash"), T("まぜる","Mixed") }; nm = T("形", "Shape"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetKind & 7]); }
                 else if (i == kDynPetCol) { static const char* const kN[8] = { T("白","White"), T("桜","Sakura"), T("水色","Aqua"), T("金","Gold"), T("緑","Green"), T("紫","Violet"), T("にじ","Rainbow"), T("炎","Fire") }; nm = T("色", "Color"); st = -1; std::snprintf(vb, sizeof(vb), "%s", kN[g_PetCol & 7]); }
                 else if (i == kDynPetNum) { nm = T("量", "Amount"); st = -1; std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_PetNum)); }
                 else if (i == kDynPetSpd) { nm = T("速さ", "Speed"); st = -1; std::snprintf(vb, sizeof(vb), "%d", static_cast<int>(g_PetSpd)); }
@@ -12011,17 +12011,22 @@ namespace {
         auto sgn = [&]() -> float { return rnd() < 0.5f ? -1.0f : 1.0f; };
         auto spawn = [&](PetP& q, bool first) {
             int kd = kind;
-            if (kind == 7) { const float u = rnd(); if (fire) kd = u < 0.46f ? 4 : (u < 0.53f ? 3 : (u < 0.65f ? 5 : (u < 0.82f ? 6 : (u < 0.91f ? 2 : 0)))); else kd = u < 0.4f ? 0 : (u < 0.6f ? 1 : (u < 0.8f ? 2 : (u < 0.9f ? 3 : 4))); }
+            const int qi = static_cast<int>(&q - P);
+            if (kind == 7) { const float u = rnd(); if (fire) kd = (qi & 7) == 0 ? 8 : (u < 0.5f ? 4 : (u < 0.54f ? 3 : (u < 0.64f ? 5 : (u < 0.82f ? 6 : (u < 0.92f ? 2 : 0))))); else kd = u < 0.4f ? 0 : (u < 0.62f ? 1 : (u < 0.9f ? 2 : (u < 0.94f ? 3 : 4))); }
+            else if (fire && kind == 5) kd = 8; /* 大きな炎 */
             q.kind = kd; q.ph = rnd() * 6.2831853f; q.len = kd == 5 ? 0.7f + 0.6f * rnd() : 0.35f + 0.35f * rnd(); q.ci = static_cast<int>(rnd() * 5.99f); q.ang = rnd() * 6.2831853f; q.fall = 0.0f;
             if (fire) {
+                float hh = 0.0f; const float ang0 = rnd() * 6.2831853f; float rr = 0.6f + 5.0f * rnd(); q.rise = 0.0f; q.w = 0.0f;
                 switch (kd) {
-                case 4: q.r = 0.6f + 4.5f * rnd(); q.h = first ? 7.0f * rnd() : -0.2f + 0.8f * rnd(); q.rise = 0.8f + 1.6f * rnd(); q.w = sgn() * (0.4f + 0.8f * rnd()); q.sz = 0.07f + 0.09f * rnd(); break;
-                case 3: q.r = 1.0f + 4.5f * rnd(); q.h = 0.3f + 2.5f * rnd(); q.rise = 0.0f; q.w = sgn() * (0.15f + 0.3f * rnd()); q.sz = 0.2f + 0.14f * rnd(); break;
-                case 5: q.r = 0.8f + 3.5f * rnd(); q.h = first ? 4.0f * rnd() : -0.2f + 0.5f * rnd(); q.rise = 1.0f + 1.8f * rnd(); q.w = sgn() * (1.2f + 1.6f * rnd()); q.sz = 0.32f + 0.25f * rnd(); break;
-                case 6: q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.08f + 0.08f * rnd(); break;
-                case 2: q.r = 0.5f + 5.0f * rnd(); q.h = 0.2f + 4.0f * rnd(); q.rise = 0.3f; q.w = sgn() * 0.2f; q.sz = 0.12f + 0.12f * rnd(); break;
-                default: q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.12f + 0.10f * rnd(); break;
+                case 8: rr = 3.0f + 4.5f * rnd(); hh = 0.0f; q.sz = 1.8f + 2.4f * rnd(); q.w = 0.45f + 0.4f * rnd(); break;
+                case 4: hh = first ? 7.0f * rnd() : -0.2f + 0.8f * rnd(); q.rise = 0.8f + 1.6f * rnd(); q.sz = 0.07f + 0.09f * rnd(); break;
+                case 3: rr = 1.0f + 4.5f * rnd(); hh = 0.3f + 2.5f * rnd(); q.sz = 0.2f + 0.14f * rnd(); break;
+                case 5: hh = first ? 4.0f * rnd() : -0.2f + 0.5f * rnd(); q.rise = 1.0f + 1.8f * rnd(); q.sz = 0.32f + 0.25f * rnd(); break;
+                case 6: hh = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.sz = 0.08f + 0.08f * rnd(); break;
+                case 2: hh = 0.2f + 4.0f * rnd(); q.rise = 0.3f; q.sz = 0.12f + 0.12f * rnd(); break;
+                default: hh = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.sz = 0.12f + 0.10f * rnd(); break;
                 }
+                q.p[0] = C[0] + rr * __builtin_cosf(ang0); q.p[2] = C[2] + rr * __builtin_sinf(ang0); q.p[1] = C[1] + hh; /* ほかと同じに、空間に置く (自分の動きにはついてこない) */
             } else {
                 const float ang = (rnd() < 0.75f) ? hd + (rnd() - 0.5f) * 1.7f : rnd() * 6.2831853f; const float r = 2.0f + 13.0f * rnd();
                 q.p[0] = f[0] + r * __builtin_cosf(ang); q.p[2] = f[2] + r * __builtin_sinf(ang); q.p[1] = f[1] + (first ? -2.5f + 8.0f * rnd() : 1.0f + 5.0f * rnd());
@@ -12047,25 +12052,46 @@ namespace {
         const float cx = static_cast<float>(W) * 0.5f, cy = static_cast<float>(H) * 0.5f;
         auto proj = [&](float X, float Y, float Z, float& px, float& py) -> float { const float dx = X - f[0], dy = Y - f[1], dz = Z - f[2]; const float z = dx * fx + dy * fy + dz * fz; if (z < 0.7f) return -1.0f; const float xr = dx * rx + dz * rz, yu = dx * ux + dy * uy + dz * uz; px = cx + xr / z * kpx; py = cy - yu / z * kpx; return z; };
         u32* spb = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot + spOff); size_t spUsed = 0; /* 粒の絵を置く場所 (今の 1 枚の後ろ) */
-        struct Cp { int x, y, w, h; size_t off; }; static Cp cps[170]; int ncp = 0;
-        /* 1 粒の絵: 場所 (x0,y0)・大きさ (w,h) の accA/accH から作る。mode 0 = ふつうに重ねる、1 = 光る (足し算気味)。color(h) で色 */
-        auto flush = [&](int x0, int y0, int w, int h, int mode, float alpha, const PetCol& c0, const PetCol& c1, bool fireRamp) {
-            if (ncp >= 168) return; const size_t need = static_cast<size_t>(w) * h * 4u; if (spUsed + need > kPetSpBytes) return;
-            if (x0 < 0 || y0 < 0 || x0 + w > W || y0 + h > H) return; u32* o = spb + spUsed / 4;
+        struct Cp { int x, y, w, h; size_t off; }; static Cp cps[1100]; int ncp = 0; int pixB = 150000; /* 写す四角 (横の帯)・1 フレームで作る点の数の上限 */
+        /* 1 粒の絵: 場所 (x0,y0)・大きさ (w,h) を、accA/accH (sc 倍に粗い) から作る。粒がある所だけを、横の帯 (数行ずつ・粒のある幅だけ) にして写す
+           (四角全体を写すと、粒のまわりに背景の読み出しの四角が見えて、モザイクになる)。mode 0 = ふつうに重ねる、1 = 光る (足し算気味)。 */
+        auto flush = [&](int x0, int y0, int w, int h, int sc, int mode, float alpha, const PetCol& c0, const PetCol& c1, bool fireRamp) {
+            const int aw = (w + sc - 1) / sc, ah = (h + sc - 1) / sc; if (aw > 192 || ah > 192) return;
+            const int vy0 = y0 < 0 ? 0 : y0, vy1 = y0 + h > H ? H : y0 + h, vx0 = x0 < 0 ? 0 : x0, vx1 = x0 + w > W ? W : x0 + w; if (vy0 >= vy1 || vx0 >= vx1) return;
             const int ia = static_cast<int>(alpha * 256.0f);
-            int ov[8], nov = 0; for (int k = ncp - 1; k >= 0 && nov < 8; k--) { const Cp& e = cps[k]; if (e.x < x0 + w && e.x + e.w > x0 && e.y < y0 + h && e.y + e.h > y0) ov[nov++] = k; } /* 先に作った粒と重なるところは、その粒の絵を背景にする (四角が上書きして欠けないように) */
-            for (int y = 0; y < h; y++) {
-                const int yy0 = y0 + y; int r0 = yy0 / step; int r1 = r0 + 1; const u32 tw = static_cast<u32>((yy0 - r0 * step) * 256 / step); if (r0 >= rows) r0 = rows - 1; if (r1 >= rows) r1 = rows - 1; const u32* ra = rb + static_cast<size_t>(r0) * W + x0; const u32* rb1 = rb + static_cast<size_t>(r1) * W + x0;
-                for (int x = 0; x < w; x++) {
-                    u32 bg = tw ? LerpPx(ra[x], rb1[x], tw) : ra[x]; for (int q2 = 0; q2 < nov; q2++) { const Cp& e = cps[ov[q2]]; const int ex2 = x0 + x - e.x, ey2 = yy0 - e.y; if (ex2 >= 0 && ex2 < e.w && ey2 >= 0 && ey2 < e.h) { bg = spb[(e.off - spOff) / 4 + static_cast<size_t>(ey2) * e.w + ex2]; break; } } const int a = accA[y * 192 + x] * ia / 255; if (a <= 0) { o[y * w + x] = bg | 0xFF000000u; continue; }
-                    const float hh = accH[y * 192 + x] * (1.0f / 255.0f); PetCol c; if (fireRamp) c = PetFire(hh); else { c.r = static_cast<int>(c0.r + (c1.r - c0.r) * hh); c.g = static_cast<int>(c0.g + (c1.g - c0.g) * hh); c.b = static_cast<int>(c0.b + (c1.b - c0.b) * hh); }
-                    const int br = bg & 255, bgc = (bg >> 8) & 255, bb = (bg >> 16) & 255; int r, g, b;
-                    if (mode == 0) { r = (br * (256 - a) + c.r * a) >> 8; g = (bgc * (256 - a) + c.g * a) >> 8; b = (bb * (256 - a) + c.b * a) >> 8; }
-                    else { const int k = 256 - (a * 90 >> 8); r = PetClamp(((br * k) >> 8) + (c.r * a >> 8)); g = PetClamp(((bgc * k) >> 8) + (c.g * a >> 8)); b = PetClamp(((bb * k) >> 8) + (c.b * a >> 8)); }
-                    o[y * w + x] = 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+            int lr[256], lg[256], lb[256]; for (int k = 0; k < 256; k++) { const float hh = static_cast<float>(k) * (1.0f / 255.0f); if (fireRamp) { const PetCol c = PetFire(hh); lr[k] = c.r; lg[k] = c.g; lb[k] = c.b; } else { lr[k] = static_cast<int>(c0.r + (c1.r - c0.r) * hh); lg[k] = static_cast<int>(c0.g + (c1.g - c0.g) * hh); lb[k] = static_cast<int>(c0.b + (c1.b - c0.b) * hh); } }
+            short e0[192], e1[192]; for (int ay = 0; ay < ah; ay++) { int a0 = -1, a1 = -1; const u8* ra = accA + ay * 192; for (int ax = 0; ax < aw; ax++) if (ra[ax] > 2) { if (a0 < 0) a0 = ax; a1 = ax; } e0[ay] = static_cast<short>(a0); e1[ay] = static_cast<short>(a1); }
+            const int BH = (vy1 - vy0 + 15) / 16 < 8 ? 8 : (vy1 - vy0 + 15) / 16;
+            for (int by = vy0; by < vy1; by += BH) {
+                const int bh = by + BH > vy1 ? vy1 - by : BH; int ya = (by - y0) / sc - 1, yb = (by + bh - 1 - y0) / sc + 1; if (ya < 0) ya = 0; if (yb >= ah) yb = ah - 1;
+                int mn = 100000, mx = -1; for (int ay = ya; ay <= yb; ay++) if (e1[ay] >= 0) { if (e0[ay] < mn) mn = e0[ay]; if (e1[ay] > mx) mx = e1[ay]; }
+                if (mx < 0) continue;
+                int bx0 = x0 + (mn - 1) * sc, bx1 = x0 + (mx + 2) * sc; if (bx0 < vx0) bx0 = vx0; if (bx1 > vx1) bx1 = vx1; if (bx1 <= bx0) continue;
+                const int bw = bx1 - bx0; const size_t need = static_cast<size_t>(bw) * bh * 4u;
+                if (ncp >= 1000 || spUsed + need > kPetSpBytes || pixB <= 0) return; pixB -= bw * bh;
+                u32* o = spb + spUsed / 4;
+                int ov[10], nov = 0; for (int k = ncp - 1; k >= 0 && nov < 10; k--) { const Cp& e = cps[k]; if (e.x < bx1 && e.x + e.w > bx0 && e.y < by + bh && e.y + e.h > by) ov[nov++] = k; } /* 先に作った粒と重なるところは、その絵を背景にする */
+                for (int y = 0; y < bh; y++) {
+                    const int yy = by + y; int r0 = yy / step, r1 = r0 + 1; const u32 tw = static_cast<u32>((yy - r0 * step) * 256 / step); if (r0 >= rows) r0 = rows - 1; if (r1 >= rows) r1 = rows - 1;
+                    const u32* ra = rb + static_cast<size_t>(r0) * W + bx0; const u32* rb1 = rb + static_cast<size_t>(r1) * W + bx0;
+                    const int ly = yy - y0; int iy = 0, fy = 0; if (sc > 1) { const int t = (2 * ly + 1) * 128 / sc - 128; iy = t >> 8; fy = t & 255; if (iy < 0) { iy = 0; fy = 0; } if (iy >= ah - 1) { iy = ah - 1; fy = 0; } } else iy = ly;
+                    for (int x = 0; x < bw; x++) {
+                        u32 bg = tw ? LerpPx(ra[x], rb1[x], tw) : ra[x];
+                        for (int q2 = 0; q2 < nov; q2++) { const Cp& e = cps[ov[q2]]; const int ex2 = bx0 + x - e.x, ey2 = yy - e.y; if (ex2 >= 0 && ex2 < e.w && ey2 >= 0 && ey2 < e.h) { bg = spb[(e.off - spOff) / 4 + static_cast<size_t>(ey2) * e.w + ex2]; break; } }
+                        const int lx = bx0 + x - x0; int A, Hh;
+                        if (sc == 1) { A = accA[iy * 192 + lx]; Hh = accH[iy * 192 + lx]; }
+                        else { const int t = (2 * lx + 1) * 128 / sc - 128; int ix = t >> 8, fx = t & 255; if (ix < 0) { ix = 0; fx = 0; } if (ix >= aw - 1) { ix = aw - 1; fx = 0; } const int i2 = iy + (fy ? 1 : 0), j2 = ix + (fx ? 1 : 0); const u8* qa = accA; const u8* qh = accH;
+                            const int a00 = qa[iy * 192 + ix], a01 = qa[iy * 192 + j2], a10 = qa[i2 * 192 + ix], a11 = qa[i2 * 192 + j2]; A = ((a00 * (256 - fx) + a01 * fx) * (256 - fy) + (a10 * (256 - fx) + a11 * fx) * fy) >> 16;
+                            const int h00 = qh[iy * 192 + ix], h01 = qh[iy * 192 + j2], h10 = qh[i2 * 192 + ix], h11 = qh[i2 * 192 + j2]; Hh = ((h00 * (256 - fx) + h01 * fx) * (256 - fy) + (h10 * (256 - fx) + h11 * fx) * fy) >> 16; }
+                        const int a = A * ia / 255; if (a <= 0) { o[y * bw + x] = bg | 0xFF000000u; continue; }
+                        const int br = bg & 255, bgc = (bg >> 8) & 255, bb = (bg >> 16) & 255; int r, g, b;
+                        if (mode == 0) { r = (br * (256 - a) + lr[Hh] * a) >> 8; g = (bgc * (256 - a) + lg[Hh] * a) >> 8; b = (bb * (256 - a) + lb[Hh] * a) >> 8; }
+                        else { const int k = 256 - (a * 90 >> 8); r = PetClamp(((br * k) >> 8) + (lr[Hh] * a >> 8)); g = PetClamp(((bgc * k) >> 8) + (lg[Hh] * a >> 8)); b = PetClamp(((bb * k) >> 8) + (lb[Hh] * a >> 8)); }
+                        o[y * bw + x] = 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+                    }
                 }
+                cps[ncp++] = Cp { bx0, by, bw, bh, spOff + spUsed }; spUsed += need;
             }
-            cps[ncp++] = Cp { x0, y0, w, h, spOff + spUsed }; spUsed += need;
         };
         auto clear = [&](int w, int h) { for (int y = 0; y < h; y++) { std::memset(accA + y * 192, 0, static_cast<size_t>(w)); std::memset(accH + y * 192, 0, static_cast<size_t>(w)); } };
         /* だ円 (中心 cx,cy・半径 rx,ry・角度 th): 縁はやわらかく、中心ほど熱い */
@@ -12084,16 +12110,16 @@ namespace {
                 const float e = 1.0f - d, cov = e * e * (3.0f - 2.0f * e) * aMul; const int A = static_cast<int>(cov * 255.0f), Hh = static_cast<int>(e * e * heat * 255.0f);
                 if (A > accA[y * 192 + x]) accA[y * 192 + x] = static_cast<u8>(A); if (Hh > accH[y * 192 + x]) accH[y * 192 + x] = static_cast<u8>(Hh > 255 ? 255 : Hh); }
         };
-        for (int i = 0; i < n; i++) {
-            PetP& q = P[i];
-            q.ph += dt * sp * 1.6f;
+        bool grB = false;
+        for (int pass = 0; pass < 2; pass++) for (int i = 0; i < n; i++) {
+            PetP& q = P[i]; if ((q.kind == 8) != (pass == 0)) continue; if (pass == 1 && !grB) { grB = true; pixB += 120000; }
+            if (pass == 0) q.ph += dt * sp * 1.6f; else q.ph += dt * sp * 1.6f;
             float X, Y, Z, TX = 0, TY = 0, TZ = 0;
             if (fire) {
-                q.ang += q.w * sp * dt; q.h += q.rise * sp * dt; q.r += __builtin_sinf(q.ph * 0.7f) * 0.3f * dt;
-                if (q.kind == 3) q.h += __builtin_sinf(q.ph * 1.3f) * 0.6f * dt;
-                if (q.h > (q.kind == 5 ? 4.5f : 7.5f) || q.r < 0.3f) { spawn(q, false); continue; }
-                X = C[0] + q.r * __builtin_cosf(q.ang); Y = C[1] + q.h; Z = C[2] + q.r * __builtin_sinf(q.ang);
-                const float a2 = q.ang - (q.w < 0.0f ? -q.len : q.len); TX = C[0] + q.r * __builtin_cosf(a2); TY = Y - 0.9f; TZ = C[2] + q.r * __builtin_sinf(a2);
+                if (q.kind != 8) { q.p[0] += __builtin_cosf(q.ph) * 0.35f * sp * dt; q.p[2] += __builtin_sinf(q.ph * 0.9f) * 0.35f * sp * dt; q.p[1] += q.rise * sp * dt; if (q.kind == 3) q.p[1] += __builtin_sinf(q.ph * 1.3f) * 0.6f * dt; }
+                const float ddx = q.p[0] - C[0], ddz = q.p[2] - C[2], dh = q.p[1] - C[1];
+                if (dh > (q.kind == 5 ? 4.5f : 7.5f) || ddx * ddx + ddz * ddz > (q.kind == 8 ? 110.0f : 64.0f) || (q.kind == 8 && ddx * ddx + ddz * ddz < 6.0f)) { spawn(q, false); continue; }
+                X = q.p[0]; Y = q.p[1]; Z = q.p[2]; TX = X - 0.25f * __builtin_cosf(q.ph); TY = Y - 0.9f; TZ = Z - 0.25f * __builtin_sinf(q.ph);
             } else {
                 q.p[0] += __builtin_cosf(q.ph) * 0.5f * sp * dt; q.p[2] += __builtin_sinf(q.ph * 0.9f) * 0.5f * sp * dt; q.p[1] -= q.fall * sp * dt;
                 const float ddx = q.p[0] - f[0], ddy = q.p[1] - f[1], ddz = q.p[2] - f[2];
@@ -12102,28 +12128,63 @@ namespace {
             }
             if (!haveRb) continue;
             float pxf, pyf; const float z = proj(X, Y, Z, pxf, pyf); if (z < 0.0f) continue;
-            float s = q.sz * kpx / z; if (s < 2.0f) continue; if (s > 70.0f) s = 70.0f; if (pxf < -80.0f || pxf > static_cast<float>(W) + 80.0f || pyf < -80.0f || pyf > static_cast<float>(H) + 80.0f) continue;
+            float s = q.sz * kpx / z; if (q.kind != 8) { if (s < 2.0f) continue; if (s > 70.0f) s = 70.0f; if (pxf < -80.0f || pxf > static_cast<float>(W) + 80.0f || pyf < -80.0f || pyf > static_cast<float>(H) + 80.0f) continue; }
             const PetCol& th0 = col == 6 ? kRbw[q.ci] : (fire ? kTh[0][0] : kTh[col][0]); const PetCol& th1 = fire ? kTh[0][1] : kTh[col][1]; const PetCol ash0 = { 60, 36, 28 }, ash1 = { 110, 56, 32 }, bf0 = { 224, 128, 24 }, bf1 = { 255, 214, 96 };
             switch (q.kind) {
             case 4: case 2: { /* 火の粉 / きらめき: 光る円。きらめきは十字の光も足す */
                 int R = static_cast<int>(s * (q.kind == 4 ? 0.9f : 0.7f)) + 2; if (R > 30) R = 30; const int w = 2 * R + 2, h = w; clear(w, h); discG(w, h, static_cast<float>(w) * 0.5f, static_cast<float>(h) * 0.5f, static_cast<float>(R), q.kind == 4 ? 1.5f : 1.2f, 1.0f);
                 if (q.kind == 2) { const float tw = 0.5f + 0.5f * __builtin_sinf(q.ph * 3.0f); const int a = static_cast<int>(static_cast<float>(R) * (0.4f + 0.6f * tw)); const int c0 = w / 2; for (int k = -a; k <= a; k++) { const int xx = c0 + k, yy = c0 + k; const int v = 255 - 255 * (k < 0 ? -k : k) / (a + 1); if (xx >= 0 && xx < w) { if (accA[c0 * 192 + xx] < v) accA[c0 * 192 + xx] = static_cast<u8>(v); if (accH[c0 * 192 + xx] < v) accH[c0 * 192 + xx] = static_cast<u8>(v); } if (yy >= 0 && yy < h) { if (accA[yy * 192 + c0] < v) accA[yy * 192 + c0] = static_cast<u8>(v); if (accH[yy * 192 + c0] < v) accH[yy * 192 + c0] = static_cast<u8>(v); } } }
-                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, 0.95f, th0, th1, fire); break; }
+                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, 1, 0.95f, th0, th1, fire); break; }
             case 0: case 6: { /* 花びら / 灰の葉: だ円 (傾きがゆれる) */
                 const float rxp = s * 0.55f, ryp = s * 0.32f; int R = static_cast<int>(rxp + ryp) + 2; if (R > 60) R = 60; const int w = 2 * R + 2, h = w; clear(w, h);
                 ellA(w, h, static_cast<float>(w) * 0.5f, static_cast<float>(h) * 0.5f, rxp < 1.5f ? 1.5f : rxp, ryp < 1.2f ? 1.2f : ryp, q.ph * 1.7f + __builtin_sinf(q.ph * 1.3f), 0.9f);
-                if (q.kind == 6) flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 0, 0.85f, ash0, ash1, false);
-                else flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, fire ? 1 : 0, 0.85f, fire ? bf0 : th0, fire ? bf1 : th1, false); break; }
+                if (q.kind == 6) flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, 0, 0.85f, ash0, ash1, false);
+                else flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, fire ? 1 : 0, 0.85f, fire ? bf0 : th0, fire ? bf1 : th1, false); break; }
             case 1: { /* 羽根: ななめの細い葉 */
                 const float L = s * 0.9f; int R = static_cast<int>(L) + 2; if (R > 60) R = 60; const int w = 2 * R + 2, h = w; clear(w, h);
                 ellA(w, h, static_cast<float>(w) * 0.5f, static_cast<float>(h) * 0.5f, L < 3.0f ? 3.0f : L, L * 0.16f < 1.1f ? 1.1f : L * 0.16f, 0.9f + 0.7f * __builtin_sinf(q.ph * 0.7f), 0.8f);
-                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 0, 0.9f, th0, th1, false); break; }
-            case 3: { /* 蝶: 羽ばたく 2 枚の羽。縁が濃く中が明るい。光る */
-                const float fl = __builtin_sinf(q.ph * 5.0f); const float af = (fl < 0.0f ? -fl : fl) * 0.75f + 0.25f; const float wr = s * 0.5f * af, hr = s * 0.42f; int R = static_cast<int>(s * 1.05f) + 4; if (R > 90) R = 90; const int w = 2 * R + 2, h = w; clear(w, h);
-                const float m = static_cast<float>(w) * 0.5f; const float ox = (wr < 1.2f ? 1.2f : wr) * 0.95f;
-                ellA(w, h, m - ox, m - hr * 0.3f, (wr < 1.2f ? 1.2f : wr) * 1.05f, hr * 0.62f, -0.85f, 0.9f); ellA(w, h, m + ox, m - hr * 0.3f, (wr < 1.2f ? 1.2f : wr) * 1.05f, hr * 0.62f, 0.85f, 0.9f);
-                ellA(w, h, m - ox * 0.55f, m + hr * 0.5f, (wr < 1.2f ? 1.2f : wr) * 0.62f, hr * 0.42f, 0.35f, 0.7f); ellA(w, h, m + ox * 0.55f, m + hr * 0.5f, (wr < 1.2f ? 1.2f : wr) * 0.62f, hr * 0.42f, -0.35f, 0.7f);
-                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 0, 0.88f, bf0, bf1, false); break; }
+                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, 0, 0.9f, th0, th1, false); break; }
+            case 3: { /* 蝶: 金色の 4 枚の羽 (上の羽は大きく、下は小さく)。縁が明るく、中は透けて、はねの筋が見える。体は細い線。まわりにうすい光 */
+                const float fl = __builtin_sinf(q.ph * 5.0f); const float af = (fl < 0.0f ? -fl : fl) * 0.8f + 0.2f; const float th = 0.3f * __builtin_sinf(q.ph * 0.8f);
+                int R = static_cast<int>(s * 1.25f) + 4; if (R > 90) R = 90; const int w = 2 * R + 2, h = w; clear(w, h);
+                const float m = static_cast<float>(w) * 0.5f, cs = __builtin_cosf(th), sn = __builtin_sinf(th), us = 1.0f / (s * 0.95f);
+                static const float kW[2][6] = { { 0.50f, -0.30f, 0.56f, 0.34f, -0.55f, 0.0f }, { 0.34f, 0.32f, 0.36f, 0.24f, 0.55f, 0.0f } }; /* 羽: 中心 (u,v)・半径 (a,b)・角度 */
+                for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+                    const float dx = static_cast<float>(x) + 0.5f - m, dy = static_cast<float>(y) + 0.5f - m; const float rxp = (dx * cs + dy * sn) * us, ryp = (-dx * sn + dy * cs) * us;
+                    const float u = (rxp < 0.0f ? -rxp : rxp) / af, v = ryp; int A = 0, Hh = 0;
+                    for (int k = 0; k < 2; k++) {
+                        const float du = u - kW[k][0], dv = v - kW[k][1], c = __builtin_cosf(kW[k][4]), s2 = __builtin_sinf(kW[k][4]); const float pa = (du * c + dv * s2) / kW[k][2], pb = (-du * s2 + dv * c) / kW[k][3]; const float d2 = pa * pa + pb * pb; if (d2 >= 1.0f) continue;
+                        const float e = 1.0f - __builtin_sqrtf(d2); float cov = e * 6.0f; if (cov > 1.0f) cov = 1.0f; float rim = 1.0f - e * 3.2f; if (rim < 0.0f) rim = 0.0f;
+                        const float ang = dv + (k ? -0.2f : 0.3f), vein = __builtin_cosf((ang / (u + 0.12f)) * 5.0f); const float vn = vein > 0.7f ? (vein - 0.7f) * 2.0f : 0.0f;
+                        int a2 = static_cast<int>(cov * (0.5f + 0.5f * rim + 0.2f * vn) * 255.0f), h2 = static_cast<int>((0.38f + 0.55f * rim + 0.25f * vn) * 255.0f); if (a2 > 255) a2 = 255; if (h2 > 255) h2 = 255; if (a2 > A) A = a2; if (h2 > Hh) Hh = h2;
+                    }
+                    const float bd = (rxp < 0.0f ? -rxp : rxp); if (bd < 0.035f + 0.5f / s && ryp > -0.42f && ryp < 0.5f) { A = 240; Hh = 20; }
+                    const float r2 = (dx * dx + dy * dy) * us * us; if (r2 < 1.7f) { const int ga = static_cast<int>((1.0f - r2 * 0.59f) * (1.0f - r2 * 0.59f) * 70.0f); if (ga > A) { A = ga; Hh = 130; } }
+                    if (A > 0) { accA[y * 192 + x] = static_cast<u8>(A); accH[y * 192 + x] = static_cast<u8>(Hh); }
+                }
+                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, 1, 1.0f, bf0, bf1, false); break; }
+            case 8: { /* 大きな炎: 地面から立ちのぼる 3 本の炎の舌。ゆらぎ・先細り・中心が熱い。遠いものは粗く作って大きくのばす */
+                float tx2, ty2; const float zt = proj(X, Y + q.sz, Z, tx2, ty2); if (zt < 0.0f) break;
+                const float ww = q.w * kpx / z, ddx = tx2 - pxf, ddy = ty2 - pyf, hh = __builtin_sqrtf(ddx * ddx + ddy * ddy); if (hh < 8.0f || ww < 2.0f) break;
+                const float mg = ww * 2.3f + 6.0f; const float minx = (pxf < tx2 ? pxf : tx2) - mg, maxx = (pxf > tx2 ? pxf : tx2) + mg, miny = (pyf < ty2 ? pyf : ty2) - mg, maxy = (pyf > ty2 ? pyf : ty2) + mg;
+                const int ix0 = minx < 0.0f ? 0 : static_cast<int>(minx), iy0 = miny < 0.0f ? 0 : static_cast<int>(miny), ix1 = maxx > static_cast<float>(W) ? W : static_cast<int>(maxx) + 1, iy1 = maxy > static_cast<float>(H) ? H : static_cast<int>(maxy) + 1; if (ix1 - ix0 < 4 || iy1 - iy0 < 4) break;
+                const int wW = ix1 - ix0, wH = iy1 - iy0; int sc = 1; while ((wW / sc + 1) * (wH / sc + 1) > 5200 || wW / sc + 1 > 190 || wH / sc + 1 > 190) sc++;
+                const int aw = (wW + sc - 1) / sc, ah = (wH + sc - 1) / sc; clear(aw, ah);
+                const float ax = ddx / hh, ay = ddy / hh, nx = -ay, ny = ax;
+                static const float kTg[3][3] = { { 0.0f, 1.0f, 1.0f }, { -0.85f, 0.68f, 0.72f }, { 0.9f, 0.52f, 0.62f } };
+                for (int tg = 0; tg < 3; tg++) {
+                    const float hs = hh * kTg[tg][1]; float lw[64], lc[64]; const float pp = q.ph * 0.9f + static_cast<float>(tg) * 2.1f;
+                    for (int k = 0; k < 64; k++) { const float t = static_cast<float>(k) / 63.0f; const float b = (0.7f + 1.3f * t) * __builtin_powf(1.0f - t * 0.985f, 0.9f); lw[k] = ww * kTg[tg][2] * b * (1.0f + 0.18f * __builtin_sinf(t * 11.0f + pp * 3.0f)); lc[k] = ww * 0.8f * __builtin_sinf(pp + t * 3.5f) * t; }
+                    const float bpx = pxf + nx * kTg[tg][0] * ww, bpy = pyf + ny * kTg[tg][0] * ww;
+                    for (int cy2 = 0; cy2 < ah; cy2++) for (int cx2 = 0; cx2 < aw; cx2++) {
+                        const float px = static_cast<float>(ix0) + (static_cast<float>(cx2) + 0.5f) * static_cast<float>(sc) - bpx, py = static_cast<float>(iy0) + (static_cast<float>(cy2) + 0.5f) * static_cast<float>(sc) - bpy;
+                        const float along = px * ax + py * ay; if (along < -3.0f || along > hs) continue; const float t = along < 0.0f ? 0.0f : along / hs; const int k = static_cast<int>(t * 63.0f);
+                        const float lat = px * nx + py * ny - lc[k]; const float wd = lw[k]; if (wd < 0.8f) continue; const float l = (lat < 0.0f ? -lat : lat) / wd; if (l >= 1.0f) continue;
+                        const float e = 1.0f - l; float cov = e * 3.0f; if (cov > 1.0f) cov = 1.0f; cov = cov * cov * (3.0f - 2.0f * cov) * (1.0f - 0.25f * t); { const float bf = (along + 3.0f) / (hh * 0.12f + 4.0f); if (bf < 1.0f) cov *= bf; } float ht = (0.28f + 0.5f * e) * (1.0f - 0.45f * t); if (ht < 0.0f) ht = 0.0f;
+                        const int A = static_cast<int>(cov * 250.0f), Hh = static_cast<int>(ht * 255.0f); if (A > accA[cy2 * 192 + cx2]) accA[cy2 * 192 + cx2] = static_cast<u8>(A); if (Hh > accH[cy2 * 192 + cx2]) accH[cy2 * 192 + cx2] = static_cast<u8>(Hh);
+                    }
+                }
+                flush(ix0, iy0, wW, wH, sc, 0, 0.86f, th0, th1, true); break; }
             default: { /* 炎の帯: 頭から尾へ細くなる曲がった帯 (光る円をならべる)。頭が熱くて黄〜白、尾は赤 */
                 float txf, tyf; const float zt = proj(TX, TY, TZ, txf, tyf); if (zt < 0.0f) break;
                 const float dx = txf - pxf, dy = tyf - pyf, dist = __builtin_sqrtf(dx * dx + dy * dy); if (dist < 4.0f || dist > 170.0f) break;
@@ -12132,11 +12193,11 @@ namespace {
                 int bw = static_cast<int>(maxx - minx) + 1, bh = static_cast<int>(maxy - miny) + 1; if (bw > 168 || bh > 168) break; const int bx = static_cast<int>(minx), by = static_cast<int>(miny); clear(bw, bh);
                 int N = static_cast<int>(dist / 3.0f); if (N < 4) N = 4; if (N > 36) N = 36;
                 for (int k = 0; k <= N; k++) { const float t = static_cast<float>(k) / static_cast<float>(N), bend = cv * __builtin_sinf(3.1415927f * t); const float ex = pxf + dx * t + nx * bend - static_cast<float>(bx), ey = pyf + dy * t + ny * bend - static_cast<float>(by); const float rr = w0 * (1.0f - 0.8f * t); if ((k & 1) == 0) discG(bw, bh, ex, ey, (rr < 1.5f ? 1.5f : rr) * 1.7f, 0.3f, 0.34f); discG(bw, bh, ex, ey, rr < 1.5f ? 1.5f : rr, 1.1f - 0.8f * t, 1.0f); }
-                flush(bx, by, bw, bh, 1, 0.95f, th0, th1, true); break; }
+                flush(bx, by, bw, bh, 1, 1, 0.95f, th0, th1, true); break; }
             }
         }
         /* 作った絵をまとめて書き出して、写す */
-        if (ncp > 0) { DcClean(spb, spUsed); for (int k = 0; k < ncp; k++) { const Cp& c = cps[k]; g_Sw.rowStride(cb, static_cast<ptrdiff_t>(c.w) * 4); Reg r { c.x, c.y, 0, c.w, c.h, 1 }; g_Sw.copyB2T(cb, base + c.off, tex, nullptr, &r, 0); } }
+        if (ncp > 0) { DcClean(spb, spUsed); int lastPw = -1; for (int k = 0; k < ncp; k++) { const Cp& c = cps[k]; if (c.w != lastPw) { g_Sw.rowStride(cb, static_cast<ptrdiff_t>(c.w) * 4); lastPw = c.w; } Reg r { c.x, c.y, 0, c.w, c.h, 1 }; g_Sw.copyB2T(cb, base + c.off, tex, nullptr, &r, 0); } }
     }
 }
     bool SwCopy(void* cb, void* tex, int W, int H) {

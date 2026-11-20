@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 160; /* tmt 1.1.50 (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 161; /* tmt 1.1.51 (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -636,7 +636,7 @@ namespace {
     static int SymPendU8(char* o, int cap) { int n = 0; for (int q = 0; q < g_SymN && q < 24; q++) { const u32 c = g_SymPend[q]; if (n + 4 > cap) break; o[n++] = static_cast<char>(0xE0 | (c >> 12)); o[n++] = static_cast<char>(0x80 | ((c >> 6) & 63)); o[n++] = static_cast<char>(0x80 | (c & 63)); } if (n < cap) o[n] = 0; return n; }
     volatile int g_OwnKb = 0; /* tmt: 自分のキーボードを出している間 (ゲームのキーボードのフックで触らない) */
     void NameSave(); void NameLoadOnce(); /* tmt: 名前を SD に覚える (起動直後からゲームに偽の名前を返す) */
-    void NamePreSave(); void NamePreLoadOnce(); char g_NamePreset[8][40] = {}; volatile int g_NamePreSel = 0; /* tmt 1.1.17: 名前プリセット 8 枠 */
+    void NamePreSave(); void NamePreLoadOnce(); char g_NamePreset[8][100] = {}; volatile int g_NamePreSel = 0; /* tmt 1.1.17: 名前プリセット 8 枠 */
     void NameLive(const char* cur, const char* nw); char g_RealNick[40] = {}; char g_NameCur[40] = {}; volatile bool g_CrashArm = false; u64 g_CrashArmT = 0; volatile bool g_NameRnd = false; volatile int g_NameRndIv = 1; u64 g_NameRndT = 0; u32 g_NameRndLast = 99; volatile bool g_NameOn = false; volatile int g_KbTarget = 0, g_VibReq = 0; char g_NameU8[40] = {}; volatile bool g_NickHooked = false;
     volatile bool g_TextOn = false; volatile int g_TextReq = 0, g_TextK = 2, g_TextMsg = 0; char g_TextU8[100] = {}; bool g_TextImg = false;
     alignas(16) u8 g_KbArg[0x560];
@@ -1430,7 +1430,7 @@ namespace {
             if (lf) g_NamePreSel = (g_NamePreSel + 7) & 7;
             if (rt) g_NamePreSel = (g_NamePreSel + 1) & 7;
             if (act) { const char* pn = g_NamePreset[g_NamePreSel & 7]; if (pn[0]) {
-                std::memcpy(g_NameU8, pn, sizeof(g_NameU8)); g_NameOn = true; NameSave();
+                { int w = 0; while (pn[w] && w < 32) { g_NameU8[w] = pn[w]; w++; } if (pn[w]) while (w > 0 && (static_cast<u8>(g_NameU8[w]) & 0xC0) == 0x80) w--; /* 32 バイトを超える分は文字の切れ目で落とす (ゲームの入れ物は 33 バイト) */ for (int z = w; z < static_cast<int>(sizeof(g_NameU8)); z++) g_NameU8[z] = 0; } g_NameOn = true; NameSave();
                 const char* const from = g_NameCur[0] ? g_NameCur : g_RealNick;
                 if (from[0] && std::strcmp(from, g_NameU8) != 0) NameLive(from, g_NameU8);
                 std::memcpy(g_NameCur, g_NameU8, sizeof(g_NameCur)); } }
@@ -1710,7 +1710,7 @@ namespace {
         if (!kbWork || !kbCheck || !kbStr) { if (kbWork) fr(kbWork); if (kbCheck) fr(kbCheck); if (kbStr) fr(kbStr); g_TextMsg = 4; return; }
         std::memset(kbWork, 0, up(wkSz)); std::memset(kbCheck, 0, up(tcSz)); std::memset(kbStr, 0, up(stSz));
         std::memset(g_KbArg, 0, sizeof(g_KbArg));
-        char* const dst = g_KbTarget == 2 ? g_NamePreset[g_NamePreSel & 7] : (g_KbTarget ? g_NameU8 : g_TextU8); const int lim = g_KbTarget ? 32 : 90; /* 名前は、ゲームの名前の入れ物が 33 バイト (終わりの 0 を含む) なので 32 バイトまで */
+        char* const dst = g_KbTarget == 2 ? g_NamePreset[g_NamePreSel & 7] : (g_KbTarget ? g_NameU8 : g_TextU8); const int lim = g_KbTarget == 2 ? 96 : (g_KbTarget ? 32 : 90); /* 名前は、ゲームの名前の入れ物が 33 バイト (終わりの 0 を含む) なので 32 バイトまで */
         reinterpret_cast<FnPreset>(aPre)(g_KbArg, 0); *reinterpret_cast<u32*>(g_KbArg + 0) = 0; /* tmt: ふつうのキーボード (かな・漢字・英数字。ユーザー名の設定は全角に寄るのでやめた) */
         g_KbArg[0x1a] = 1; /* 予測変換 (かな漢字の候補) を有効にする (isPredictionEnabled) */
         *reinterpret_cast<u32*>(g_KbArg + 0x1c) = 0; /* プリセット2 は「Mii の名前に使える文字だけ」(0x100) に制限するので、制限をなくして漢字も入れられるようにする */
@@ -1719,7 +1719,7 @@ namespace {
         *reinterpret_cast<u64*>(g_KbArg + 0x520) = wkSz;
         *reinterpret_cast<u64*>(g_KbArg + 0x528) = reinterpret_cast<u64>(kbCheck);
         *reinterpret_cast<u64*>(g_KbArg + 0x530) = tcSz;
-        static char ini[100]; std::memcpy(ini, dst, g_KbTarget ? sizeof(g_NameU8) : sizeof(ini)); ini[99] = 0;
+        static char ini[100]; std::memcpy(ini, dst, g_KbTarget == 2 ? sizeof(ini) : (g_KbTarget ? sizeof(g_NameU8) : sizeof(ini))); ini[99] = 0;
         if (g_SymN > 0) { int L = 0; while (ini[L] && L < 99) L++; SymPendU8(ini + L, 100 - L); } /* tmt: 選んだ記号を入力欄の後ろに */
         *reinterpret_cast<u32*>(g_KbArg + 0x3b8) = 1; g_KbArg[0x3bc] = 1; /* tmt: 改行も使える */
         reinterpret_cast<FnInit8>(aIni)(g_KbArg, ini);
@@ -1734,7 +1734,7 @@ namespace {
             if (c >= 0xD800 && c < 0xDC00 && u[i + 1]) { c = 0x10000 + ((c - 0xD800) << 10) + (u[i + 1] - 0xDC00); i++; }
             if (g_KbTarget) { if (c >= 0xFF01 && c <= 0xFF5E) c -= 0xFEE0; else if (c == 0x3000) c = ' ';
                 if (c == '\\' && (u[i + 1] == 'u' || u[i + 1] == 'U' || u[i + 1] == 0xFF55)) { int hv = 0, k = 0; for (; k < 4; k++) { u32 h = u[i + 2 + k]; if (h >= 0xFF01 && h <= 0xFF5E) h -= 0xFEE0; const int d = h >= '0' && h <= '9' ? static_cast<int>(h - '0') : (h >= 'a' && h <= 'f' ? static_cast<int>(h - 'a' + 10) : (h >= 'A' && h <= 'F' ? static_cast<int>(h - 'A' + 10) : -1)); if (d < 0) break; hv = hv * 16 + d; } if (k == 4 && hv > 0) { c = static_cast<u32>(hv); i += 5; } } } /* \uXXXX → ゲームの記号など */ /* tmt: 全角の英数字・記号・空白は半角に (かな・漢字はそのまま) */
-            if (g_KbTarget && o + 4 > lim) break;
+            if (g_KbTarget) { const int need = c < 0x80 ? 1 : (c < 0x800 ? 2 : (c < 0x10000 ? 3 : 1)); if (o + need > lim) break; }
             if (c < 0x80) dst[o++] = static_cast<char>(c);
             else if (c < 0x800) { dst[o++] = static_cast<char>(0xC0 | (c >> 6)); dst[o++] = static_cast<char>(0x80 | (c & 63)); }
             else if (c < 0x10000) { dst[o++] = static_cast<char>(0xE0 | (c >> 12)); dst[o++] = static_cast<char>(0x80 | ((c >> 6) & 63)); dst[o++] = static_cast<char>(0x80 | (c & 63)); }
@@ -12623,7 +12623,7 @@ HOOK_DEFINE_TRAMPOLINE(GameKbHook) {
                 if (arg[0x3d0] == 1) arg[0x3d0] = 0; /* 1.1.49: 入力した文字のチェック (使えない言葉のフィルター) をやめる */
                 mod = true; g_GameKbHits = g_GameKbHits + 1;
                 if (g_SymN > 0) { static char ini[112]; SymPendU8(ini, sizeof(ini)); using FnInit8 = void (*)(void*, const char*); reinterpret_cast<FnInit8>(MainBase() + 0x4E989D0)(arg, ini); } /* 選んだ記号を入力欄に */
-                else if (g_NameOn && g_NameU8[0] && origMx <= 12) { using FnInit8 = void (*)(void*, const char*); static char nini[40]; std::memcpy(nini, g_NameU8, sizeof(nini)); nini[39] = 0; reinterpret_cast<FnInit8>(MainBase() + 0x4E989D0)(arg, nini); } } /* 1.1.40: 名前を変えるキーボード (文字数の上限が短い入力欄) には、選んでいる名前 (プリセット) を最初から入れておく */
+                else if (g_NameOn && g_NameU8[0] && origMx <= 12) { using FnInit8 = void (*)(void*, const char*); static char nini[100]; std::memset(nini, 0, sizeof(nini)); { const char* const pp = g_NamePreset[g_NamePreSel & 7]; int e = 0; while (pp[e] && e < 32) e++; if (pp[e]) while (e > 0 && (static_cast<u8>(pp[e]) & 0xC0) == 0x80) e--; /* 選んでいるプリセットの先頭 32 バイトが今の名前と同じなら、プリセットを全部 (最大 96 バイト) 入れる */ if (e > 0 && std::strncmp(pp, g_NameU8, static_cast<size_t>(e)) == 0 && std::strlen(g_NameU8) == static_cast<size_t>(e)) std::memcpy(nini, pp, 99); else std::memcpy(nini, g_NameU8, 39); } nini[99] = 0; reinterpret_cast<FnInit8>(MainBase() + 0x4E989D0)(arg, nini); } } /* 1.1.40: 名前を変えるキーボード (文字数の上限が短い入力欄) には、選んでいる名前 (プリセット) を最初から入れておく */
         }
         const u32 rc = Orig(out, arg);
         if (mod && rc == 0) g_SymN = 0; /* 使った記号は消す */
@@ -12653,16 +12653,16 @@ namespace {
     }
     void NamePreSave() { /* tmt 1.1.17: 8 枠を 1 枠 1 行で SD に保存 */
         const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return;
-        char t[8 * 40 + 16]; int n = 0;
+        char t[8 * 100 + 16]; int n = 0;
         for (int i = 0; i < 8; i++) { for (const char* q = g_NamePreset[i]; *q && n < (int)sizeof(t) - 2; q++) { if (*q == '\r') continue; t[n++] = (*q == '\n') ? '\x01' : *q; } t[n++] = '\n'; }
         if (n > 0) UpdWrite(sdk, "tmt:/tmt/namepre.txt", t, static_cast<u32>(n));
     }
     void NamePreLoadOnce() {
         static volatile int done = 0; if (__atomic_exchange_n(&done, 1, __ATOMIC_ACQ_REL)) return;
         const uintptr_t sdk = UpdSdk(); if (!sdk || !UpdMount(sdk)) return;
-        char t[8 * 40 + 16]; const int n = UpdReadSmall(sdk, "tmt:/tmt/namepre.txt", t, sizeof(t) - 1); if (n <= 0) return; t[n] = 0;
+        char t[8 * 100 + 16]; const int n = UpdReadSmall(sdk, "tmt:/tmt/namepre.txt", t, sizeof(t) - 1); if (n <= 0) return; t[n] = 0;
         int i = 0, slot = 0, o = 0;
-        while (i < n && slot < 8) { const char c = t[i++]; if (c == '\n') { g_NamePreset[slot][o] = 0; slot++; o = 0; } else if (c != '\r' && o < 32) g_NamePreset[slot][o++] = (c == '\x01') ? '\n' : c; }
+        while (i < n && slot < 8) { const char c = t[i++]; if (c == '\n') { g_NamePreset[slot][o] = 0; slot++; o = 0; } else if (c != '\r' && o < 96) g_NamePreset[slot][o++] = (c == '\x01') ? '\n' : c; }
         if (slot < 8 && o > 0) g_NamePreset[slot][o] = 0;
     }
     void NameLoadOnce() {

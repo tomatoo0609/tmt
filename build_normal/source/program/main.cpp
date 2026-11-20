@@ -361,7 +361,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 164; /* tmt 1.1.54 (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 165; /* tmt 1.1.55 (舞う花びら: 半透明に作り直した。背景を読んで混ぜた柔らかい粒 (光る・縁がやわらかい)。1.1.54: (舞う花びら: 蝶・火の粉・炎の帯・灰の葉の形と、色「炎」(自分のまわりを渦を巻いてのぼる) を追加。1.1.53: (表示メニューに「舞う花びら・羽根」(花びら・羽根・きらめき・色・量・速さ・左右反転)。1.1.52: (名前キーボードの初期入力は 32 バイトまでに戻した (1.1.51 の 96 バイト入力でクラッシュ)。1.1.51: (名前プリセットは 96 バイト (日本語 32 文字) まで保存でき、名前を変えるキーボードに全部入る。英数字は 32 文字まで入れられるように。1.1.50: (エイムボット: 敵位置のならしを、小さな揺れだけに限定 (動く敵への遅れをなくす)。1.1.49: (上下の反動を次のフレームで引く・上下の書き込みを捨てにくく・ゲームのキーボードの文字チェックを外す。1.1.48: スピンボットを消した・エイムボット: 近い敵も向く・目から見た向きで精度を上げた・Y の視点リセットを 0.6 秒通す。1.1.47: スピンボットは体の向きの値を探して回す (視点は回さない)・エイムボット: でたらめな敵位置と近すぎる敵では動かさない、上下の角度を制限。1.1.46: ジャイロ版エイムボットを 1.1.42 の動きに戻した (直接書き込みあり・敵座標の外挿なし・ならしを少し強めた)。1.1.45: ジャイロ版のエイムボットは、向きの直接書き込みをやめた (体の向き・手の位置が変わるため)。1.1.44: チートにスピンボット (視点が回り続ける・速さをつまみで)。1.1.43: ジャイロ版: 敵の座標を速さで外挿してならす (通信の段差が揺れになっていた)・名前プリセットの改行を画面で見えるように。1.1.42: 名前: 改行を保存・32 文字まで入力・上下: 近い相手の上向き補正を弱めた。1.1.41: 黒猫に白のふちと目・前足は体と同時・上下: 直接書いている間はジャイロを足さない。1.1.40: 起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -11966,14 +11966,33 @@ constexpr unsigned char kIconA[6][32*32] = {
     }
 
 namespace {
-    struct PetP { float p[3]; float ph, sz, fall, r, ang, h, w, rise, len; int kind, ci, ci2, ci3; };
-    /* tmt 1.1.54: 舞う花びら・羽根・きらめき・蝶・火の粉・炎の帯・灰の葉。カメラの目と向きから、空間の点を画面の位置にして、小さな色の四角を並べて描く
-       (縦の画角は 55 度 (視野の設定があればそれ)。壁のうしろにも透けて見える)。粒の位置は世界の座標で持つので、視点を動かすと遠近もついてくる。
-       色「炎」のときは、自分 (足元) のまわりを渦を巻いてのぼる (火の粉・炎の帯・灰・蝶)。色は 16 色の帯 + 炎用の 16 色の帯 (ci 16〜) */
-    template <class F> void PetDraw(F& rct, int W, int H) {
-        static PetP P[160]; static int sel = -1; static u64 lastT = 0; static u32 rs = 20251120u;
+    struct PetP { float p[3]; float ph, sz, fall, r, ang, h, w, rise, len; int kind, ci; };
+    constexpr size_t kPetSpBytes = 1310720, kPetRbMax = 1114112, kPetPal = 16 * 64 * 4; /* 粒の絵 / 背景の読み出し / 円の色の帯 (いちばん後ろから順に) */
+    constexpr size_t kPetLo = kPixBytes - kPetPal - kPetSpBytes - kPetRbMax; /* ここより前 (メニューの絵・メニューの背景読み出し) は、粒が使っている間は使わない */
+    struct PetRbI { bool ok; int w, rows, step; size_t off; } g_PetRb {};
+    struct PetCol { int r, g, b; };
+    inline int PetClamp(int v) { return v < 0 ? 0 : (v > 255 ? 255 : v); }
+    /* 炎の色: 熱さ 0〜1 → 暗い赤 → 橙 → 琥珀 → 黄 → 白っぽい */
+    PetCol PetFire(float h) {
+        static const float kS[5] = { 0.0f, 0.35f, 0.65f, 0.9f, 1.0f }; static const PetCol kC[5] = { {190, 40, 16}, {255, 100, 16}, {255, 170, 48}, {255, 225, 120}, {255, 248, 208} };
+        if (h <= 0.0f) return kC[0]; if (h >= 1.0f) return kC[4];
+        int i = 0; while (i < 3 && h > kS[i + 1]) i++; const float t = (h - kS[i]) / (kS[i + 1] - kS[i]);
+        return PetCol { static_cast<int>(kC[i].r + (kC[i + 1].r - kC[i].r) * t), static_cast<int>(kC[i].g + (kC[i + 1].g - kC[i].g) * t), static_cast<int>(kC[i].b + (kC[i + 1].b - kC[i].b) * t) };
+    }
+    /* 粒の絵 (半透明) を作って写す。背景は前のフレームの画面 (横は全部・縦は数行おき) を読んで混ぜる。
+       1 粒 = 1 回の写し (四角の絵の外側は背景と同じ色になる)。形は透明度の分布 (accA) と熱さ (accH) を描いて、最後に色にして混ぜる */
+    void PetDrawSp(void* cb, void* tex, u64 base, int W, int H) {
+        static PetP P[160]; static int sel = -1; static u64 lastT = 0; static u32 rs = 20251120u; static u8 accA[192 * 192], accH[192 * 192];
         auto rnd = [&]() -> float { rs = rs * 1664525u + 1013904223u; return static_cast<float>((rs >> 8) & 0xFFFFu) / 65535.0f; };
+        struct Reg { int x, y, z, w, h, d; };
+        if (!g_T2B || !g_PixCached || W <= 0 || H <= 0 || W > kOvW || H > kOvH) return;
         const uintptr_t cp = g_CamPos; if (!cp || !CamValid() || !Readable(cp - 0xC, 24)) return;
+        const size_t used = (g_PixHi + 255u) & ~static_cast<size_t>(255u);
+        /* 背景の読み出しの大きさ: 縦の間引きを、1.1MB に収まるまで大きくする */
+        int step = 4; while (step < 64 && static_cast<size_t>((H + step - 1) / step) * static_cast<size_t>(W) * 4u > kPetRbMax) step++;
+        const int rows = (H + step - 1) / step; const size_t rbBytes = static_cast<size_t>(rows) * W * 4u;
+        const size_t spOff = kPixBytes - kPetPal - kPetSpBytes, rbOff = (spOff - rbBytes) & ~static_cast<size_t>(255u);
+        if (rbOff < used) return; /* メニューの絵が大きくて場所がない */
         float f[6]; std::memcpy(f, reinterpret_cast<const void*>(cp - 0xC), 24);
         float fx = f[3] - f[0], fy = f[4] - f[1], fz = f[5] - f[2]; const float m2 = fx * fx + fy * fy + fz * fz;
         if (!(m2 == m2) || m2 < 1.0f || m2 > 1600.0f) return;
@@ -11983,8 +12002,8 @@ namespace {
         const float ux = -rz * fy, uy = rz * fx - rx * fz, uz = rx * fy; /* 上 = 右 x 前 */
         const int kind = g_PetKind & 7, col = g_PetCol & 7, nSel = kind * 10 + col; const bool fire = col == 7;
         const int n = 16 * g_PetNum + 8; /* 24〜136 */
-        static const int kCi[7][2] = { {4, 4}, {1, 4}, {0, 4}, {10, 2}, {3, 11}, {14, 13}, {1, 10} };
-        static const int kRb[6] = { 1, 10, 3, 0, 13, 15 };
+        static const PetCol kTh[7][2] = { { {225, 232, 255}, {255, 255, 255} }, { {255, 140, 180}, {255, 232, 240} }, { {100, 195, 255}, {225, 248, 255} }, { {255, 185, 50}, {255, 245, 170} }, { {110, 215, 110}, {225, 255, 200} }, { {165, 115, 255}, {235, 220, 255} }, { {255, 140, 180}, {255, 255, 255} } };
+        static const PetCol kRbw[6] = { {255, 120, 170}, {255, 225, 90}, {120, 230, 120}, {100, 220, 255}, {120, 150, 255}, {235, 120, 255} };
         float C[3] = { f[0] + fx * 3.5f, f[1] - 1.3f, f[2] + fz * 3.5f }; /* 渦の中心: 自分の足元 (分からないときは、カメラの前 3.5m) */
         { const uintptr_t fp = g_FootPos; if (fp && FootValid() && Readable(fp, 12)) { float q3[3]; std::memcpy(q3, reinterpret_cast<const void*>(fp), 12); if (q3[0] == q3[0] && q3[1] == q3[1] && q3[2] == q3[2]) { const float ddx = q3[0] - f[0], ddy = q3[1] - f[1], ddz = q3[2] - f[2]; if (ddx * ddx + ddy * ddy + ddz * ddz < 900.0f) { C[0] = q3[0]; C[1] = q3[1]; C[2] = q3[2]; } } } }
         const u64 now = NowTick(); float dt = lastT ? static_cast<float>(now - lastT) / 19200000.0f : 0.0f; lastT = now; if (dt > 0.1f) dt = 0.1f; if (dt < 0.0f) dt = 0.0f;
@@ -11992,44 +12011,79 @@ namespace {
         auto sgn = [&]() -> float { return rnd() < 0.5f ? -1.0f : 1.0f; };
         auto spawn = [&](PetP& q, bool first) {
             int kd = kind;
-            if (kind == 7) { const float u = rnd(); if (fire) kd = u < 0.42f ? 4 : (u < 0.54f ? 3 : (u < 0.64f ? 5 : (u < 0.84f ? 6 : (u < 0.92f ? 2 : 0)))); else kd = u < 0.4f ? 0 : (u < 0.6f ? 1 : (u < 0.8f ? 2 : (u < 0.9f ? 3 : 4))); }
-            q.kind = kd; q.ph = rnd() * 6.2831853f; q.len = 0.35f + 0.35f * rnd();
-            const int c0 = col == 6 ? kRb[static_cast<int>(rnd() * 5.99f)] : (fire ? 0 : kCi[col][rnd() < 0.7f ? 0 : 1]);
-            q.ci = c0; q.ci2 = fire ? 0 : kCi[col == 6 ? 0 : col][1]; q.ci3 = 4;
+            if (kind == 7) { const float u = rnd(); if (fire) kd = u < 0.46f ? 4 : (u < 0.53f ? 3 : (u < 0.65f ? 5 : (u < 0.82f ? 6 : (u < 0.91f ? 2 : 0)))); else kd = u < 0.4f ? 0 : (u < 0.6f ? 1 : (u < 0.8f ? 2 : (u < 0.9f ? 3 : 4))); }
+            q.kind = kd; q.ph = rnd() * 6.2831853f; q.len = kd == 5 ? 0.7f + 0.6f * rnd() : 0.35f + 0.35f * rnd(); q.ci = static_cast<int>(rnd() * 5.99f); q.ang = rnd() * 6.2831853f; q.fall = 0.0f;
             if (fire) {
-                static const int kOut[4] = { 18, 19, 19, 20 }, kBut[2] = { 26, 26 }; (void)kBut;
-                q.ang = rnd() * 6.2831853f; q.fall = 0.0f;
                 switch (kd) {
-                case 4: q.ci = kOut[static_cast<int>(rnd() * 3.99f)]; q.ci2 = 21; q.ci3 = 23; q.r = 0.6f + 4.5f * rnd(); q.h = first ? 7.0f * rnd() : -0.2f + 0.8f * rnd(); q.rise = 0.8f + 1.6f * rnd(); q.w = sgn() * (0.4f + 0.8f * rnd()); q.sz = 0.05f + 0.07f * rnd(); break;
-                case 3: q.ci = 26; q.ci2 = 25; q.ci3 = 16; q.r = 1.0f + 4.5f * rnd(); q.h = 0.3f + 2.5f * rnd(); q.rise = 0.0f; q.w = sgn() * (0.15f + 0.3f * rnd()); q.sz = 0.28f + 0.2f * rnd(); break;
-                case 5: q.ci = kOut[static_cast<int>(rnd() * 3.99f)]; q.ci2 = rnd() < 0.5f ? 21 : 22; q.ci3 = 23; q.r = 0.8f + 3.5f * rnd(); q.h = first ? 4.0f * rnd() : -0.2f + 0.5f * rnd(); q.rise = 1.0f + 1.8f * rnd(); q.w = sgn() * (1.2f + 1.6f * rnd()); q.sz = 0.12f + 0.12f * rnd(); break;
-                case 6: q.ci = rnd() < 0.6f ? 16 : 17; q.ci2 = q.ci; q.ci3 = q.ci; q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.07f + 0.08f * rnd(); break;
-                case 2: q.ci = 22; q.ci2 = 23; q.ci3 = 23; q.r = 0.5f + 5.0f * rnd(); q.h = 0.2f + 4.0f * rnd(); q.rise = 0.3f; q.w = sgn() * 0.2f; q.sz = 0.10f + 0.10f * rnd(); break;
-                default: q.ci = 19 + static_cast<int>(rnd() * 2.99f); q.ci2 = 21; q.ci3 = 23; q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.10f + 0.10f * rnd(); break;
+                case 4: q.r = 0.6f + 4.5f * rnd(); q.h = first ? 7.0f * rnd() : -0.2f + 0.8f * rnd(); q.rise = 0.8f + 1.6f * rnd(); q.w = sgn() * (0.4f + 0.8f * rnd()); q.sz = 0.07f + 0.09f * rnd(); break;
+                case 3: q.r = 1.0f + 4.5f * rnd(); q.h = 0.3f + 2.5f * rnd(); q.rise = 0.0f; q.w = sgn() * (0.15f + 0.3f * rnd()); q.sz = 0.2f + 0.14f * rnd(); break;
+                case 5: q.r = 0.8f + 3.5f * rnd(); q.h = first ? 4.0f * rnd() : -0.2f + 0.5f * rnd(); q.rise = 1.0f + 1.8f * rnd(); q.w = sgn() * (1.2f + 1.6f * rnd()); q.sz = 0.32f + 0.25f * rnd(); break;
+                case 6: q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.08f + 0.08f * rnd(); break;
+                case 2: q.r = 0.5f + 5.0f * rnd(); q.h = 0.2f + 4.0f * rnd(); q.rise = 0.3f; q.w = sgn() * 0.2f; q.sz = 0.12f + 0.12f * rnd(); break;
+                default: q.r = 0.6f + 4.0f * rnd(); q.h = first ? 6.0f * rnd() : -0.2f + 0.6f * rnd(); q.rise = 0.5f + 1.0f * rnd(); q.w = sgn() * (0.5f + 1.0f * rnd()); q.sz = 0.12f + 0.10f * rnd(); break;
                 }
             } else {
                 const float ang = (rnd() < 0.75f) ? hd + (rnd() - 0.5f) * 1.7f : rnd() * 6.2831853f; const float r = 2.0f + 13.0f * rnd();
                 q.p[0] = f[0] + r * __builtin_cosf(ang); q.p[2] = f[2] + r * __builtin_sinf(ang); q.p[1] = f[1] + (first ? -2.5f + 8.0f * rnd() : 1.0f + 5.0f * rnd());
                 switch (kd) {
                 case 0: q.sz = 0.10f + 0.10f * rnd(); q.fall = 0.5f + 0.5f * rnd(); break;
-                case 1: q.sz = 0.20f + 0.14f * rnd(); q.fall = 0.3f + 0.3f * rnd(); q.ci = 4; break;
-                case 2: q.sz = 0.06f + 0.06f * rnd(); q.fall = 0.02f + 0.08f * rnd(); break;
+                case 1: q.sz = 0.20f + 0.14f * rnd(); q.fall = 0.3f + 0.3f * rnd(); break;
+                case 2: q.sz = 0.08f + 0.08f * rnd(); q.fall = 0.02f + 0.08f * rnd(); break;
                 case 3: q.sz = 0.22f + 0.14f * rnd(); q.fall = 0.05f + 0.1f * rnd(); break;
-                case 4: q.sz = 0.05f + 0.05f * rnd(); q.fall = -0.15f - 0.2f * rnd(); break;
-                case 5: q.sz = 0.05f + 0.04f * rnd(); q.fall = 1.5f + 1.0f * rnd(); break;
+                case 4: q.sz = 0.06f + 0.06f * rnd(); q.fall = -0.15f - 0.2f * rnd(); break;
+                case 5: q.sz = 0.06f + 0.05f * rnd(); q.fall = 1.5f + 1.0f * rnd(); break;
                 default: q.sz = 0.07f + 0.06f * rnd(); q.fall = 0.6f + 0.5f * rnd(); break;
                 }
             }
         };
         if (sel != nSel) { sel = nSel; for (int i = 0; i < 160; i++) spawn(P[i], true); }
+        /* 前のフレームの画面 (背景) を読む。まだ無いときは、読み出しの命令だけ出して、今回は描かない */
+        const u32* rb = reinterpret_cast<const u32*>(g_PixStorage + rbOff); const bool haveRb = g_PetRb.ok && g_PetRb.off == rbOff && g_PetRb.w == W && g_PetRb.rows == rows && g_PetRb.step == step;
+        if (haveRb) DcInval(rb, rbBytes);
+        { g_Sw.rowStride(cb, static_cast<ptrdiff_t>(W) * 4); for (int r = 0; r < rows; r++) { int yy = r * step; if (yy >= H) yy = H - 1; Reg rg { 0, yy, 0, W, 1, 1 }; g_T2B(cb, tex, nullptr, &rg, g_BufAddr[0] + rbOff + static_cast<u64>(r) * W * 4u, 0); } g_PetRb = PetRbI { true, W, rows, step, rbOff }; }
         const float sp = 0.3f + 0.2f * static_cast<float>(g_PetSpd);
         const float vh = static_cast<float>(g_FovLv > 0 ? 55 + 5 * g_FovLv : 55) * 0.5f * 0.017453293f;
         const float kpx = static_cast<float>(H) * 0.5f * __builtin_cosf(vh) / __builtin_sinf(vh);
         const float cx = static_cast<float>(W) * 0.5f, cy = static_cast<float>(H) * 0.5f;
-        auto fill = [&](int x, int y, int w, int h, int ci) { if (h < 1) h = 1; if (h > 8) h = 8; const int mw = 64 / h; while (w > 0) { const int c = w < mw ? w : mw; rct(x, y, c, h, ci); x += c; w -= c; } };
-        auto box = [&](int x, int y, int w, int h, int ci) { if (w < 1) w = 1; if (h < 1) h = 1; for (int yy = 0; yy < h; yy += 8) { const int hh = h - yy < 8 ? h - yy : 8; for (int xx = 0; xx < w; xx += 8) rct(x + xx, y + yy, w - xx < 8 ? w - xx : 8, hh, ci); } };
-        auto ell = [&](int px, int py, int hw, int hh, int ci, float tilt) { if (hw < 1) hw = 1; if (hh < 1) hh = 1; const int stp = hh > 3 ? 2 : 1; for (int r = -hh; r <= hh; r += stp) { const float t = static_cast<float>(r) / (static_cast<float>(hh) + 0.5f); const int ww = static_cast<int>(2.0f * static_cast<float>(hw) * __builtin_sqrtf(1.0f - t * t)); fill(px - ww / 2 + static_cast<int>(tilt * static_cast<float>(r)), py + r, ww < 1 ? 1 : ww, stp, ci); } };
-        auto proj = [&](float X, float Y, float Z, int& px, int& py) -> float { const float dx = X - f[0], dy = Y - f[1], dz = Z - f[2]; const float z = dx * fx + dy * fy + dz * fz; if (z < 0.7f) return -1.0f; const float xr = dx * rx + dz * rz, yu = dx * ux + dy * uy + dz * uz; px = static_cast<int>(cx + xr / z * kpx); py = static_cast<int>(cy - yu / z * kpx); return z; };
+        auto proj = [&](float X, float Y, float Z, float& px, float& py) -> float { const float dx = X - f[0], dy = Y - f[1], dz = Z - f[2]; const float z = dx * fx + dy * fy + dz * fz; if (z < 0.7f) return -1.0f; const float xr = dx * rx + dz * rz, yu = dx * ux + dy * uy + dz * uz; px = cx + xr / z * kpx; py = cy - yu / z * kpx; return z; };
+        u32* spb = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot + spOff); size_t spUsed = 0; /* 粒の絵を置く場所 (今の 1 枚の後ろ) */
+        struct Cp { int x, y, w, h; size_t off; }; static Cp cps[170]; int ncp = 0;
+        /* 1 粒の絵: 場所 (x0,y0)・大きさ (w,h) の accA/accH から作る。mode 0 = ふつうに重ねる、1 = 光る (足し算気味)。color(h) で色 */
+        auto flush = [&](int x0, int y0, int w, int h, int mode, float alpha, const PetCol& c0, const PetCol& c1, bool fireRamp) {
+            if (ncp >= 168) return; const size_t need = static_cast<size_t>(w) * h * 4u; if (spUsed + need > kPetSpBytes) return;
+            if (x0 < 0 || y0 < 0 || x0 + w > W || y0 + h > H) return; u32* o = spb + spUsed / 4;
+            const int ia = static_cast<int>(alpha * 256.0f);
+            int ov[8], nov = 0; for (int k = ncp - 1; k >= 0 && nov < 8; k--) { const Cp& e = cps[k]; if (e.x < x0 + w && e.x + e.w > x0 && e.y < y0 + h && e.y + e.h > y0) ov[nov++] = k; } /* 先に作った粒と重なるところは、その粒の絵を背景にする (四角が上書きして欠けないように) */
+            for (int y = 0; y < h; y++) {
+                const int yy0 = y0 + y; int r0 = yy0 / step; int r1 = r0 + 1; const u32 tw = static_cast<u32>((yy0 - r0 * step) * 256 / step); if (r0 >= rows) r0 = rows - 1; if (r1 >= rows) r1 = rows - 1; const u32* ra = rb + static_cast<size_t>(r0) * W + x0; const u32* rb1 = rb + static_cast<size_t>(r1) * W + x0;
+                for (int x = 0; x < w; x++) {
+                    u32 bg = tw ? LerpPx(ra[x], rb1[x], tw) : ra[x]; for (int q2 = 0; q2 < nov; q2++) { const Cp& e = cps[ov[q2]]; const int ex2 = x0 + x - e.x, ey2 = yy0 - e.y; if (ex2 >= 0 && ex2 < e.w && ey2 >= 0 && ey2 < e.h) { bg = spb[(e.off - spOff) / 4 + static_cast<size_t>(ey2) * e.w + ex2]; break; } } const int a = accA[y * 192 + x] * ia / 255; if (a <= 0) { o[y * w + x] = bg | 0xFF000000u; continue; }
+                    const float hh = accH[y * 192 + x] * (1.0f / 255.0f); PetCol c; if (fireRamp) c = PetFire(hh); else { c.r = static_cast<int>(c0.r + (c1.r - c0.r) * hh); c.g = static_cast<int>(c0.g + (c1.g - c0.g) * hh); c.b = static_cast<int>(c0.b + (c1.b - c0.b) * hh); }
+                    const int br = bg & 255, bgc = (bg >> 8) & 255, bb = (bg >> 16) & 255; int r, g, b;
+                    if (mode == 0) { r = (br * (256 - a) + c.r * a) >> 8; g = (bgc * (256 - a) + c.g * a) >> 8; b = (bb * (256 - a) + c.b * a) >> 8; }
+                    else { const int k = 256 - (a * 90 >> 8); r = PetClamp(((br * k) >> 8) + (c.r * a >> 8)); g = PetClamp(((bgc * k) >> 8) + (c.g * a >> 8)); b = PetClamp(((bb * k) >> 8) + (c.b * a >> 8)); }
+                    o[y * w + x] = 0xFF000000u | (static_cast<u32>(b) << 16) | (static_cast<u32>(g) << 8) | static_cast<u32>(r);
+                }
+            }
+            cps[ncp++] = Cp { x0, y0, w, h, spOff + spUsed }; spUsed += need;
+        };
+        auto clear = [&](int w, int h) { for (int y = 0; y < h; y++) { std::memset(accA + y * 192, 0, static_cast<size_t>(w)); std::memset(accH + y * 192, 0, static_cast<size_t>(w)); } };
+        /* だ円 (中心 cx,cy・半径 rx,ry・角度 th): 縁はやわらかく、中心ほど熱い */
+        auto ellA = [&](int w, int h, float ex, float ey, float erx, float ery, float th, float heat) {
+            const float c = __builtin_cosf(th), s2 = __builtin_sinf(th); const int xa = static_cast<int>(ex - (erx + ery)) - 1, xb = static_cast<int>(ex + (erx + ery)) + 2, ya = static_cast<int>(ey - (erx + ery)) - 1, yb = static_cast<int>(ey + (erx + ery)) + 2;
+            for (int y = ya < 0 ? 0 : ya; y < yb && y < h; y++) for (int x = xa < 0 ? 0 : xa; x < xb && x < w; x++) {
+                const float dx = static_cast<float>(x) + 0.5f - ex, dy = static_cast<float>(y) + 0.5f - ey; const float u = (dx * c + dy * s2) / erx, v = (-dx * s2 + dy * c) / ery, d2 = u * u + v * v; if (d2 >= 1.0f) continue;
+                const float d = __builtin_sqrtf(d2), e = 1.0f - d; float cov = e * 4.0f; if (cov > 1.0f) cov = 1.0f; cov = cov * cov * (3.0f - 2.0f * cov);
+                const int A = static_cast<int>(cov * 255.0f), Hh = static_cast<int>((e * heat + (1.0f - heat) * 0.0f) * 255.0f); if (A > accA[y * 192 + x]) accA[y * 192 + x] = static_cast<u8>(A); if (Hh > accH[y * 192 + x]) accH[y * 192 + x] = static_cast<u8>(Hh > 255 ? 255 : Hh); }
+        };
+        /* 光る円 (中心ほど熱くて濃い) */
+        auto discG = [&](int w, int h, float ex, float ey, float R, float heat, float aMul) {
+            const int xa = static_cast<int>(ex - R) - 1, xb = static_cast<int>(ex + R) + 2, ya = static_cast<int>(ey - R) - 1, yb = static_cast<int>(ey + R) + 2;
+            for (int y = ya < 0 ? 0 : ya; y < yb && y < h; y++) for (int x = xa < 0 ? 0 : xa; x < xb && x < w; x++) {
+                const float dx = static_cast<float>(x) + 0.5f - ex, dy = static_cast<float>(y) + 0.5f - ey; const float d = __builtin_sqrtf(dx * dx + dy * dy) / R; if (d >= 1.0f) continue;
+                const float e = 1.0f - d, cov = e * e * (3.0f - 2.0f * e) * aMul; const int A = static_cast<int>(cov * 255.0f), Hh = static_cast<int>(e * e * heat * 255.0f);
+                if (A > accA[y * 192 + x]) accA[y * 192 + x] = static_cast<u8>(A); if (Hh > accH[y * 192 + x]) accH[y * 192 + x] = static_cast<u8>(Hh > 255 ? 255 : Hh); }
+        };
         for (int i = 0; i < n; i++) {
             PetP& q = P[i];
             q.ph += dt * sp * 1.6f;
@@ -12038,45 +12092,51 @@ namespace {
                 q.ang += q.w * sp * dt; q.h += q.rise * sp * dt; q.r += __builtin_sinf(q.ph * 0.7f) * 0.3f * dt;
                 if (q.kind == 3) q.h += __builtin_sinf(q.ph * 1.3f) * 0.6f * dt;
                 if (q.h > (q.kind == 5 ? 4.5f : 7.5f) || q.r < 0.3f) { spawn(q, false); continue; }
-                const float ca = __builtin_cosf(q.ang), sa = __builtin_sinf(q.ang);
-                X = C[0] + q.r * ca; Y = C[1] + q.h; Z = C[2] + q.r * sa;
-                const float a2 = q.ang - (q.w < 0.0f ? -q.len : q.len); TX = C[0] + q.r * __builtin_cosf(a2); TY = Y - 0.45f; TZ = C[2] + q.r * __builtin_sinf(a2);
+                X = C[0] + q.r * __builtin_cosf(q.ang); Y = C[1] + q.h; Z = C[2] + q.r * __builtin_sinf(q.ang);
+                const float a2 = q.ang - (q.w < 0.0f ? -q.len : q.len); TX = C[0] + q.r * __builtin_cosf(a2); TY = Y - 0.9f; TZ = C[2] + q.r * __builtin_sinf(a2);
             } else {
                 q.p[0] += __builtin_cosf(q.ph) * 0.5f * sp * dt; q.p[2] += __builtin_sinf(q.ph * 0.9f) * 0.5f * sp * dt; q.p[1] -= q.fall * sp * dt;
                 const float ddx = q.p[0] - f[0], ddy = q.p[1] - f[1], ddz = q.p[2] - f[2];
                 if (ddy < -4.0f || ddx * ddx + ddz * ddz > 324.0f || ddy > 9.0f) { spawn(q, false); continue; }
                 X = q.p[0]; Y = q.p[1]; Z = q.p[2]; TX = X + 0.25f * __builtin_cosf(q.ph); TY = Y + 0.9f; TZ = Z + 0.25f * __builtin_sinf(q.ph);
             }
-            int px, py; const float z = proj(X, Y, Z, px, py); if (z < 0.0f) continue;
-            const float s = q.sz * kpx / z; if (s < 1.5f) continue; if (px < -60 || px > W + 60 || py < -60 || py > H + 60) continue;
+            if (!haveRb) continue;
+            float pxf, pyf; const float z = proj(X, Y, Z, pxf, pyf); if (z < 0.0f) continue;
+            float s = q.sz * kpx / z; if (s < 2.0f) continue; if (s > 70.0f) s = 70.0f; if (pxf < -80.0f || pxf > static_cast<float>(W) + 80.0f || pyf < -80.0f || pyf > static_cast<float>(H) + 80.0f) continue;
+            const PetCol& th0 = col == 6 ? kRbw[q.ci] : (fire ? kTh[0][0] : kTh[col][0]); const PetCol& th1 = fire ? kTh[0][1] : kTh[col][1]; const PetCol ash0 = { 60, 36, 28 }, ash1 = { 110, 56, 32 }, bf0 = { 224, 128, 24 }, bf1 = { 255, 214, 96 };
             switch (q.kind) {
-            case 0: { const int hw = static_cast<int>(s * 0.5f), hh = static_cast<int>(s * 0.32f); ell(px, py, hw, hh, q.ci, __builtin_sinf(q.ph * 1.3f) * 0.7f); break; } /* 花びら: 横長のだ円。揺れに合わせて傾ける */
-            case 1: { const int L = static_cast<int>(s) < 3 ? 3 : static_cast<int>(s); const float sl = __builtin_sinf(q.ph * 0.7f) * 0.6f + 0.3f; for (int k = -L; k <= L; k += 2) fill(px + static_cast<int>(static_cast<float>(k) * sl), py + k / 2, 2, 2, q.ci); break; } /* 羽根: ななめの細い線 */
-            case 2: { const float tw = 0.5f + 0.5f * __builtin_sinf(q.ph * 3.0f); int a = static_cast<int>(s * (0.4f + 0.6f * tw)); if (a < 2) a = 2; if (a > 24) a = 24; /* きらめき: 十字。ゆっくりまたたく */
-                fill(px - a, py, 2 * a + 1, 1, q.ci); fill(px, py - a, 1, 2 * a + 1, q.ci); fill(px - 1, py - 1, 3, 3, q.ci2); break; }
-            case 3: { /* 蝶: 羽ばたく (横の幅がはばたきで変わる)。外側を濃く、内側を明るく */
-                const float fl = __builtin_sinf(q.ph * 5.0f); const float af = fl < 0.0f ? -fl : fl; const int hw = static_cast<int>(s * 0.5f * (0.25f + 0.75f * af)), hh = static_cast<int>(s * 0.38f);
-                const int w1 = hw < 1 ? 1 : hw; ell(px - w1 / 2 - 1, py - hh / 3, w1 / 2 + 1, hh, q.ci, -0.4f); ell(px + w1 / 2 + 1, py - hh / 3, w1 / 2 + 1, hh, q.ci, 0.4f);
-                if (hh >= 3) { ell(px - w1 / 2 - 1, py - hh / 3, w1 / 3 + 1, hh / 2 + 1, q.ci2, -0.4f); ell(px + w1 / 2 + 1, py - hh / 3, w1 / 3 + 1, hh / 2 + 1, q.ci2, 0.4f); }
-                fill(px, py - hh / 2, 1, hh + 1, q.ci3 < 16 ? 4 : q.ci3); break; }
-            case 4: { /* 火の粉: 外が濃い橙、内側が明るく、中心が白っぽい (光って見える) */
-                int a = static_cast<int>(s); if (a < 2) a = 2; if (a > 10) a = 10; const int m = a * 6 / 10 < 1 ? 1 : a * 6 / 10, c = a * 3 / 10 < 1 ? 1 : a * 3 / 10;
-                box(px - a / 2, py - a / 2, a, a, q.ci); box(px - m / 2, py - m / 2, m, m, q.ci2); box(px - c / 2, py - c / 2, c, c, q.ci3); break; }
-            case 5: { /* 炎の帯: 頭から尾へ細くなる、曲がった帯。外が橙・赤、中が黄、頭に白っぽい芯 */
-                int tx, ty; const float zt = proj(TX, TY, TZ, tx, ty); if (zt < 0.0f) break;
-                const float dx = static_cast<float>(tx - px), dy = static_cast<float>(ty - py), dist = __builtin_sqrtf(dx * dx + dy * dy); if (dist < 3.0f || dist > 420.0f) break;
-                int N = static_cast<int>(dist / 7.0f); if (N < 3) N = 3; if (N > 16) N = 16; const float nx = -dy / dist, ny = dx / dist, cv = 0.25f * dist * __builtin_sinf(q.ph * 0.5f);
-                float w0 = s < 3.0f ? 3.0f : (s > 14.0f ? 14.0f : s);
-                for (int k = 0; k <= N; k++) { const float t = static_cast<float>(k) / static_cast<float>(N), bend = cv * __builtin_sinf(3.1415927f * t);
-                    const int ix = px + static_cast<int>(dx * t + nx * bend), iy = py + static_cast<int>(dy * t + ny * bend); int wd = static_cast<int>(w0 * (1.0f - 0.85f * t)); if (wd < 2) wd = 2;
-                    box(ix - wd / 2, iy - wd / 2, wd, wd, t > 0.6f ? 18 : q.ci);
-                    if (t < 0.75f) { const int w2 = wd * 55 / 100 < 1 ? 1 : wd * 55 / 100; box(ix - w2 / 2, iy - w2 / 2, w2, w2, q.ci2); }
-                    if (t < 0.35f) { const int w3 = wd * 28 / 100 < 1 ? 1 : wd * 28 / 100; box(ix - w3 / 2, iy - w3 / 2, w3, w3, q.ci3); } }
-                break; }
-            default: { /* 灰の葉: 黒っぽい小さな破片。回りながら落ちる/のぼる */
-                const float tl = __builtin_sinf(q.ph * 2.1f); const int hw = static_cast<int>(s * 0.5f * (0.4f + 0.6f * (tl < 0.0f ? -tl : tl))), hh = static_cast<int>(s * 0.3f); ell(px, py, hw, hh, q.ci, tl * 0.8f); break; }
+            case 4: case 2: { /* 火の粉 / きらめき: 光る円。きらめきは十字の光も足す */
+                int R = static_cast<int>(s * (q.kind == 4 ? 0.9f : 0.7f)) + 2; if (R > 30) R = 30; const int w = 2 * R + 2, h = w; clear(w, h); discG(w, h, static_cast<float>(w) * 0.5f, static_cast<float>(h) * 0.5f, static_cast<float>(R), q.kind == 4 ? 1.5f : 1.2f, 1.0f);
+                if (q.kind == 2) { const float tw = 0.5f + 0.5f * __builtin_sinf(q.ph * 3.0f); const int a = static_cast<int>(static_cast<float>(R) * (0.4f + 0.6f * tw)); const int c0 = w / 2; for (int k = -a; k <= a; k++) { const int xx = c0 + k, yy = c0 + k; const int v = 255 - 255 * (k < 0 ? -k : k) / (a + 1); if (xx >= 0 && xx < w) { if (accA[c0 * 192 + xx] < v) accA[c0 * 192 + xx] = static_cast<u8>(v); if (accH[c0 * 192 + xx] < v) accH[c0 * 192 + xx] = static_cast<u8>(v); } if (yy >= 0 && yy < h) { if (accA[yy * 192 + c0] < v) accA[yy * 192 + c0] = static_cast<u8>(v); if (accH[yy * 192 + c0] < v) accH[yy * 192 + c0] = static_cast<u8>(v); } } }
+                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 1, 0.95f, th0, th1, fire); break; }
+            case 0: case 6: { /* 花びら / 灰の葉: だ円 (傾きがゆれる) */
+                const float rxp = s * 0.55f, ryp = s * 0.32f; int R = static_cast<int>(rxp + ryp) + 2; if (R > 60) R = 60; const int w = 2 * R + 2, h = w; clear(w, h);
+                ellA(w, h, static_cast<float>(w) * 0.5f, static_cast<float>(h) * 0.5f, rxp < 1.5f ? 1.5f : rxp, ryp < 1.2f ? 1.2f : ryp, q.ph * 1.7f + __builtin_sinf(q.ph * 1.3f), 0.9f);
+                if (q.kind == 6) flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 0, 0.85f, ash0, ash1, false);
+                else flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, fire ? 1 : 0, 0.85f, fire ? bf0 : th0, fire ? bf1 : th1, false); break; }
+            case 1: { /* 羽根: ななめの細い葉 */
+                const float L = s * 0.9f; int R = static_cast<int>(L) + 2; if (R > 60) R = 60; const int w = 2 * R + 2, h = w; clear(w, h);
+                ellA(w, h, static_cast<float>(w) * 0.5f, static_cast<float>(h) * 0.5f, L < 3.0f ? 3.0f : L, L * 0.16f < 1.1f ? 1.1f : L * 0.16f, 0.9f + 0.7f * __builtin_sinf(q.ph * 0.7f), 0.8f);
+                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 0, 0.9f, th0, th1, false); break; }
+            case 3: { /* 蝶: 羽ばたく 2 枚の羽。縁が濃く中が明るい。光る */
+                const float fl = __builtin_sinf(q.ph * 5.0f); const float af = (fl < 0.0f ? -fl : fl) * 0.75f + 0.25f; const float wr = s * 0.5f * af, hr = s * 0.42f; int R = static_cast<int>(s * 1.05f) + 4; if (R > 90) R = 90; const int w = 2 * R + 2, h = w; clear(w, h);
+                const float m = static_cast<float>(w) * 0.5f; const float ox = (wr < 1.2f ? 1.2f : wr) * 0.95f;
+                ellA(w, h, m - ox, m - hr * 0.3f, (wr < 1.2f ? 1.2f : wr) * 1.05f, hr * 0.62f, -0.85f, 0.9f); ellA(w, h, m + ox, m - hr * 0.3f, (wr < 1.2f ? 1.2f : wr) * 1.05f, hr * 0.62f, 0.85f, 0.9f);
+                ellA(w, h, m - ox * 0.55f, m + hr * 0.5f, (wr < 1.2f ? 1.2f : wr) * 0.62f, hr * 0.42f, 0.35f, 0.7f); ellA(w, h, m + ox * 0.55f, m + hr * 0.5f, (wr < 1.2f ? 1.2f : wr) * 0.62f, hr * 0.42f, -0.35f, 0.7f);
+                flush(static_cast<int>(pxf) - w / 2, static_cast<int>(pyf) - h / 2, w, h, 0, 0.88f, bf0, bf1, false); break; }
+            default: { /* 炎の帯: 頭から尾へ細くなる曲がった帯 (光る円をならべる)。頭が熱くて黄〜白、尾は赤 */
+                float txf, tyf; const float zt = proj(TX, TY, TZ, txf, tyf); if (zt < 0.0f) break;
+                const float dx = txf - pxf, dy = tyf - pyf, dist = __builtin_sqrtf(dx * dx + dy * dy); if (dist < 4.0f || dist > 170.0f) break;
+                const float w0 = s * 0.8f < 3.0f ? 3.0f : (s * 0.8f > 26.0f ? 26.0f : s * 0.8f); const float nx = -dy / dist, ny = dx / dist, cv = 0.22f * dist * __builtin_sinf(q.ph * 0.5f); const float acv = cv < 0.0f ? -cv : cv, mg = w0 * 1.7f + acv + 3.0f;
+                const float minx = (pxf < txf ? pxf : txf) - mg, miny = (pyf < tyf ? pyf : tyf) - mg, maxx = (pxf > txf ? pxf : txf) + mg, maxy = (pyf > tyf ? pyf : tyf) + mg;
+                int bw = static_cast<int>(maxx - minx) + 1, bh = static_cast<int>(maxy - miny) + 1; if (bw > 168 || bh > 168) break; const int bx = static_cast<int>(minx), by = static_cast<int>(miny); clear(bw, bh);
+                int N = static_cast<int>(dist / 3.0f); if (N < 4) N = 4; if (N > 36) N = 36;
+                for (int k = 0; k <= N; k++) { const float t = static_cast<float>(k) / static_cast<float>(N), bend = cv * __builtin_sinf(3.1415927f * t); const float ex = pxf + dx * t + nx * bend - static_cast<float>(bx), ey = pyf + dy * t + ny * bend - static_cast<float>(by); const float rr = w0 * (1.0f - 0.8f * t); if ((k & 1) == 0) discG(bw, bh, ex, ey, (rr < 1.5f ? 1.5f : rr) * 1.7f, 0.3f, 0.34f); discG(bw, bh, ex, ey, rr < 1.5f ? 1.5f : rr, 1.1f - 0.8f * t, 1.0f); }
+                flush(bx, by, bw, bh, 1, 0.95f, th0, th1, true); break; }
             }
         }
+        /* 作った絵をまとめて書き出して、写す */
+        if (ncp > 0) { DcClean(spb, spUsed); for (int k = 0; k < ncp; k++) { const Cp& c = cps[k]; g_Sw.rowStride(cb, static_cast<ptrdiff_t>(c.w) * 4); Reg r { c.x, c.y, 0, c.w, c.h, 1 }; g_Sw.copyB2T(cb, base + c.off, tex, nullptr, &r, 0); } }
     }
 }
     bool SwCopy(void* cb, void* tex, int W, int H) {
@@ -12102,8 +12162,8 @@ namespace {
         if (BoxOrCircle()) { /* 円: 画面のまん中に、エイムボットが向く範囲の円を出す。
                               カメラの目と向きから画面の位置を出し (縦の画角は 50 度とする)、線は小さな点を並べて描く (色をぬった帯 = バッファの最後 から写す) */
             static const u32 kBc[16] = { 0xFFFFF240u, 0xFFD959FFu, 0xFF40E0FFu, 0xFF80FF66u, 0xFFFFFFFFu, 0xFF2090FFu, 0xFF3030FFu, 0xFF9A8A8Au, 0xFF2828FFu, 0xFF28A0FFu, 0xFF28F0FFu, 0xFF40E040u, 0xFFF0E028u, 0xFFFF6030u, 0xFFFF3080u, 0xFFC030FFu }; /* 7: 壁の裏の敵 (グレー) */ /* 5: バルーン (オレンジ)、6: 敵 (赤) */
-            const size_t bOff = kPixBytes / 4 - static_cast<size_t>(16 * 64), exOff = bOff - static_cast<size_t>(16 * 64); /* 炎用の 16 色 (ci 16〜) はその下 */
-            for (int bi = 0; bi < 2; bi++) { u32* sp = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(bi) * kPixSlot) + bOff; for (int q = 0; q < 16; q++) for (int t = 0; t < 64; t++) sp[q * 64 + t] = kBc[q]; DcClean(sp, 16 * 64 * 4); if (g_PetOn) { static const u32 kEx[16] = { 0xFF14162Au, 0xFF141C58u, 0xFF1034D8u, 0xFF106EFFu, 0xFF2096FFu, 0xFF38B8FFu, 0xFF60DCFFu, 0xFFB0F2FFu, 0xFF2840FFu, 0xFF58D0FFu, 0xFF1880E0u, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu }; u32* se = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(bi) * kPixSlot) + exOff; for (int q = 0; q < 16; q++) for (int t = 0; t < 64; t++) se[q * 64 + t] = kEx[q]; DcClean(se, 16 * 64 * 4); } } /* 色ごとに 64 画素 (8x8 まで) */
+            const size_t bOff = kPixBytes / 4 - static_cast<size_t>(16 * 64);
+            for (int bi = 0; bi < 2; bi++) { u32* sp = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(bi) * kPixSlot) + bOff; for (int q = 0; q < 16; q++) for (int t = 0; t < 64; t++) sp[q * 64 + t] = kBc[q]; DcClean(sp, 16 * 64 * 4); } /* 色ごとに 64 画素 (8x8 まで) */
             /* 円は画面のまん中に描くだけなので、カメラが見つかっていなくても出す */
                         int budget = 1400, lastW = -1; /* 1 フレームで写す点の数の上限 (描く命令の入れ物をあふれさせない) */
                         auto rct = [&](int x, int y, int w, int h, int ci) { /* 長方形 (w*h は 64 まで) */
@@ -12111,7 +12171,7 @@ namespace {
                             if (w <= 0 || h <= 0) return; budget--;
                             if (w != lastW) { g_Sw.rowStride(cb, static_cast<ptrdiff_t>(w) * 4); lastW = w; }
                             struct RegB { int x, y, z, w, h, d; }; RegB rg { x, y, 0, w, h, 1 };
-                            g_Sw.copyB2T(cb, base + ((ci < 16 ? bOff + static_cast<size_t>(ci) * 64 : exOff + static_cast<size_t>(ci - 16) * 64)) * 4, tex, nullptr, &rg, 0);
+                            g_Sw.copyB2T(cb, base + (bOff + static_cast<size_t>(ci) * 64) * 4, tex, nullptr, &rg, 0);
                         };
                         if (g_CircOn) { /* 視点が向く円 (白い線、太さ 2)。画面のまん中に、半径 = 画面の高さの半分 × 大きさ/100。
                                                         横の帯ごとに、円の線がかかる所だけを横長の四角でぬる。
@@ -12132,7 +12192,7 @@ namespace {
                                 y += hs;
                             }
                         }
-                        if (g_PetOn) PetDraw(rct, W, H);
+                        if (g_PetOn) PetDrawSp(cb, tex, base, W, H);
         }
         u64 mbase = base; /* メニューの絵を写す元 (半透明のときは、混ぜた絵) */
         {   /* 版 647: 半透明。混ぜた絵は 2 枚目の置き場の後ろに、入れかえと関係なく置いておく。
@@ -12144,7 +12204,7 @@ namespace {
             static u32 s_RowH[kOvH]; static u8 s_Ok[kOvH], s_In[kOvH];
             const size_t mbB = static_cast<size_t>(g_SwW) * static_cast<size_t>(g_SwH) * 4u;
             const size_t D = (g_PixHi + 4095u) & ~static_cast<size_t>(4095u);
-            const bool want = !gpu && BlendWant() && g_SwW > 0 && g_SwH > 0 && g_SwH <= kOvH && g_SwRectN > 0 && !ScanPause() && D + mbB <= kPixBytes - static_cast<size_t>(32 * 64 * 4);
+            const bool want = !gpu && BlendWant() && g_SwW > 0 && g_SwH > 0 && g_SwH <= kOvH && g_SwRectN > 0 && !ScanPause() && D + mbB <= (g_PetOn ? kPetLo : kPixBytes - static_cast<size_t>(16 * 64 * 4));
             bool doRead = want; bool skipF = false;
             if (!want) { g_BlW = -1; g_BlLod = 0; }
             else {
@@ -12206,7 +12266,7 @@ namespace {
                 int rx = g_SwX < 0 ? 0 : g_SwX, ry = g_SwY < 0 ? 0 : g_SwY;
                 int rx1 = g_SwX + g_SwW > W ? W : g_SwX + g_SwW, ry1 = g_SwY + g_SwH > H ? H : g_SwY + g_SwH;
                 const int rw = rx1 - rx, rh = ry1 - ry;
-                const size_t barOff = kPixBytes - static_cast<size_t>(16 * 64 * 4);
+                const size_t barOff = g_PetOn ? kPetLo : kPixBytes - static_cast<size_t>(16 * 64 * 4);
                 const size_t used = (g_PixHi + 255u) & ~static_cast<size_t>(255u);
                 static const int kSt[7] = { 2, 3, 4, 6, 8, 12, 16 }; /* 版 646: 粗くして軽く。版 684: メニューが広いほど粗い行から始める */
                 if (rw > 0 && rh > 0 && rw <= kOvW) for (int si = 5; si < 7; si++) { /* いちばん粗い行間隔 (12 行ごと) から */

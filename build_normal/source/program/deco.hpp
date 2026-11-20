@@ -193,3 +193,27 @@ inline void DecoSplashBL(Spr& s, float prog = 1.0f) {
     DecoSprig(v, cx - 24.0f, cy + 12.0f, -8.0f, 140.0f, 34.0f, 4, 121, 3.5f, prog, -0.7f, 0.7f);
     DecoSprig(v, cx - 10.0f, cy + 6.0f, -82.0f, 90.0f, 28.0f, 3, 161, -4.0f, prog, -0.7f, 0.7f);
 }
+
+/* ---- 黒猫 (黒一色): 枠の上に寝そべって、前足としっぽを枠のほうへ垂らす。t = 秒 (しっぽの振り・息)、drop = 上から降りてくる量 (0 = 寝そべった位置)。
+   座標は板の左上が (0,0) で、猫は板のふち (y = 0) の上に乗る ---- */
+inline void DecoEll(Cv& v, float cx, float cy, float rx, float ry, Col k) {
+    for (int y = static_cast<int>(cy - ry - 1.0f); y <= static_cast<int>(cy + ry + 1.0f); y++) for (int x = static_cast<int>(cx - rx - 1.0f); x <= static_cast<int>(cx + rx + 1.0f); x++) {
+        const float dx = (static_cast<float>(x) + 0.5f - cx) / rx, dy = (static_cast<float>(y) + 0.5f - cy) / ry, d2 = dx * dx + dy * dy; if (d2 > 1.12f) continue;
+        float al = (1.06f - d2) * 6.0f; if (al > 1.0f) al = 1.0f; if (al > 0.0f) Blend(v, x, y, k, al); }
+}
+inline void DecoCat(Cv& v, float t, float drop) {
+    using namespace decoc;
+    const float br = 0.8f * __builtin_sinf(t * 3.0f), dy = -drop; /* 息 */
+    DecoEll(v, 132.0f, -13.0f + dy, 52.0f, 13.0f + br * 0.5f, kK);       /* 胴 */
+    DecoEll(v, 168.0f, -15.0f + dy, 26.0f, 15.0f + br * 0.5f, kK);       /* おしり */
+    DecoEll(v, 82.0f, -11.0f + dy, 15.0f, 12.0f, kK);                    /* 頭 */
+    DecoTri(v, 70.0f, -18.0f + dy, 72.0f, -36.0f + dy, 83.0f, -22.0f + dy, kK); /* 耳 */
+    DecoTri(v, 82.0f, -22.0f + dy, 94.0f, -35.0f + dy, 95.0f, -16.0f + dy, kK);
+    if (drop < 1.0f) { /* 前足: 枠のふちから下へ垂れる */
+        DecoEll(v, 76.0f, 6.0f + dy, 5.0f, 9.0f, kK); DecoEll(v, 90.0f, 5.0f + dy, 5.0f, 8.0f, kK); }
+    { /* しっぽ: おしりから枠の上へ垂れて、ゆらゆら振る */
+        float x = 190.0f, y = -8.0f + dy; const float sw = __builtin_sinf(t * 6.5f);
+        for (int i = 0; i < 7; i++) { const float a = 1.5707963f - 0.20f + sw * (0.12f + 0.11f * static_cast<float>(i)) + 0.05f * static_cast<float>(i), nx = x + 8.0f * __builtin_cosf(a), ny = y + 8.0f * __builtin_sinf(a);
+            DecoSeg(v, x, y, nx, ny, 7.5f - 0.5f * static_cast<float>(i), kK); DecoDisc(v, nx, ny, 3.8f - 0.25f * static_cast<float>(i), kK); x = nx; y = ny; }
+    }
+}

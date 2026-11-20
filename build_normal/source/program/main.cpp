@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 149; /* tmt 1.1.39 (ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 150; /* tmt 1.1.40 (起動の組み立て 2.5 秒+黒猫・上下の確認を早く・名前プリセットを名前入力のキーボードに最初から入れる。1.1.39: ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -4805,7 +4805,7 @@ namespace {
                             float Pn = pit + ep; if (Pn > 68.0f) Pn = 68.0f; if (Pn < -68.0f) Pn = -68.0f; const float Yn = (yaw + ey) * 0.017453293f, Pr = Pn * 0.017453293f, cpp = __builtin_cosf(Pr);
                             const float wv[3] = { __builtin_cosf(Yn) * cpp, __builtin_sinf(Pr), __builtin_sinf(Yn) * cpp }; bool full = false;
                             const bool wr = VecWrite(c, wv, &full); const bool prv = g_VF.n > 0 && g_VF.idx[0] == g_VGoodI && g_VF.typ[0] == g_VGoodK; if (wr && prv) yawD = true; if (wr && full && prv) vdone = true;
-                            if (Pn < 66.0f && Pn > -66.0f) { const bool pw2 = AngWrite(g_AP, pit * 0.017453293f, Pr, false); if (pw2 && g_AP.ok >= 15) pitD = true; } /* 上下は、角度の値に直接書く (確かめられたときだけジャイロを止める) */ }
+                            if (Pn < 66.0f && Pn > -66.0f) { const bool pw2 = AngWrite(g_AP, pit * 0.017453293f, Pr, false); if (pw2 && g_AP.ok >= 6) pitD = true; } /* 上下は、角度の値に直接書く (確かめられたときだけジャイロを止める) */ }
                         const float f = 0.25f / dtS; /* 遅れがあるので 1 フレームに詰めるのはずれの 15% (大きいと行き過ぎて左右にゆれる) */ const float* G0 = g_GaG[0]; const float* G1 = g_GaG[1];
                         { /* 左右: 角速度を足す。3 軸のうち効きの大きい軸にかたよらせて配る (最小の角速度) */
                             float m = 100.0f; for (int a = 0; a < 3; a++) m += G0[a] * G0[a]; /* 版 684: 3 度以上ずれた (次の相手に変わった) ときは、1 フレームで向く。まだ視点に出ていない直前 2 回ぶんの命令を引いて、行き過ぎを防ぐ */
@@ -9876,7 +9876,7 @@ namespace nvnhook {
         if (g_SplDoneT) { if (n - g_SplDoneT > 8640000ull) g_SplashLeaveT = n; return true; } /* バーが最後まで行ってから消える */
         const bool resShown = (us == 4 || us == 5 || us == 6 || us == 8) && n - g_UpdT > 3ull * 19200000ull; /* 結果は 3 秒見せたら消える */
         if (g_SplUpd && (resShown || (us == 0 && !g_UpdManual && el > 9600000ull))) g_SplDoneT = n;
-        if (!g_SplUpd && us != 2 && el > 28800000ull && (g_UpdAutoPhase == 2 || us >= 3 || el > 15ull * 19200000ull || (g_UpdAutoPhase == 0 && el > 8ull * 19200000ull))) g_SplDoneT = n; /* アップデートを聞いている間は出しておく */
+        if (!g_SplUpd && us != 2 && el > 50400000ull && (g_UpdAutoPhase == 2 || us >= 3 || el > 15ull * 19200000ull || (g_UpdAutoPhase == 0 && el > 8ull * 19200000ull))) g_SplDoneT = n; /* アップデートを聞いている間は出しておく */
         return true;
     }
     void SplashManual() { g_SplashT0 = NowTick(); g_SplashLeaveT = 0; g_SplDoneT = 0; g_SplUpd = true; g_SplMan = true; } /* メニューからアップデートを確認: 起動の表示をもう一度出して、その中に出す */
@@ -10743,7 +10743,7 @@ constexpr unsigned char kIconA[6][32*32] = {
         if (!g_SplArtBuilt) { g_SplArtBuilt = true; g_SplPa = DecoMem(kSaW * kSaH); g_SplPt = DecoMem(kStrW * kStrH); g_SplPb = DecoMem(kSblW * kSblH);
             if (g_SplPa && g_SplPt && g_SplPb) { Spr sa { g_SplPa, kSaW, kSaH }, st { g_SplPt, kStrW, kStrH }, sb { g_SplPb, kSblW, kSblH }; DecoSplashArt(sa, BW); DecoSplashTR(st); DecoSplashBL(sb); } else g_SplPa = g_SplPt = g_SplPb = nullptr; }
         { /* 起動: 部品が枠の外から集まって、だんだんできあがる (1.3 秒)。終わったら、できあがりを一度描いたままにする */
-            static bool asmDone = true; float ap = static_cast<float>(nw - g_SplashT0) / (1.3f * 19200000.0f); if (ap > 1.0f) ap = 1.0f; if (ap < 0.0f) ap = 0.0f;
+            static bool asmDone = true; float ap = static_cast<float>(nw - g_SplashT0) / (2.5f * 19200000.0f); if (ap > 1.0f) ap = 1.0f; if (ap < 0.0f) ap = 0.0f;
             if (g_SplPa && (ap < 1.0f || !asmDone)) { Spr sa { g_SplPa, kSaW, kSaH }, st { g_SplPt, kStrW, kStrH }, sb { g_SplPb, kSblW, kSblH }; DecoSplashArt(sa, BW, ap); DecoSplashTR(st, ap); DecoSplashBL(sb, ap); asmDone = ap >= 1.0f; } } /* 一度だけ描いて、あとは貼る (メモリが取れなければ飾りなし) */
         if (g_SplPa) { const Spr sa { g_SplPa, kSaW, kSaH }; const int clip[5] = { 2, 2, BW - 4, BH - 4, 26 }; SprBlit(v, sa, kSaX, 0, clip); } /* tmt 1.1.21: 淡いローポリの下地 + 鳥 (板の中) */
         /* ロゴ「Inkdraw」+ すぐ右にバージョン (枠なし)。読み込みのバーは板の下の方に置き、アップデートの文字が出るときは、その区切りの線になる */
@@ -10796,6 +10796,7 @@ constexpr unsigned char kIconA[6][32*32] = {
                 if (curSt > 0) drawSt(curSt, e, static_cast<int>(kSl * (1.0f - e))); /* 新しい文字: 下から出てくる */
             }
         }
+        { const float ct = static_cast<float>(nw - g_SplashT0) / 19200000.0f; const float cd = (1.0f - DecoEase(ct / 2.5f, 0.0f, 0.30f)) * 60.0f; DecoCat(v, ct, cd); } /* 黒猫: 枠の左上に降りてきて寝そべり、しっぽを振る */
         if (g_SplPt) { const Spr st { g_SplPt, kStrW, kStrH }, sb { g_SplPb, kSblW, kSblH }; SprBlit(v, st, BW - kStrCx, -kStrCy); SprBlit(v, sb, -kSblCx, BH - kSblCy); } /* 右上と左下: 枠の外へ付く枝と葉 (いちばん手前) */
     }
     /* 2 つ目のメニューの幅: pchtxt を開いているときは、いちばん長いパッチの名前が全部入る幅 (最大 600) */
@@ -12600,7 +12601,7 @@ HOOK_DEFINE_TRAMPOLINE(GameKbHook) {
         bool mod = false;
         if (g_GameKbFree && !g_OwnKb && arg) {
             const s32 mx = *reinterpret_cast<const s32*>(arg + 0x3ac), mn = *reinterpret_cast<const s32*>(arg + 0x3b0); const u32 mode = *reinterpret_cast<const u32*>(arg);
-            if (mx > 0 && mx <= 32 && mn < mx && mode != 1u) { /* 1 = 数字だけ */
+            const s32 origMx = mx; if (mx > 0 && mx <= 32 && mn < mx && mode != 1u) { /* 1 = 数字だけ */
                 if (mx < 24) *reinterpret_cast<s32*>(arg + 0x3ac) = 24; /* tmt: 名前は 24 文字まで */
                 *reinterpret_cast<u32*>(arg) = 0;            /* キーボード: ふつう (かな・漢字・英数字) */
                 arg[0x1a] = 1;                                 /* 予測変換 (漢字) */
@@ -12608,7 +12609,8 @@ HOOK_DEFINE_TRAMPOLINE(GameKbHook) {
                 *reinterpret_cast<u32*>(arg + 0x3b8) = 1;    /* 複数行の入力欄 */
                 arg[0x3bc] = 1;                                /* 改行を使える */
                 mod = true; g_GameKbHits = g_GameKbHits + 1;
-                if (g_SymN > 0) { static char ini[112]; SymPendU8(ini, sizeof(ini)); using FnInit8 = void (*)(void*, const char*); reinterpret_cast<FnInit8>(MainBase() + 0x4E989D0)(arg, ini); } } /* 選んだ記号を入力欄に */
+                if (g_SymN > 0) { static char ini[112]; SymPendU8(ini, sizeof(ini)); using FnInit8 = void (*)(void*, const char*); reinterpret_cast<FnInit8>(MainBase() + 0x4E989D0)(arg, ini); } /* 選んだ記号を入力欄に */
+                else if (g_NameOn && g_NameU8[0] && origMx <= 12) { using FnInit8 = void (*)(void*, const char*); static char nini[40]; std::memcpy(nini, g_NameU8, sizeof(nini)); nini[39] = 0; reinterpret_cast<FnInit8>(MainBase() + 0x4E989D0)(arg, nini); } } /* 1.1.40: 名前を変えるキーボード (文字数の上限が短い入力欄) には、選んでいる名前 (プリセット) を最初から入れておく */
         }
         const u32 rc = Orig(out, arg);
         if (mod && rc == 0) g_SymN = 0; /* 使った記号は消す */

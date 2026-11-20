@@ -5,7 +5,7 @@ namespace hutao {
 #include "hutao_mesh_data.h"
 #include "hutao_tex_data.h"
 constexpr float kCy = 9.75f; /* モデルの高さの半分 (単位) */
-constexpr int kBudget = 300000; /* 描く絵の画素数の上限 */
+constexpr int kBudget = 160000; /* 描く絵の画素数の上限 */
 static uint16_t g_z[kBudget];
 static int16_t g_sxy[kNV * 2]; /* 中心からの位置 (1/4 画素) */
 static uint16_t g_sd[kNV];

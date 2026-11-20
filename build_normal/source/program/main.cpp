@@ -359,7 +359,7 @@ namespace {
     constexpr int kDynWpType = 356, kDynWpSel = 357, kDynWpK = 358, kDynWpRst = 363, kDynWpRstAll = 364, kDynWpInfo = 365, kDynWpNote = 366, kWpCat = 9; constexpr int kDynPanQ = 367; constexpr int kDynEmSel = 368, kDynEmOn = 369, kDynEmNow = 370, kDynEmGate = 371; constexpr int kDynMacroOn = 372, kDynMacroBtn = 373, kDynMacroIv = 374; constexpr int kDynHeartAuto = 387; constexpr int kDynFreeFly = 388; constexpr int kDynFxFav = 389, kDynFxRes = 390, kDynFxSel = 391, kDynFxDel = 392, kDynLight = 393; /* 版 620: 明かり */ constexpr int kDynTpX = 394, kDynTpY = 395, kDynTpZ = 396, kDynTpGo = 397; /* 版 629: テレポート */ constexpr int kDynTpSave = 398, kDynTpLoad = 399, kDynFlySpd = 480, kDynHop = 481, kDynHopSpd = 482, kDynUiOpa = 483, kDynCurl = 484, kDynCurlSpd = 485, kDynStgOn = 486, kDynStgSrc = 487, kDynStgDst = 488, kDynStgLog = 489; constexpr int kDynSgFix = 490 /* 490〜495: 固定のシーン */, kDynSgVs = 496, kDynSgCop = 497, kDynSgEtc = 498, kDynSgNow = 499, kStageCat = 11, kDynSgBot = 500, kDynSgRiv = 501, kDynSgRivInfo = 502, kDynUiGpu = 503, kDynNetBlk = 504, kDynNetTest = 505, kDynNetRes = 506, kDynNetDom = 507; constexpr int kDynFlyBFwd = 508; constexpr int kDynNamePre = 509, kDynNamePreSave = 510; /* tmt 1.1.17: 名前プリセット */ /* 版 679: 最強チート */ /* 版 667: GPU で半透明 (試験) */ /* 版 636: バニーホップ / その速さ。 版 635: 400〜463 は pchtxt の項目なので 480 に */ /* 版 633: 位置の記憶 / 記憶へテレポート / フリーフライの速さ */ /* 版 619: エフェクト (おすすめ / 資材 / 番号 / 消す) */ constexpr int kDynWx = 1000, kWxMaxRows = 1400, kWpVis = 12; /* 武器の一覧 (全パラメータ): 行の番号 1000〜 */ /* 武器: 種類・武器・つまみ 5 つ・もとに戻す 2 つ・状態・ひとこと */
     /* アップデート確認: 0 なし / 1 確認中 / 2 聞いている / 3 ダウンロード中 / 4 完了 / 5 失敗 / 6 最新 */
     volatile int g_UpdState = 0, g_UpdSel = 0, g_UpdReq = 0, g_UpdMsg = 0, g_UpdErr = 0; volatile u32 g_UpdNew = 0, g_UpdGot = 0, g_UpdTot = 0; volatile bool g_UpdManual = false; u64 g_UpdT = 0; volatile bool g_UpdRestartReq = false; volatile int g_UpdAutoPhase = 0; /* 起動時の自動確認: 1 確かめ中 2 終わった */ /* 7: 再起動しますか? 8: 自動で再起動できない */
-    constexpr int kInkVer = 148; /* tmt 1.1.38 (ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
+    constexpr int kInkVer = 149; /* tmt 1.1.39 (ジャイロ版: 上下の角度の値を探して直接書く・左右が直接書けているときは左右のジャイロを足さない。1.1.38: ロビー入りでバルーンを先に探す・リスポーンで敵とバルーンを探し直す・ロビーでもエイムボット中は敵を探す。起動画面: ローポリの部品が枠の外から集まって組み上がる。1.1.37: ジャイロ版: 覚えた場所がなくても候補を試して、確かめ済みになったら直接書く。1.1.36: ジャイロ版エイムボット: カメラの向きを直接書ける場所が分かっていれば、左右・上下とも 1 フレームで書く。1.1.35: ジャイロ上下: 撃っていなくてもゆれたので、遅れの差し引きを 0.8 に戻しずれを少しならす。1.1.34: ジャイロ上下: 撃っている間はずれをならして 2 割だけ・上限 300 度/秒・0.8 度未満は無視。1.1.33: ジャイロ上下: 撃っている間は 4 割だけ詰める・速さ上限 700 度/秒・小さなずれは無視 (反動のゆれ対策)。1.1.32: ジャイロ: 遅れの差し引きを 0.35 に (上下は撃っている間だけ 0.9)。1.1.31: 白いムラの本当の原因 (2 行まとめて写していた) を直した・葉は白黒に戻した・減速をさらに減らした。1.1.30: 起動の「アップデート失敗」の誤表示を直した・ジャイロの効きの見積もり範囲をせまく・チャージ中は学習しない・敵位置をならす。1.1.29: ジャイロ左右: 敵の直前の減速をなくした。1.1.28: ジャイロのエイムボット: 上下の速さの上限を上げた・左右のゆれを検出して抑える。1.1.27: エイムボット: 次の敵へ 1 フレームで向く・追尾をなめらかに、展開メニューの行間をつめた。1.1.26: 起動画面: 板は固定の高さ・バーは真ん中より下・文字はバーの下、葉を減らした、メニューの背景をさらに粗く。1.1.25: 起動画面を横長に・下地を左へ薄く、メニューの鳥をやめた、濃さ初期値 80%・背景をぼかして軽く、キャラメルを濃く。1.1.24: 鳥・葉を黒白だけの少ない面に、メニューのバラをやめた。1.1.23: 鳥とバラを白黒・小さく、つまみをキャラメル色、メニューを左上にぴったり、展開時の隙間をつめた。1.1.22: 起動時のメモリ(BSS)を 1.1.20 並みに戻した。1.1.21: メニューを白基調に + ローポリの鳥とバラ、スプラッシュの鳥と葉を作り直し、最上位の行間をつめた) */
 #ifndef INKDRAW_KIND
 #define INKDRAW_KIND "normal" /* ビルド時に -DINKDRAW_KIND='"en"' を渡すと英語版になる (q2_en.sh) */
 #endif
@@ -4605,11 +4605,11 @@ namespace {
     static void AngTick() {
         static u64 lt = 0; const u64 now = NowTick(); if (now - lt < 200000ull) return; lt = now;
         if (!CamValid() || !Readable(g_CamPos - kAngBack, static_cast<size_t>(kAngN) * 4)) return;
-        if (g_AngBase != g_CamPos) { g_AngBase = g_CamPos; VecReset(true); }
+        if (g_AngBase != g_CamPos) { g_AngBase = g_CamPos; VecReset(true); AngReset(g_AP, true); }
         float c[3]; if (!CamDir3(c)) return;
         const float ch = __builtin_sqrtf(c[0] * c[0] + c[2] * c[2]); if (ch < 0.05f) return;
         const float D2R = 0.017453293f;
-        (void)D2R; VecScan(c);
+        (void)D2R; VecScan(c); AngScan(g_AP, LookAtan2(c[1], ch) * D2R, 4); /* 1.1.39: 上下の角度 (ラジアン) の値も探す。見つかっても、書いて本当にその上下になると確かめられるまでは使わない */
         { /* 向きを直接書く場所が使えなくなったまま (4 か所失敗して書くのをやめた / 候補が 0) が 5 秒続いたら、失敗の記録を消して探し直す。
              前はそのままずっとスティックだけで回していたので、時間がたつと視点が遅く (スティックの最高速度で) しか回らなくなっていた */
             static u64 weakT = 0; const u64 nw = NowTick();
@@ -4777,7 +4777,7 @@ namespace {
         if (on && pn == 0) { SU = 0.0f; SD = 0.0f; }
         if (on && okd && pn < PN) { const int ph = pn / 20; if (ph < 3) { SU += u[ph]; SD += dY; } else { SU += Wvp * dtS; SD += dP; }
             if (pn % 20 == 19) { const float g = (SU > 0.002f || SU < -0.002f) ? SD / SU : 0.0f; if (ph < 3) g_GaG[0][ph] = g; else g_GaG[1][ph - 3] = g; SU = 0.0f; SD = 0.0f; } }
-        float W[3] = { 0.0f, 0.0f, 0.0f }; float ey = 0.0f, ep = 0.0f; bool have = false; bool virt = false; int vax = 0; float vw = 0.0f; bool vdone = false;
+        float W[3] = { 0.0f, 0.0f, 0.0f }; float ey = 0.0f, ep = 0.0f; bool have = false; bool virt = false; int vax = 0; float vw = 0.0f; bool vdone = false, yawD = false, pitD = false;
         { static bool vLoaded = false; if (on && !vLoaded) { vLoaded = true; /* 1.1.36: スティック版が前に覚えた「カメラの向きを直接書ける場所」を読む (ジャイロ版でも、左右・上下とも 1 フレームで向けるように) */
             struct AimSaveG { char m[8]; float kx, ky; s32 nX, nY, vgi, vgk, pgi, pgk; }; const uintptr_t sdk = UpdSdk();
             if (sdk && UpdMount(sdk)) { AimSaveG a; if ((UpdReadSmall(sdk, "tmt:/tmt/aim.dat", reinterpret_cast<char*>(&a), sizeof(a)) == static_cast<int>(sizeof(a))) && std::memcmp(a.m, "INKAIM01", 8) == 0 && g_VGoodI < 0 && a.vgi >= 0 && a.vgi + 2 < kAngN && (a.vgk == 2 || a.vgk == 3)) { g_VGoodI = a.vgi; g_VGoodK = a.vgk; } } } }
@@ -4804,7 +4804,8 @@ namespace {
                         if (!g_LookOn) { /* 直接書く (覚えた場所がなくても、スキャンで見つけた候補を試す。確かめ済みの場所のときだけ、ジャイロを止める): 左右・上下とも、狙いの向きをそのまま書く (ジャイロの遅れがない) */
                             float Pn = pit + ep; if (Pn > 68.0f) Pn = 68.0f; if (Pn < -68.0f) Pn = -68.0f; const float Yn = (yaw + ey) * 0.017453293f, Pr = Pn * 0.017453293f, cpp = __builtin_cosf(Pr);
                             const float wv[3] = { __builtin_cosf(Yn) * cpp, __builtin_sinf(Pr), __builtin_sinf(Yn) * cpp }; bool full = false;
-                            const bool wr = VecWrite(c, wv, &full); const bool prv = g_VF.n > 0 && g_VF.idx[0] == g_VGoodI && g_VF.typ[0] == g_VGoodK; if (wr && full && prv) vdone = true; }
+                            const bool wr = VecWrite(c, wv, &full); const bool prv = g_VF.n > 0 && g_VF.idx[0] == g_VGoodI && g_VF.typ[0] == g_VGoodK; if (wr && prv) yawD = true; if (wr && full && prv) vdone = true;
+                            if (Pn < 66.0f && Pn > -66.0f) { const bool pw2 = AngWrite(g_AP, pit * 0.017453293f, Pr, false); if (pw2 && g_AP.ok >= 15) pitD = true; } /* 上下は、角度の値に直接書く (確かめられたときだけジャイロを止める) */ }
                         const float f = 0.25f / dtS; /* 遅れがあるので 1 フレームに詰めるのはずれの 15% (大きいと行き過ぎて左右にゆれる) */ const float* G0 = g_GaG[0]; const float* G1 = g_GaG[1];
                         { /* 左右: 角速度を足す。3 軸のうち効きの大きい軸にかたよらせて配る (最小の角速度) */
                             float m = 100.0f; for (int a = 0; a < 3; a++) m += G0[a] * G0[a]; /* 版 684: 3 度以上ずれた (次の相手に変わった) ときは、1 フレームで向く。まだ視点に出ていない直前 2 回ぶんの命令を引いて、行き過ぎを防ぐ */
@@ -4853,7 +4854,9 @@ namespace {
                 }
             }
         } else g_GaSt = 0;
-        if (vdone) { W[0] = W[1] = W[2] = 0.0f; virt = false; vw = 0.0f; g_GaPRst = g_GaPRst + 1; } /* 直接書いたフレームは、ジャイロを足さない (重ねた回転と内部モデルは毎回ゼロに戻す) */
+        if (yawD) { W[0] = W[1] = W[2] = 0.0f; } /* 左右を直接書けているときは、左右のジャイロは足さない */
+        if (pitD) { virt = false; vw = 0.0f; } /* 上下も直接書けているときは、上下のジャイロは足さない */
+        if (vdone || (yawD && pitD)) { W[0] = W[1] = W[2] = 0.0f; virt = false; vw = 0.0f; g_GaPRst = g_GaPRst + 1; } /* 直接書いたフレームは、ジャイロを足さない (重ねた回転と内部モデルは毎回ゼロに戻す) */
         g_GaW[0] = W[0]; g_GaW[1] = W[1]; g_GaW[2] = W[2]; Wp[0] = W[0]; Wp[1] = W[1]; Wp[2] = W[2]; Wvp = virt ? vw : 0.0f; for (int i = 3; i > 0; i--) Wh[i] = Wh[i - 1]; Wh[0] = (virt && vax == 0) ? vw : 0.0f;
         g_GaPW[0] = g_GaPW[1] = g_GaPW[2] = 0.0f; if (on && !g_LookOn && virt) g_GaPW[vax] = vw;
         { static int hold = 0; if (on && !g_LookOn && g_GaSt == 2) hold = 20; else if (hold > 0) hold--; g_GaLock = on && !g_LookOn && hold > 0; } /* 敵を追っている間 (切れても 20 回分は続ける) */ /* 上下: 向きに重ねる回転の速さ */

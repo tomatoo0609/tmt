@@ -45,13 +45,13 @@ namespace {
     /* 蝶 (半透明): 自分の足元のまわりを飛ぶ。蝶のある所だけ、前のフレームの画面 (蝶のまわりの四角を、細かさそのままで読んだもの) と混ぜて写す。
        入り切りは、はかなく消える (出るときは少しずつ、消えるときは小さくなりながら 0.3 秒) */
     void PetDrawSp(void* cb, void* tex, u64 base, int W, int H) {
-        static u64 lastT = 0; static float tt = 0.0f, fade = 0.0f, P[8][3], ph[8]; static bool inited = false; static u8 accA[192 * 192], accH[192 * 192];
+        static u64 lastT = 0; static float tt = 0.0f, fade = 0.0f, P[8][3], ph[8]; static bool inited = false, dustReset = false; static u8 accA[192 * 192], accH[192 * 192];
         struct Bx { int x, y, w, h; bool ok; }; static Bx prev[8];
         struct Reg { int x, y, z, w, h, d; };
         const u64 now = NowTick(); float dt = lastT ? static_cast<float>(now - lastT) / 19200000.0f : 0.0f; lastT = now; if (dt > 0.1f) dt = 0.1f; if (dt < 0.0f) dt = 0.0f;
         if (g_PetOn) { fade += dt / 0.4f; if (fade > 1.0f) fade = 1.0f; } else { fade -= dt / 0.3f; if (fade < 0.0f) fade = 0.0f; }
         g_PetFade = fade;
-        if (fade <= 0.0f) { inited = false; for (int k = 0; k < 8; k++) prev[k].ok = false; return; }
+        if (fade <= 0.0f) { inited = false; for (int k = 0; k < 8; k++) prev[k].ok = false; dustReset = true; return; }
         if (!g_T2B || !g_PixCached || W <= 0 || H <= 0 || W > 3840 || H > 2160) return;
         const uintptr_t cp = g_CamPos; if (!cp || !CamValid() || !Readable(cp - 0xC, 24)) return;
         const size_t used = (MenuVis() || FuncVis() || SplashOn() || HudWanted() || UpdWanted()) ? ((g_PixHi + 255u) & ~static_cast<size_t>(255u)) : 0;
@@ -71,7 +71,8 @@ namespace {
         const float kpx = static_cast<float>(H) * 0.5f * __builtin_cosf(vh) / __builtin_sinf(vh);
         const float cx = static_cast<float>(W) * 0.5f, cy = static_cast<float>(H) * 0.5f;
         auto proj = [&](float X, float Y, float Z, float& px, float& py) -> float { const float dx = X - f[0], dy = Y - f[1], dz = Z - f[2]; const float z = dx * fx + dy * fy + dz * fz; if (z < 0.7f) return -1.0f; const float xr = dx * rx + dz * rz, yu = dx * ux + dy * uy + dz * uz; px = cx + xr / z * kpx; py = cy - yu / z * kpx; return z; };
-        u32* spb = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot + spOff); size_t spUsed = 0;
+        u32* spb = reinterpret_cast<u32*>(g_PixStorage + static_cast<size_t>(g_SwCur) * kPixSlot + spOff); size_t spUsed = 512; /* 先頭 512 バイトは鱗粉の色 (8 段 x 4x4 画素) */
+        for (int k = 0; k < 8; k++) { const float t = static_cast<float>(k) / 7.0f; const u32 c = 0xFF000000u | (static_cast<u32>(40 + 130 * t) << 16) | (static_cast<u32>(105 + 130 * t) << 8) | static_cast<u32>(170 + 85 * t); for (int q = 0; q < 16; q++) spb[k * 16 + q] = c; }
         struct Cp { int x, y, w, h; size_t off; }; static Cp cps[256]; int ncp = 0;
         static const PetCol bf0 = { 224, 128, 24 }, bf1 = { 255, 214, 96 };
         int lr[256], lg[256], lb[256]; for (int k = 0; k < 256; k++) { const float hh = static_cast<float>(k) * (1.0f / 255.0f); lr[k] = static_cast<int>(bf0.r + (bf1.r - bf0.r) * hh); lg[k] = static_cast<int>(bf0.g + (bf1.g - bf0.g) * hh); lb[k] = static_cast<int>(bf0.b + (bf1.b - bf0.b) * hh); }
@@ -81,16 +82,16 @@ namespace {
             const float a = tt * (0.45f + 0.07f * fi) * (i & 1 ? -1.0f : 1.0f) + fi * 1.2566f, r = 1.1f + 0.15f * fi + 0.4f * __builtin_sinf(tt * 0.7f + fi * 1.7f), hgt = 0.9f + 0.18f * fi + 0.45f * __builtin_sinf(tt * 1.1f + fi * 2.3f);
             const float tx = C[0] + r * __builtin_cosf(a), ty = C[1] + hgt, tz = C[2] + r * __builtin_sinf(a);
             if (!inited) { P[i][0] = tx; P[i][1] = ty; P[i][2] = tz; ph[i] = fi * 1.9f; }
-            else { float k = dt * 3.0f; if (k > 1.0f) k = 1.0f; P[i][0] += (tx - P[i][0]) * k; P[i][1] += (ty - P[i][1]) * k; P[i][2] += (tz - P[i][2]) * k; }
+            else { float k = dt * 9.0f; if (k > 1.0f) k = 1.0f; { const float ex = tx - P[i][0], ez = tz - P[i][2]; if (ex * ex + ez * ez > 36.0f) k = 1.0f; } /* 足元にしっかりついてくる (遠く離れたら、すぐ追いつく) */ P[i][0] += (tx - P[i][0]) * k; P[i][1] += (ty - P[i][1]) * k; P[i][2] += (tz - P[i][2]) * k; }
             ph[i] += dt * 11.0f;
         }
         inited = true;
         bool grB = false; int pixB = 160000; (void)grB;
         for (int i = 0; i < n; i++) {
             float pxf, pyf; const float z = proj(P[i][0], P[i][1] + (1.0f - fade) * 0.4f, P[i][2], pxf, pyf); if (z < 0.0f) { prev[i].ok = false; continue; }
-            float s = 0.26f * kpx / z * (0.6f + 0.4f * fade); if (s < 3.0f) { prev[i].ok = false; continue; } if (s > 55.0f) s = 55.0f;
+            float s = 0.26f * kpx / z * (0.6f + 0.4f * fade); if (s < 3.0f) { prev[i].ok = false; continue; } if (s > 50.0f) s = 50.0f;
             const float fl = __builtin_sinf(ph[i]); const float af = (fl < 0.0f ? -fl : fl) * 0.8f + 0.2f; const float th = 0.3f * __builtin_sinf(ph[i] * 0.16f + static_cast<float>(i));
-            int R = static_cast<int>(s * 1.25f) + 4; if (R > 74) R = 74; const int w = 2 * R + 2, h = w;
+            int R = static_cast<int>(s * 1.25f) + 4; if (R > 66) R = 66; const int w = 2 * R + 2, h = w;
             for (int y = 0; y < h; y++) { std::memset(accA + y * 192, 0, static_cast<size_t>(w)); std::memset(accH + y * 192, 0, static_cast<size_t>(w)); }
             const float m = static_cast<float>(w) * 0.5f, cs = __builtin_cosf(th), sn = __builtin_sinf(th), us = 1.0f / (s * 0.95f);
             static const float kW[2][6] = { { 0.50f, -0.30f, 0.56f, 0.34f, -0.55f, 0.0f }, { 0.34f, 0.32f, 0.36f, 0.24f, 0.55f, 0.0f } }; /* 羽: 中心 (u,v)・半径 (a,b)・角度 */
@@ -110,7 +111,7 @@ namespace {
             }
             const int x0 = static_cast<int>(pxf) - w / 2, y0 = static_cast<int>(pyf) - h / 2;
             /* 前のフレームの四角 (蝶のまわり) が、今の蝶をすっぽり含むときだけ描く。含まないときは、読み出しだけして次に描く */
-            const Bx pb = prev[i]; const bool canDraw = pb.ok && x0 >= pb.x && y0 >= pb.y && x0 + w <= pb.x + pb.w && y0 + h <= pb.y + pb.h && x0 >= 0 && y0 >= 0 && x0 + w <= W && y0 + h <= H;
+            const Bx pb = prev[i]; const bool canDraw = pb.ok; /* 前の四角からはみ出す所は、いちばん近い画素で代用する (消えないように) */
             if (canDraw) {
                 const u32* rb = reinterpret_cast<const u32*>(g_PixStorage + rbBase + static_cast<size_t>(i) * slotB); DcInval(rb, static_cast<size_t>(pb.w) * pb.h * 4u);
                 const int ia = static_cast<int>(fade * 0.95f * 256.0f);
@@ -118,13 +119,13 @@ namespace {
                 const int BH = 8;
                 for (int by = 0; by < h; by += BH) {
                     const int bh = by + BH > h ? h - by : BH; int mn = 100000, mx = -1; for (int ay = by; ay < by + bh; ay++) if (e1[ay] >= 0) { if (e0[ay] < mn) mn = e0[ay]; if (e1[ay] > mx) mx = e1[ay]; }
-                    if (mx < 0) continue; const int bx0 = mn, bw = mx - mn + 1; const size_t need = static_cast<size_t>(bw) * bh * 4u;
+                    if (mx < 0) continue; int bx0 = mn, bw = mx - mn + 1; if (x0 + bx0 < 0) { bw -= -(x0 + bx0); bx0 = -x0; } if (x0 + bx0 + bw > W) bw = W - x0 - bx0; if (bw <= 0 || y0 + by < 0 || y0 + by + bh > H) continue; const size_t need = static_cast<size_t>(bw) * bh * 4u;
                     if (ncp >= 250 || spUsed + need > kPetSpBytes || pixB <= 0) break; pixB -= bw * bh; u32* o = spb + spUsed / 4;
                     int ov[8], nov = 0; for (int k = ncp - 1; k >= 0 && nov < 8; k--) { const Cp& e = cps[k]; if (e.x < x0 + bx0 + bw && e.x + e.w > x0 + bx0 && e.y < y0 + by + bh && e.y + e.h > y0 + by) ov[nov++] = k; } /* ほかの蝶と重なる所は、その絵を背景にする */
                     for (int y = 0; y < bh; y++) {
-                        const u32* ra = rb + static_cast<size_t>(y0 + by + y - pb.y) * pb.w + (x0 + bx0 - pb.x);
+                        int ry = y0 + by + y - pb.y; if (ry < 0) ry = 0; if (ry >= pb.h) ry = pb.h - 1; const u32* ra = rb + static_cast<size_t>(ry) * pb.w;
                         for (int x = 0; x < bw; x++) {
-                            u32 bg = ra[x]; for (int q2 = 0; q2 < nov; q2++) { const Cp& e = cps[ov[q2]]; const int ex2 = x0 + bx0 + x - e.x, ey2 = y0 + by + y - e.y; if (ex2 >= 0 && ex2 < e.w && ey2 >= 0 && ey2 < e.h) { bg = spb[(e.off - spOff) / 4 + static_cast<size_t>(ey2) * e.w + ex2]; break; } } const int A = accA[(by + y) * 192 + bx0 + x], Hh = accH[(by + y) * 192 + bx0 + x]; const int a = A * ia / 255;
+                            int rxx = x0 + bx0 + x - pb.x; if (rxx < 0) rxx = 0; if (rxx >= pb.w) rxx = pb.w - 1; u32 bg = ra[rxx]; for (int q2 = 0; q2 < nov; q2++) { const Cp& e = cps[ov[q2]]; const int ex2 = x0 + bx0 + x - e.x, ey2 = y0 + by + y - e.y; if (ex2 >= 0 && ex2 < e.w && ey2 >= 0 && ey2 < e.h) { bg = spb[(e.off - spOff) / 4 + static_cast<size_t>(ey2) * e.w + ex2]; break; } } const int A = accA[(by + y) * 192 + bx0 + x], Hh = accH[(by + y) * 192 + bx0 + x]; const int a = A * ia / 255;
                             if (a <= 0) { o[y * bw + x] = bg | 0xFF000000u; continue; }
                             const int br = bg & 255, bgc = (bg >> 8) & 255, bb = (bg >> 16) & 255; const int k = 256 - (a * 90 >> 8);
                             const int r = PetClamp(((br * k) >> 8) + (lr[Hh] * a >> 8)), g = PetClamp(((bgc * k) >> 8) + (lg[Hh] * a >> 8)), b = PetClamp(((bb * k) >> 8) + (lb[Hh] * a >> 8));
@@ -135,12 +136,26 @@ namespace {
                 }
             }
             /* 次のフレーム用に、蝶のまわりの四角を読む (この絵を写す前の、ゲームの画面) */
-            { int bx = x0 - 16, by2 = y0 - 16, bw2 = w + 32, bh2 = h + 32; if (bx < 0) { bw2 += bx; bx = 0; } if (by2 < 0) { bh2 += by2; by2 = 0; } if (bx + bw2 > W) bw2 = W - bx; if (by2 + bh2 > H) bh2 = H - by2;
+            { int bx = x0 - 24, by2 = y0 - 24, bw2 = w + 48, bh2 = h + 48; if (bx < 0) { bw2 += bx; bx = 0; } if (by2 < 0) { bh2 += by2; by2 = 0; } if (bx + bw2 > W) bw2 = W - bx; if (by2 + bh2 > H) bh2 = H - by2;
               if (bw2 > 8 && bh2 > 8 && static_cast<size_t>(bw2) * bh2 * 4u <= slotB) {
                   g_Sw.rowStride(cb, static_cast<ptrdiff_t>(bw2) * 4);
                   for (int r2 = 0; r2 < bh2; r2++) { Reg rg { bx, by2 + r2, 0, bw2, 1, 1 }; g_T2B(cb, tex, nullptr, &rg, g_BufAddr[0] + rbBase + static_cast<size_t>(i) * slotB + static_cast<u64>(r2) * bw2 * 4u, 0); }
                   prev[i] = Bx { bx, by2, bw2, bh2, true };
               } else prev[i].ok = false; }
+        }
+        /* 鱗粉: とても小さな光の粒。蝶から出て、ゆっくり落ちながら消える (色をぬった点を写す) */
+        {
+            struct Dst { float p[3], v[3], life, ph; }; static Dst D[260]; static float emA[8]; static int dn = 0; static u32 rs2 = 777u; int nd = 0; static short dxy[260][3]; if (dustReset) { std::memset(D, 0, sizeof(D)); dustReset = false; }
+            auto rn = [&]() -> float { rs2 = rs2 * 1664525u + 1013904223u; return static_cast<float>((rs2 >> 8) & 0xFFFFu) / 65535.0f; };
+            if (g_PetOn) for (int i = 0; i < n; i++) { emA[i] += 38.0f * dt; while (emA[i] >= 1.0f) { emA[i] -= 1.0f; for (int t = 0; t < 260; t++) { dn = (dn + 1) % 260; Dst& d = D[dn]; if (d.life <= 0.0f) { d.p[0] = P[i][0] + (rn() - 0.5f) * 0.25f; d.p[1] = P[i][1] + (rn() - 0.5f) * 0.2f; d.p[2] = P[i][2] + (rn() - 0.5f) * 0.25f; d.v[0] = (rn() - 0.5f) * 0.3f; d.v[1] = -0.05f - 0.15f * rn(); d.v[2] = (rn() - 0.5f) * 0.3f; d.life = 1.2f + 1.2f * rn(); d.ph = rn() * 6.28f; break; } } } }
+            for (int k = 0; k < 260; k++) {
+                Dst& d = D[k]; if (d.life <= 0.0f) continue; d.life -= dt; if (d.life <= 0.0f) continue; d.ph += dt * 9.0f; d.p[0] += d.v[0] * dt; d.p[1] += d.v[1] * dt; d.p[2] += d.v[2] * dt;
+                float px, py; const float z = proj(d.p[0], d.p[1], d.p[2], px, py); if (z < 0.0f) continue;
+                int sz = static_cast<int>(0.016f * kpx / z + 0.5f); if (sz < 1) sz = 1; if (sz > 3) sz = 3; const int xi = static_cast<int>(px) - sz / 2, yi = static_cast<int>(py) - sz / 2; if (xi < 0 || yi < 0 || xi + sz > W || yi + sz > H) continue;
+                float br = (d.life > 0.6f ? 1.0f : d.life / 0.6f) * (0.65f + 0.35f * __builtin_sinf(d.ph)) * fade; int sh = static_cast<int>(br * 7.99f); if (sh < 1) continue; if (sh > 7) sh = 7;
+                dxy[nd][0] = static_cast<short>(xi); dxy[nd][1] = static_cast<short>(yi); dxy[nd][2] = static_cast<short>(sh * 8 + sz); nd++;
+            }
+            if (nd > 0) { DcClean(spb, 512); g_Sw.rowStride(cb, 16); for (int k = 0; k < nd; k++) { const int sh = dxy[k][2] >> 3, sz = dxy[k][2] & 7; Reg r { dxy[k][0], dxy[k][1], 0, sz, sz, 1 }; g_Sw.copyB2T(cb, base + spOff + static_cast<u64>(sh) * 64u, tex, nullptr, &r, 0); } }
         }
         if (ncp > 0) { DcClean(spb, spUsed); int lastPw = -1; for (int k = 0; k < ncp; k++) { const Cp& c = cps[k]; if (c.w != lastPw) { g_Sw.rowStride(cb, static_cast<ptrdiff_t>(c.w) * 4); lastPw = c.w; } Reg r { c.x, c.y, 0, c.w, c.h, 1 }; g_Sw.copyB2T(cb, base + c.off, tex, nullptr, &r, 0); } }
     }

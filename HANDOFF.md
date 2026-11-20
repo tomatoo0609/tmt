@@ -46,7 +46,7 @@ git push origin main
   - テキスト終端 ~`0x4E9C410`。IDA のアドレス = このイメージのアドレス。
 - IDA 逆コンパイル: `*-team5_funcs.txt`, `*-team6/7/8_funcs.txt`, `*-team5/6/7/8_notes.txt`。
 - 逆アセンブル補助（work ディレクトリ）: `fdis.py`（単発）, `xref.py`/`xrange.py`/`gotref.py`（参照探し。numpy 使用）。
-- IDA スクリプトは `tools/ida/tmt_ida6.py ... tmt_ida8.py`（ユーザーが main.elf.i64 で実行して出力をくれる）。
+- IDA スクリプトは `tools/ida/tmt_ida6.py ... tmt_ida9.py (ida9 = 募集通知 331C410 の送り先制限調べ。出力 notify9_*.txt 待ち)`（ユーザーが main.elf.i64 で実行して出力をくれる）。
 
 ## この版までで入れた機能（1.1.14〜1.1.20）
 - v126 **チーム10人**：決定前のみ。P1〜P10（`kDynTeamP0`=530〜539）。

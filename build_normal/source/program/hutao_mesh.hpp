@@ -124,7 +124,7 @@ inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r
         if (tid != 255) {
             if (hi) { /* 細かい模様 (SD): 画面での大きさに合う段 (ミップ) を選ぶ = ちらつきを減らし、画質を上げる */
                 const int l0 = g_HiLg[tid]; const float t0 = static_cast<float>(1 << l0); float ua = ((u1 - u0) * (v2 - v0) - (u2 - u0) * (v1 - v0)) * t0 * t0; if (ua < 0.0f) ua = -ua;
-                const float ratio = ua * inv; int lv = 0; if (ratio > 1.0f) lv = static_cast<int>(0.5f * __builtin_log2f(ratio) + 0.35f);
+                const float ratio = ua * inv; int lv = 0; if (ratio >= 2.46f) lv = 1; if (ratio >= 9.85f) lv = 2; if (ratio >= 39.4f) lv = 3; /* log2 を使わない (ライブラリの関数は呼べない) */
                 if (lv > g_HiN[tid] - 1) lv = g_HiN[tid] - 1; if (lv < 0) lv = 0;
                 size_t off = 0; for (int k = 0; k < lv; k++) off += (static_cast<size_t>(1) << (2 * (l0 - k))) / 2u;
                 tp = hi + off; lg = l0 - lv;

@@ -6,7 +6,7 @@ namespace hutao {
 #include "hutao_tex_data.h"
 constexpr float kCy = 9.75f; /* モデルの高さの半分 (単位) */
 /* 版 194: SD の tmt/hutao/tex0..2.bin を読めたら、元の細かさ (1024/512/1024) の模様に差し替える (起動時のメモリを増やさないため、起動後に確保する) */
-inline const uint8_t* volatile g_Hi[3] = { nullptr, nullptr, nullptr }; inline volatile int g_HiLg[3] = { 10, 9, 10 };
+inline const uint8_t* volatile g_Hi[3] = { nullptr, nullptr, nullptr }; inline volatile int g_HiLg[3] = { 10, 9, 10 }, g_HiN[3] = { 4, 3, 4 }; /* 段の数 (ミップ) */
 constexpr int kBudget = 300000; /* 描く絵の画素数の上限 */
 /* 版 195: 深さの入れ物 (2 バイト x kBudget)・動かした頂点 (float 3 つ)・その法線は、起動時のメモリ (BSS) を増やさないよう、最初に描くときに確保する */
 inline uint16_t* g_Zp = nullptr; inline float* g_AV = nullptr; inline int8_t* g_AN = nullptr; inline volatile bool g_Anim = false;
@@ -21,17 +21,17 @@ inline M34 Mul(const M34& B, const M34& A) { /* A を先に、B を後に */
     M34 o; for (int r = 0; r < 3; r++) { for (int c = 0; c < 3; c++) o.m[r * 4 + c] = B.m[r * 4] * A.m[c] + B.m[r * 4 + 1] * A.m[4 + c] + B.m[r * 4 + 2] * A.m[8 + c]; o.m[r * 4 + 3] = B.m[r * 4] * A.m[3] + B.m[r * 4 + 1] * A.m[7] + B.m[r * 4 + 2] * A.m[11] + B.m[r * 4 + 3]; } return o; }
 inline M34 RotX(float py, float pz, float th) { const float c = __builtin_cosf(th), s = __builtin_sinf(th); return { { 1, 0, 0, 0, 0, c, -s, py - c * py + s * pz, 0, s, c, pz - s * py - c * pz } }; }
 inline M34 RotZ(float px, float py, float ph) { const float c = __builtin_cosf(ph), s = __builtin_sinf(ph); return { { c, -s, 0, px - c * px + s * py, s, c, 0, py - s * px - c * py, 0, 0, 1, 0 } }; }
-inline void Pose(float ph, float amp, float knee, float arm, float elb, float lean, float bob) {
+inline void Pose(float ph, float amp, float knee, float arm, float elb, float lean, float bob, float low, float armBase, float hipBase) {
     if (!g_AV || !g_AN) { g_Anim = false; return; }
-    { static float lp[7] = { 1e9f }; const float np[7] = { ph, amp, knee, arm, elb, lean, bob }; bool same = g_Anim; for (int i = 0; i < 7; i++) if (np[i] != lp[i]) same = false; if (same) return; for (int i = 0; i < 7; i++) lp[i] = np[i]; } /* 同じ姿ならやり直さない */
+    { static float lp[10] = { 1e9f }; const float np[10] = { ph, amp, knee, arm, elb, lean, bob, low, armBase, hipBase }; bool same = g_Anim; for (int i = 0; i < 10; i++) if (np[i] != lp[i]) same = false; if (same) return; for (int i = 0; i < 10; i++) lp[i] = np[i]; } /* 同じ姿ならやり直さない */
     const float s = __builtin_sinf(ph), c = __builtin_cosf(ph);
     float px[9], py[9], pz[9]; for (int j = 1; j < 9; j++) { px[j] = kPiv[j * 3] * 0.001f; py[j] = kPiv[j * 3 + 1] * 0.001f - kCy; pz[j] = -kPiv[j * 3 + 2] * 0.001f; }
     M34 root = RotX(-kCy, 0.0f, lean); root.m[7] += bob;
     M34 M[9]; M[0] = root;
-    const float hipL = -amp * s, hipR = amp * s;                  /* 前に出す = 負の回転 */
+    const float hipL = -(hipBase + amp * s), hipR = -(hipBase - amp * s); /* 前に出す = 負の回転。hipBase = 走るときは腿を前に上げた形を中心にする */
     const float kL = knee * (c > 0.0f ? c : 0.0f), kR = knee * (c < 0.0f ? -c : 0.0f); /* ひざは足を前に出すときに曲がる */
-    const float armL = arm * s, armR = -arm * s;                  /* 腕は反対の足と同じ向きに振る */
-    const float el = -elb, lowA = 0.95f;                          /* ひじは前に曲がる。腕を下ろす角度 (約 54 度。体から離す = 走ってもお腹に手が入らない) */
+    const float armL = arm * s - armBase, armR = -arm * s - armBase; /* 腕は反対の足と同じ向きに振る。armBase = 走るときは肩から前に上げた形を中心にする */
+    const float el = -elb, lowA = low;                          /* ひじは前に曲がる。lowA = 腕を横から下ろす角度 (小さいほど体から離れる) */
     const M34 hL = Mul(root, RotX(py[1], pz[1], hipL)), hR = Mul(root, RotX(py[3], pz[3], hipR));
     M[1] = hL; M[2] = Mul(hL, RotX(py[2], pz[2], kL)); M[3] = hR; M[4] = Mul(hR, RotX(py[4], pz[4], kR));
     /* 腕: 下ろす (左腕は x が正の側 = Z 軸まわりに負、右腕は正) → 肩で前後に振る。ひじは、下ろしたあとの位置で曲げる */
@@ -120,7 +120,17 @@ inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r
         int bx0 = static_cast<int>(x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2)), bx1 = static_cast<int>((x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2)) + 1.0f);
         int by0 = static_cast<int>(y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2)), by1 = static_cast<int>((y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2)) + 1.0f);
         if (bx0 < 0) bx0 = 0; if (by0 < 0) by0 = 0; if (bx1 > w - 1) bx1 = w - 1; if (by1 > h - 1) by1 = h - 1; if (bx0 > bx1 || by0 > by1) continue;
-        const float inv = 1.0f / area; const uint8_t* hi = tid == 255 ? nullptr : g_Hi[tid]; const uint8_t* tp = tid == 255 ? nullptr : (hi ? hi : kTp[tid]); const int lg = tid == 255 ? 10 : (hi ? g_HiLg[tid] : kLg[tid]); const float tsz = static_cast<float>(1 << lg);
+        const float inv = 1.0f / area; const uint8_t* hi = tid == 255 ? nullptr : g_Hi[tid]; const uint8_t* tp = nullptr; int lg = 10;
+        if (tid != 255) {
+            if (hi) { /* 細かい模様 (SD): 画面での大きさに合う段 (ミップ) を選ぶ = ちらつきを減らし、画質を上げる */
+                const int l0 = g_HiLg[tid]; const float t0 = static_cast<float>(1 << l0); float ua = ((u1 - u0) * (v2 - v0) - (u2 - u0) * (v1 - v0)) * t0 * t0; if (ua < 0.0f) ua = -ua;
+                const float ratio = ua * inv; int lv = 0; if (ratio > 1.0f) lv = static_cast<int>(0.5f * __builtin_log2f(ratio) + 0.35f);
+                if (lv > g_HiN[tid] - 1) lv = g_HiN[tid] - 1; if (lv < 0) lv = 0;
+                size_t off = 0; for (int k = 0; k < lv; k++) off += (static_cast<size_t>(1) << (2 * (l0 - k))) / 2u;
+                tp = hi + off; lg = l0 - lv;
+            } else { tp = kTp[tid]; lg = kLg[tid]; }
+        }
+        const float tsz = static_cast<float>(1 << lg);
         for (int y = by0; y <= by1; y++) {
             const float py = y + 0.5f;
             for (int x = bx0; x <= bx1; x++) {

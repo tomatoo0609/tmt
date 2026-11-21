@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     static std::vector<uint16_t> zb(hutao::kBudget); static std::vector<float> av(hutao::kNV * 3); static std::vector<int8_t> an(hutao::kNV * 3);
     hutao::g_Zp = zb.data(); hutao::g_AV = av.data(); hutao::g_AN = an.data();
     if (argc > 5) { const float ph = atof(argv[5]), run = argc > 6 ? atof(argv[6]) : 0.0f; /* 歩き/走り (run 0..1) */
-        float rn = run, mv = 1.0f; hutao::Pose(ph, mv * (0.40f + 0.20f * rn), mv * (0.7f + 1.0f * rn), mv * (0.28f + 0.25f * rn), 0.10f + mv * (0.08f + 1.30f * rn), mv * 0.04f + rn * 0.40f, mv * (0.10f + 0.20f * rn) * cosf(2 * ph), 0.80f - 0.04f * rn, rn * 0.50f, rn * 0.55f); }
+        float rn = run, mv = 1.0f; if (getenv("IDLE")) { hutao::Pose(0, 0, 0, 0, atof(getenv("EL")), 0, 0, atof(getenv("LOW")), atof(getenv("AB")), 0); } else hutao::Pose(ph, mv * (0.40f + 0.20f * rn), mv * (0.7f + 1.0f * rn), mv * (0.28f - 0.14f * rn), 0.10f + mv * (0.08f + 1.30f * rn), mv * 0.04f + rn * 0.40f, mv * (0.10f + 0.20f * rn) * cosf(2 * ph), atof(getenv("LOW")), rn * atof(getenv("AB")), rn * 0.55f); }
     int mx, my, w, h; hutao::Project(up, up / q, r, u, f, mx, my, w, h); fprintf(stderr, "%dx%d q=%d px=%d (budget %d)\n", w, h, q, w * h, hutao::kBudget);
     std::vector<uint32_t> buf(w * h);
     auto t0 = std::chrono::steady_clock::now();

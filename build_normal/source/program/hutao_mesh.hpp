@@ -20,10 +20,11 @@ inline M34 Id() { return { { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0 } }; }
 inline M34 Mul(const M34& B, const M34& A) { /* A を先に、B を後に */
     M34 o; for (int r = 0; r < 3; r++) { for (int c = 0; c < 3; c++) o.m[r * 4 + c] = B.m[r * 4] * A.m[c] + B.m[r * 4 + 1] * A.m[4 + c] + B.m[r * 4 + 2] * A.m[8 + c]; o.m[r * 4 + 3] = B.m[r * 4] * A.m[3] + B.m[r * 4 + 1] * A.m[7] + B.m[r * 4 + 2] * A.m[11] + B.m[r * 4 + 3]; } return o; }
 inline M34 RotX(float py, float pz, float th) { const float c = __builtin_cosf(th), s = __builtin_sinf(th); return { { 1, 0, 0, 0, 0, c, -s, py - c * py + s * pz, 0, s, c, pz - s * py - c * pz } }; }
+inline M34 RotY(float px, float pz, float th) { const float c = __builtin_cosf(th), s = __builtin_sinf(th); return { { c, 0, s, px - c * px - s * pz, 0, 1, 0, 0, -s, 0, c, pz + s * px - c * pz } }; }
 inline M34 RotZ(float px, float py, float ph) { const float c = __builtin_cosf(ph), s = __builtin_sinf(ph); return { { c, -s, 0, px - c * px + s * py, s, c, 0, py - s * px - c * py, 0, 0, 1, 0 } }; }
-inline void Pose(float ph, float amp, float knee, float arm, float elb, float lean, float bob, float low, float armBase, float hipBase) {
+inline void Pose(float ph, float amp, float knee, float arm, float elb, float lean, float bob, float low, float armBase, float hipBase, float cross) {
     if (!g_AV || !g_AN) { g_Anim = false; return; }
-    { static float lp[10] = { 1e9f }; const float np[10] = { ph, amp, knee, arm, elb, lean, bob, low, armBase, hipBase }; bool same = g_Anim; for (int i = 0; i < 10; i++) if (np[i] != lp[i]) same = false; if (same) return; for (int i = 0; i < 10; i++) lp[i] = np[i]; } /* 同じ姿ならやり直さない */
+    { static float lp[11] = { 1e9f }; const float np[11] = { ph, amp, knee, arm, elb, lean, bob, low, armBase, hipBase, cross }; bool same = g_Anim; for (int i = 0; i < 11; i++) if (np[i] != lp[i]) same = false; if (same) return; for (int i = 0; i < 11; i++) lp[i] = np[i]; } /* 同じ姿ならやり直さない */
     const float s = __builtin_sinf(ph), c = __builtin_cosf(ph);
     float px[9], py[9], pz[9]; for (int j = 1; j < 9; j++) { px[j] = kPiv[j * 3] * 0.001f; py[j] = kPiv[j * 3 + 1] * 0.001f - kCy; pz[j] = -kPiv[j * 3 + 2] * 0.001f; }
     M34 root = RotX(-kCy, 0.0f, lean); root.m[7] += bob;
@@ -40,8 +41,8 @@ inline void Pose(float ph, float amp, float knee, float arm, float elb, float le
     auto at = [&](const M34& m, int j, float* o) { o[0] = m.m[0] * px[j] + m.m[1] * py[j] + m.m[2] * pz[j] + m.m[3]; o[1] = m.m[4] * px[j] + m.m[5] * py[j] + m.m[6] * pz[j] + m.m[7]; o[2] = m.m[8] * px[j] + m.m[9] * py[j] + m.m[10] * pz[j] + m.m[11]; };
     float eL[3], eR[3]; at(lowL, 6, eL); at(lowR, 8, eR);
     M[5] = sL; M[7] = sR;
-    M[6] = Mul(root, Mul(RotX(py[5], pz[5], armL), Mul(RotX(eL[1], eL[2], el), lowL)));
-    M[8] = Mul(root, Mul(RotX(py[7], pz[7], armR), Mul(RotX(eR[1], eR[2], el), lowR)));
+    M[6] = Mul(root, Mul(RotX(py[5], pz[5], armL), Mul(RotY(eL[0], eL[2], cross), Mul(RotX(eL[1], eL[2], el), lowL))));
+    M[8] = Mul(root, Mul(RotX(py[7], pz[7], armR), Mul(RotY(eR[0], eR[2], -cross), Mul(RotX(eR[1], eR[2], el), lowR))));
     for (int i = 0; i < kNV; i++) {
         const float x = kV[i * 3] * 0.001f, y = kV[i * 3 + 1] * 0.001f - kCy, z = -kV[i * 3 + 2] * 0.001f;
         const float nxv = kNv[i * 3] * (1.0f / 127.0f), nyv = kNv[i * 3 + 1] * (1.0f / 127.0f), nzv = kNv[i * 3 + 2] * (1.0f / 127.0f);
@@ -83,8 +84,9 @@ inline uint32_t TexAt(const uint8_t* t, int lg, int x, int y) {
     return static_cast<uint32_t>(r) | (static_cast<uint32_t>(g) << 8) | (static_cast<uint32_t>(bl) << 16);
 }
 /* 2) 測った四角 (w x h <= kBudget) に描く。絵のない所は alpha 0。模様は 1 画素ずつ引き、明るさは頂点から混ぜる (面のつぎ目が見えない) */
-inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r, const float* u, const float* f) {
-    const int n = w * h; uint16_t* const g_z = g_Zp; for (int i = 0; i < n; i++) { out[i] = 0; g_z[i] = 0xFFFF; }
+inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r, const float* u, const float* f, int rlo = 0, int rhi = -1) {
+    if (rhi < 0) rhi = h; /* rlo〜rhi の行だけを描く (2 つの流れで上下を分けて描くため) */
+    uint16_t* const g_z = g_Zp; for (int i = rlo * w; i < rhi * w; i++) { out[i] = 0; g_z[i] = 0xFFFF; }
     const float ox = static_cast<float>(minx), oy = static_cast<float>(miny);
     const float lx = -0.35f * r[0] + 0.55f * u[0] - 0.76f * f[0], ly = -0.35f * r[1] + 0.55f * u[1] - 0.76f * f[1], lz = -0.35f * r[2] + 0.55f * u[2] - 0.76f * f[2];
     for (int i = 0; i < kNV; i++) { /* 頂点の明るさ */
@@ -119,7 +121,7 @@ inline void Draw(uint32_t* out, int w, int h, int minx, int miny, const float* r
         const float s0 = g_vs[a], s1 = g_vs[b], s2 = g_vs[c];
         int bx0 = static_cast<int>(x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2)), bx1 = static_cast<int>((x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2)) + 1.0f);
         int by0 = static_cast<int>(y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2)), by1 = static_cast<int>((y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2)) + 1.0f);
-        if (bx0 < 0) bx0 = 0; if (by0 < 0) by0 = 0; if (bx1 > w - 1) bx1 = w - 1; if (by1 > h - 1) by1 = h - 1; if (bx0 > bx1 || by0 > by1) continue;
+        if (bx0 < 0) bx0 = 0; if (by0 < rlo) by0 = rlo; if (bx1 > w - 1) bx1 = w - 1; if (by1 > rhi - 1) by1 = rhi - 1; if (bx0 > bx1 || by0 > by1) continue;
         const float inv = 1.0f / area; const uint8_t* hi = tid == 255 ? nullptr : g_Hi[tid]; const uint8_t* tp = nullptr; int lg = 10;
         if (tid != 255) {
             if (hi) { /* 細かい模様 (SD): 画面での大きさに合う段 (ミップ) を選ぶ = ちらつきを減らし、画質を上げる */
